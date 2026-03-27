@@ -77,10 +77,19 @@
 
 body {
   background: var(--bg-0);
+  background-image:
+    radial-gradient(circle at top, rgba(75, 158, 255, 0.08), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 22%);
   color: var(--text-primary);
   font-size: 13px;
   line-height: 1.5;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 /* Scrollbar */

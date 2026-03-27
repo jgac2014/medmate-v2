@@ -15,8 +15,15 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MedMate",
-  description: "Prontuário eletrônico para Médicos de Família e Comunidade",
+  title: "MedMate — Documente consultas no eSUS mais rápido",
+  description:
+    "Prontuário eletrônico para médicos de família. Consulta estruturada, cálculos automáticos e texto pronto para colar no eSUS PEC.",
+  openGraph: {
+    title: "MedMate — Documente consultas no eSUS mais rápido",
+    description:
+      "Estrutura clínica, cálculos automáticos e texto pronto para colar no eSUS PEC. Menos digitação, mais tempo com o paciente.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

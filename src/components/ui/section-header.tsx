@@ -16,7 +16,7 @@ interface SectionHeaderProps {
 
 export function SectionHeader({ label, color }: SectionHeaderProps) {
   return (
-    <div className="flex items-center gap-[7px] text-[10px] font-semibold tracking-[0.09em] uppercase text-text-secondary mb-[9px] pb-1.5 border-b border-border-subtle">
+    <div className="flex items-center gap-2 text-[10.5px] font-semibold tracking-[0.08em] uppercase text-text-secondary mb-3 pb-2 border-b border-border-subtle/90">
       <span
         className={`w-[3px] h-[14px] rounded-sm shrink-0 ${colorMap[color]}`}
       />
