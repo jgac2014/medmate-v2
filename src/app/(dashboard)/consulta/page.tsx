@@ -20,8 +20,8 @@ function WorkspacePanel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="min-h-0 rounded-2xl border border-white/6 bg-bg-1/88 shadow-[0_20px_40px_rgba(0,0,0,0.22)] backdrop-blur-sm overflow-hidden">
-      <div className="px-4 pt-4 pb-3 border-b border-border-subtle/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.015),transparent)]">
+    <section className="min-h-0 rounded-2xl border border-white/6 bg-bg-1/88 shadow-[0_20px_40px_rgba(0,0,0,0.22)] backdrop-blur-sm overflow-hidden flex flex-col">
+      <div className="shrink-0 px-4 pt-4 pb-3 border-b border-border-subtle/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.015),transparent)]">
         <p className="text-[12px] font-semibold tracking-[-0.01em] text-text-primary">
           {title}
         </p>
@@ -29,7 +29,7 @@ function WorkspacePanel({
           {description}
         </p>
       </div>
-      <div className="h-[calc(100%-62px)] overflow-y-auto px-4 py-4">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
         {children}
       </div>
     </section>
