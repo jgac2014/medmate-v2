@@ -108,5 +108,12 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
   setRequestedExams: (value) => set({ requestedExams: value }),
   setPatientInstructions: (value) => set({ patientInstructions: value }),
 
-  reset: () => set({ ...initialState, patient: { ...initialState.patient, consultationDate: todayISO() }, currentConsultationId: null, patientId: null, patientName: null }),
+  reset: () =>
+    set({
+      ...initialState,
+      patient: { ...initialState.patient, consultationDate: todayISO() },
+      currentConsultationId: null,
+      patientId: null,
+      patientName: null,
+    }),
 }));
