@@ -17,6 +17,7 @@ type ConsultationListItem = {
   date: string;
   patient_snapshot: { name?: string; age?: string } | null;
   problems: string[] | null;
+  patient_id: string | null;
 };
 
 export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
@@ -53,7 +54,7 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
     try {
       const { data, error } = await loadConsultation(id);
       if (error) throw error;
-      loadState(dbRecordToState(data), id);
+      loadState(dbRecordToState(data), id, data.patient_id ?? null);
       showToast("Consulta carregada", "success");
       onClose();
     } catch {
@@ -146,6 +147,12 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
                           <span className="text-text-tertiary"> +{extra}</span>
                         )}
                       </p>
+                    )}
+
+                    {!item.patient_id && (
+                      <span className="inline-block mt-1 text-[10px] text-text-tertiary border border-border-subtle rounded px-1.5 py-0.5">
+                        legado
+                      </span>
                     )}
 
                     {loadingId === item.id && (
