@@ -41,7 +41,9 @@ interface ConsultationActions {
   setPatientInstructions: (value: string) => void;
   currentConsultationId: string | null;
   setCurrentConsultationId: (id: string | null) => void;
-  loadState: (savedState: ConsultationState, id: string) => void;
+  patientId: string | null;
+  setPatientId: (id: string | null) => void;
+  loadState: (savedState: ConsultationState, id: string | null, patientId?: string | null) => void;
   reset: () => void;
 }
 
@@ -50,10 +52,13 @@ export type ConsultationStore = ConsultationState & ConsultationActions;
 export const useConsultationStore = create<ConsultationStore>((set) => ({
   ...initialState,
   currentConsultationId: null,
+  patientId: null,
 
   setCurrentConsultationId: (id) => set({ currentConsultationId: id }),
+  setPatientId: (id) => set({ patientId: id }),
 
-  loadState: (savedState, id) => set({ ...savedState, currentConsultationId: id }),
+  loadState: (savedState, id, patientId) =>
+    set({ ...savedState, currentConsultationId: id, patientId: patientId ?? null }),
 
 
   setPatient: (patient) =>
@@ -99,5 +104,5 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
   setRequestedExams: (value) => set({ requestedExams: value }),
   setPatientInstructions: (value) => set({ patientInstructions: value }),
 
-  reset: () => set({ ...initialState, patient: { ...initialState.patient, consultationDate: todayISO() }, currentConsultationId: null }),
+  reset: () => set({ ...initialState, patient: { ...initialState.patient, consultationDate: todayISO() }, currentConsultationId: null, patientId: null }),
 }));

@@ -95,3 +95,28 @@ export interface RefRule {
 }
 
 export type RefRuleMap = Record<string, RefRule | ((gender: Gender | "") => RefRule)>;
+
+export interface Patient {
+  id: string;
+  user_id: string;
+  name: string;
+  birth_date: string | null; // ISO date YYYY-MM-DD, nullable
+  gender: string | null;
+  race: string | null;
+  cpf: string | null;
+  phone: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type SnippetCategory = "orientacao" | "prescricao" | "conduta" | "exames";
+
+export interface UserSnippet {
+  id: string;
+  user_id: string;
+  category: SnippetCategory;
+  title: string;
+  body: string;
+  created_at: string;
+}

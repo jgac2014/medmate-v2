@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { generateEsusSummary } from "@/lib/esus-generator";
 import { copyToClipboard } from "@/lib/clipboard";
 import { showToast } from "@/components/ui/toast";
+import { SnippetPopover } from "@/components/consultation/snippet-popover";
 
 export function OutputColumn() {
   const store = useConsultationStore();
@@ -133,7 +134,17 @@ export function OutputColumn() {
       </div>
 
       <div className="mt-4">
-        <SectionHeader label="Prescrição" color="green" />
+        <div className="flex items-center justify-between">
+          <SectionHeader label="Prescrição" color="green" />
+          <SnippetPopover
+            category="prescricao"
+            onInsert={(text) =>
+              store.setPrescription(
+                store.prescription.trim() ? `${store.prescription.trim()}\n${text}` : text
+              )
+            }
+          />
+        </div>
         <textarea
           placeholder={"1. Metformina 850mg - 1cp 2x/dia\n2. Losartana 50mg - 1cp/dia"}
           value={store.prescription}
@@ -143,7 +154,17 @@ export function OutputColumn() {
       </div>
 
       <div className="mt-4">
-        <SectionHeader label="Exames a Solicitar" color="blue" />
+        <div className="flex items-center justify-between">
+          <SectionHeader label="Exames a Solicitar" color="blue" />
+          <SnippetPopover
+            category="exames"
+            onInsert={(text) =>
+              store.setRequestedExams(
+                store.requestedExams.trim() ? `${store.requestedExams.trim()}\n${text}` : text
+              )
+            }
+          />
+        </div>
         <textarea
           placeholder="HbA1c, lipidograma, TSH..."
           value={store.requestedExams}
@@ -153,7 +174,19 @@ export function OutputColumn() {
       </div>
 
       <div className="mt-4">
-        <SectionHeader label="Orientações ao Paciente" color="amber" />
+        <div className="flex items-center justify-between">
+          <SectionHeader label="Orientações ao Paciente" color="amber" />
+          <SnippetPopover
+            category="orientacao"
+            onInsert={(text) =>
+              store.setPatientInstructions(
+                store.patientInstructions.trim()
+                  ? `${store.patientInstructions.trim()}\n${text}`
+                  : text
+              )
+            }
+          />
+        </div>
         <textarea
           placeholder="Dieta hipossódica, atividade física 150min/semana..."
           value={store.patientInstructions}

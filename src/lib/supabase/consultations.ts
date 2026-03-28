@@ -30,12 +30,13 @@ export function dbRecordToState(record: any): ConsultationState {
   };
 }
 
-export async function saveConsultation(userId: string, state: ConsultationState, consultationId?: string) {
+export async function saveConsultation(userId: string, state: ConsultationState, consultationId?: string, patientId?: string | null) {
   const supabase = createClient();
   const esusSummary = generateEsusSummary(state);
 
   const data = {
     user_id: userId,
+    patient_id: patientId ?? null,
     date: state.patient.consultationDate || new Date().toISOString().split("T")[0],
     patient_snapshot: state.patient,
     vitals: state.vitals,
@@ -74,7 +75,7 @@ export async function listConsultations(userId: string) {
   const supabase = createClient();
   return supabase
     .from("consultations")
-    .select("id, date, created_at, problems, vitals, patient_snapshot")
+    .select("id, date, created_at, problems, vitals, patient_snapshot, patient_id")
     .eq("user_id", userId)
     .order("date", { ascending: false })
     .limit(50);

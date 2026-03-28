@@ -9,6 +9,9 @@ import { showToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 import { saveConsultation } from "@/lib/supabase/consultations";
 import { HistoryPanel } from "@/components/consultation/history-panel";
+import { PatientSelector } from "@/components/consultation/patient-selector";
+import { TemplateSelector } from "@/components/consultation/template-selector";
+import type { Patient } from "@/types";
 
 const SUBSCRIPTION_META = {
   active: {
@@ -30,10 +33,12 @@ const SUBSCRIPTION_META = {
 } as const;
 
 export function Topbar() {
-  const { reset, currentConsultationId, setCurrentConsultationId } = useConsultationStore();
+  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient } = useConsultationStore();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [patientSelectorOpen, setPatientSelectorOpen] = useState(false);
+  const [templateSelectorOpen, setTemplateSelectorOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -106,7 +111,8 @@ export function Topbar() {
       const { data, error } = await saveConsultation(
         userId,
         state,
-        currentConsultationId ?? undefined
+        currentConsultationId ?? undefined,
+        state.patientId
       );
 
       if (error) throw error;
@@ -121,6 +127,29 @@ export function Topbar() {
     } finally {
       setSaveLoading(false);
     }
+  }
+
+  function handlePatientSelected(patient: Patient) {
+    reset();
+    setPatientId(patient.id);
+    const age = patient.birth_date
+      ? (() => {
+          const today = new Date();
+          const birth = new Date(patient.birth_date!);
+          let a = today.getFullYear() - birth.getFullYear();
+          const m = today.getMonth() - birth.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--;
+          return `${a} anos`;
+        })()
+      : "";
+    setPatient({
+      name: patient.name,
+      age,
+      gender: (patient.gender as "Masculino" | "Feminino" | "Outro" | "") ?? "",
+      race: (patient.race as "Branco" | "Pardo" | "Preto" | "Amarelo" | "Indígena" | "") ?? "",
+    });
+    setPatientSelectorOpen(false);
+    showToast(`Nova consulta — ${patient.name}`, "info");
   }
 
   async function handleLogout() {
@@ -146,6 +175,15 @@ export function Topbar() {
   return (
     <>
       <HistoryPanel open={historyOpen} onClose={() => setHistoryOpen(false)} />
+      <PatientSelector
+        open={patientSelectorOpen}
+        onSelect={handlePatientSelected}
+        onClose={() => setPatientSelectorOpen(false)}
+      />
+      <TemplateSelector
+        open={templateSelectorOpen}
+        onClose={() => setTemplateSelectorOpen(false)}
+      />
 
       <div className="sticky top-0 z-30 border-b border-white/5 bg-bg-1/88 backdrop-blur-xl shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
         <div className="flex items-center justify-between px-5 h-14">
@@ -196,13 +234,17 @@ export function Topbar() {
               Histórico
             </button>
 
+            <button
+              onClick={() => setTemplateSelectorOpen(true)}
+              className="h-[32px] px-3 rounded-md text-[12px] font-medium border border-border-subtle text-text-secondary bg-transparent hover:bg-bg-2 hover:text-text-primary hover:border-border-default transition-colors cursor-pointer"
+            >
+              Template
+            </button>
+
             <Button
               variant="secondary"
               className="h-[32px] px-3 text-[12px]"
-              onClick={() => {
-                reset();
-                showToast("Nova consulta", "info");
-              }}
+              onClick={() => setPatientSelectorOpen(true)}
             >
               Nova consulta
             </Button>
