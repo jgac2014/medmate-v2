@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { PatientInfo } from "@/components/consultation/patient-info";
 import { ProblemList } from "@/components/consultation/problem-list";
 import { VitalsForm } from "@/components/consultation/vitals-form";
@@ -9,6 +11,8 @@ import { ClinicalSummary } from "@/components/consultation/clinical-summary";
 import { SoapForm } from "@/components/consultation/soap-form";
 import { HistoryForm } from "@/components/consultation/history-form";
 import { OutputColumn } from "@/components/consultation/output-column";
+import { DraftRecoveryBanner } from "@/components/consultation/draft-recovery-banner";
+import { useDraftAutosave } from "@/hooks/useDraftAutosave";
 
 function WorkspacePanel({
   title,
@@ -37,8 +41,19 @@ function WorkspacePanel({
 }
 
 export default function ConsultaPage() {
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id);
+    });
+  }, []);
+
+  useDraftAutosave(userId);
+
   return (
     <div className="h-[calc(100vh-56px)] overflow-x-auto">
+      <DraftRecoveryBanner />
       <div className="min-w-[1360px] h-full p-4">
         <div className="grid grid-cols-[220px_minmax(420px,1fr)_285px_320px] h-full gap-3">
           <WorkspacePanel
