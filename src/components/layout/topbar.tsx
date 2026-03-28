@@ -33,7 +33,7 @@ const SUBSCRIPTION_META = {
 } as const;
 
 export function Topbar() {
-  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient } = useConsultationStore();
+  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient, setPatientName, patientName } = useConsultationStore();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -132,6 +132,7 @@ export function Topbar() {
   function handlePatientSelected(patient: Patient) {
     reset();
     setPatientId(patient.id);
+    setPatientName(patient.name);
     const age = patient.birth_date
       ? (() => {
           const today = new Date();
@@ -240,6 +241,13 @@ export function Topbar() {
             >
               Template
             </button>
+
+            {patientName && (
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-bg-2 rounded-full border border-border-subtle max-w-[180px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+                <span className="text-[11px] text-text-primary truncate font-medium">{patientName}</span>
+              </div>
+            )}
 
             <Button
               variant="secondary"
