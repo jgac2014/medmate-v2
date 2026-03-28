@@ -43,7 +43,7 @@ export default function ConsultaPage() {
         <div className="grid grid-cols-[220px_minmax(420px,1fr)_285px_320px] h-full gap-3">
           <WorkspacePanel
             title="Paciente e triagem"
-            description="IdentificaÃ§Ã£o, problemas ativos, vitais e prevenÃ§Ãµes relevantes para a consulta."
+            description="Identificação, problemas ativos, vitais e prevenções relevantes para a consulta."
           >
             <PatientInfo />
             <hr className="border-0 border-t border-border-subtle my-4" />
@@ -55,15 +55,15 @@ export default function ConsultaPage() {
           </WorkspacePanel>
 
           <WorkspacePanel
-            title="Exames e apoio diagnÃ³stico"
-            description="Resultados laboratoriais, imagens e cÃ¡lculos automÃ¡ticos organizados em um bloco central."
+            title="Exames e apoio diagnóstico"
+            description="Resultados laboratoriais, imagens e cálculos automáticos organizados em um bloco central."
           >
             <ExamGrid />
           </WorkspacePanel>
 
           <WorkspacePanel
-            title="Leitura clÃ­nica"
-            description="Resumo sintÃ©tico da consulta, SOAP e antecedentes no mesmo fluxo de raciocÃ­nio."
+            title="Leitura clínica"
+            description="Resumo sintético da consulta, SOAP e antecedentes no mesmo fluxo de raciocínio."
           >
             <ClinicalSummary />
             <hr className="border-0 border-t border-border-subtle my-4" />
@@ -73,8 +73,8 @@ export default function ConsultaPage() {
           </WorkspacePanel>
 
           <WorkspacePanel
-            title="SaÃ­da e documentaÃ§Ã£o"
-            description="Resumo para eSUS, editor livre, prescriÃ§Ã£o e orientaÃ§Ãµes finais para a consulta."
+            title="Saída e documentação"
+            description="Resumo para eSUS, editor livre, prescrição e orientações finais para a consulta."
           >
             <OutputColumn />
           </WorkspacePanel>
