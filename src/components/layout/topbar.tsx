@@ -106,7 +106,8 @@ export function Topbar() {
       const { data, error } = await saveConsultation(
         userId,
         state,
-        currentConsultationId ?? undefined
+        currentConsultationId ?? undefined,
+        state.patientId
       );
 
       if (error) throw error;
