@@ -9,6 +9,8 @@ import { showToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 import { saveConsultation } from "@/lib/supabase/consultations";
 import { HistoryPanel } from "@/components/consultation/history-panel";
+import { PatientSelector } from "@/components/consultation/patient-selector";
+import type { Patient } from "@/types";
 
 const SUBSCRIPTION_META = {
   active: {
@@ -30,10 +32,11 @@ const SUBSCRIPTION_META = {
 } as const;
 
 export function Topbar() {
-  const { reset, currentConsultationId, setCurrentConsultationId } = useConsultationStore();
+  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient } = useConsultationStore();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [patientSelectorOpen, setPatientSelectorOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -124,6 +127,29 @@ export function Topbar() {
     }
   }
 
+  function handlePatientSelected(patient: Patient) {
+    reset();
+    setPatientId(patient.id);
+    const age = patient.birth_date
+      ? (() => {
+          const today = new Date();
+          const birth = new Date(patient.birth_date!);
+          let a = today.getFullYear() - birth.getFullYear();
+          const m = today.getMonth() - birth.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--;
+          return `${a} anos`;
+        })()
+      : "";
+    setPatient({
+      name: patient.name,
+      age,
+      gender: (patient.gender as "Masculino" | "Feminino" | "Outro" | "") ?? "",
+      race: (patient.race as "Branco" | "Pardo" | "Preto" | "Amarelo" | "Indígena" | "") ?? "",
+    });
+    setPatientSelectorOpen(false);
+    showToast(`Nova consulta — ${patient.name}`, "info");
+  }
+
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -147,6 +173,11 @@ export function Topbar() {
   return (
     <>
       <HistoryPanel open={historyOpen} onClose={() => setHistoryOpen(false)} />
+      <PatientSelector
+        open={patientSelectorOpen}
+        onSelect={handlePatientSelected}
+        onClose={() => setPatientSelectorOpen(false)}
+      />
 
       <div className="sticky top-0 z-30 border-b border-white/5 bg-bg-1/88 backdrop-blur-xl shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
         <div className="flex items-center justify-between px-5 h-14">
@@ -200,10 +231,7 @@ export function Topbar() {
             <Button
               variant="secondary"
               className="h-[32px] px-3 text-[12px]"
-              onClick={() => {
-                reset();
-                showToast("Nova consulta", "info");
-              }}
+              onClick={() => setPatientSelectorOpen(true)}
             >
               Nova consulta
             </Button>
