@@ -24,7 +24,8 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
   const [items, setItems] = useState<ConsultationListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const { loadState, currentConsultationId } = useConsultationStore();
+  const [pendingLoadId, setPendingLoadId] = useState<string | null>(null);
+  const { loadState, currentConsultationId, setPatientName } = useConsultationStore();
 
   const fetchHistory = useCallback(async () => {
     setLoading(true);
@@ -49,12 +50,13 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
     if (open) fetchHistory();
   }, [open, fetchHistory]);
 
-  async function handleLoad(id: string) {
+  async function doLoad(id: string) {
     setLoadingId(id);
     try {
       const { data, error } = await loadConsultation(id);
       if (error) throw error;
       loadState(dbRecordToState(data), id, data.patient_id ?? null);
+      setPatientName(data.patient_snapshot?.name ?? null);
       showToast("Consulta carregada", "success");
       onClose();
     } catch {
@@ -62,6 +64,14 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
     } finally {
       setLoadingId(null);
     }
+  }
+
+  function handleLoad(id: string) {
+    if (currentConsultationId && currentConsultationId !== id) {
+      setPendingLoadId(id);
+      return;
+    }
+    doLoad(id);
   }
 
   return (
@@ -73,6 +83,35 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
         }`}
         onClick={onClose}
       />
+
+      {pendingLoadId && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
+          <div className="bg-bg-1 border border-border-subtle rounded-xl p-5 max-w-[320px] w-full mx-4 shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+            <p className="text-[13px] font-semibold text-text-primary mb-1">Substituir consulta atual?</p>
+            <p className="text-[12px] text-text-secondary leading-relaxed mb-4">
+              A consulta em edição será substituída. Salve antes se quiser preservá-la.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setPendingLoadId(null)}
+                className="px-3 py-1.5 text-[12px] text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  const id = pendingLoadId;
+                  setPendingLoadId(null);
+                  doLoad(id);
+                }}
+                className="px-3 py-1.5 text-[12px] bg-status-crit/15 border border-status-crit/25 text-status-crit hover:bg-status-crit/25 rounded-lg transition-colors cursor-pointer"
+              >
+                Substituir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sliding panel */}
       <div
