@@ -19,7 +19,7 @@ export function DraftRecoveryBanner() {
   const [userId, setUserId] = useState<string | null>(null);
   const [draftTime, setDraftTime] = useState<string | null>(null);
   const [draftData, setDraftData] = useState<ConsultationState | null>(null);
-  const { currentConsultationId, loadState } = useConsultationStore();
+  const { currentConsultationId, loadState, setPatientName } = useConsultationStore();
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
@@ -52,6 +52,7 @@ export function DraftRecoveryBanner() {
   function handleContinue() {
     if (!draftData) return;
     loadState(draftData, null, null);
+    setPatientName(null);
     showToast("Rascunho recuperado", "success");
     setDraftTime(null);
     setDraftData(null);
