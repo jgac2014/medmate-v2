@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { ConsultationState, PatientInfo, Vitals, SoapNotes, History, ImagingData, Calculations } from "@/types";
+import type { ConsultationState, PatientInfo, Vitals, SoapNotes, History, ImagingData, Calculations, FollowUpItem } from "@/types";
 
 function todayISO(): string {
   return new Date().toISOString().split("T")[0];
@@ -22,6 +22,7 @@ const initialState: ConsultationState = {
   prescription: "",
   requestedExams: "",
   patientInstructions: "",
+  followupItems: [],
 };
 
 interface ConsultationActions {
@@ -45,6 +46,10 @@ interface ConsultationActions {
   setPatientId: (id: string | null) => void;
   patientName: string | null;
   setPatientName: (name: string | null) => void;
+  addFollowupItem: (text: string) => void;
+  toggleFollowupItem: (id: string) => void;
+  removeFollowupItem: (id: string) => void;
+  setFollowupItems: (items: FollowUpItem[]) => void;
   loadState: (savedState: ConsultationState, id: string | null, patientId?: string | null) => void;
   reset: () => void;
 }
@@ -60,6 +65,28 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
   setCurrentConsultationId: (id) => set({ currentConsultationId: id }),
   setPatientId: (id) => set({ patientId: id }),
   setPatientName: (name) => set({ patientName: name }),
+
+  addFollowupItem: (text) =>
+    set((state) => ({
+      followupItems: [
+        ...state.followupItems,
+        { id: crypto.randomUUID(), text, completed: false, createdAt: new Date().toISOString() },
+      ],
+    })),
+
+  toggleFollowupItem: (id) =>
+    set((state) => ({
+      followupItems: state.followupItems.map((item) =>
+        item.id === id ? { ...item, completed: !item.completed } : item
+      ),
+    })),
+
+  removeFollowupItem: (id) =>
+    set((state) => ({
+      followupItems: state.followupItems.filter((item) => item.id !== id),
+    })),
+
+  setFollowupItems: (items) => set({ followupItems: items }),
 
   loadState: (savedState, id, patientId) =>
     set({ ...savedState, currentConsultationId: id, patientId: patientId ?? null }),

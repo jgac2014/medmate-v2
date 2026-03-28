@@ -27,6 +27,7 @@ export function dbRecordToState(record: any): ConsultationState {
     prescription: record.prescription ?? "",
     requestedExams: record.requested_exams ?? "",
     patientInstructions: record.patient_instructions ?? "",
+    followupItems: record.followup_items ?? [],
   };
 }
 

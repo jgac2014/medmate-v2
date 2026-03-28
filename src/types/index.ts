@@ -69,6 +69,7 @@ export interface ConsultationState {
   prescription: string;
   requestedExams: string;
   patientInstructions: string;
+  followupItems: FollowUpItem[];
 }
 
 export interface ExamFieldDef {
@@ -108,6 +109,13 @@ export interface Patient {
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface FollowUpItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  createdAt: string;
 }
 
 export type SnippetCategory = "orientacao" | "prescricao" | "conduta" | "exames";
