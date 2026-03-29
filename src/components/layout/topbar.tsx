@@ -14,6 +14,7 @@ import { PROBLEMS } from "@/lib/constants";
 import { HistoryPanel } from "@/components/consultation/history-panel";
 import { PatientSelector } from "@/components/consultation/patient-selector";
 import { TemplateSelector } from "@/components/consultation/template-selector";
+import { PatientDashboard } from "@/components/consultation/patient-dashboard";
 import type { Patient } from "@/types";
 
 const SUBSCRIPTION_META = {
@@ -42,6 +43,7 @@ export function Topbar() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [patientSelectorOpen, setPatientSelectorOpen] = useState(false);
   const [templateSelectorOpen, setTemplateSelectorOpen] = useState(false);
+  const [dashboardOpen, setDashboardOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -229,6 +231,10 @@ export function Topbar() {
         open={templateSelectorOpen}
         onClose={() => setTemplateSelectorOpen(false)}
       />
+      <PatientDashboard
+        open={dashboardOpen}
+        onClose={() => setDashboardOpen(false)}
+      />
 
       <div className="sticky top-0 z-30 border-b border-white/5 bg-bg-1/88 backdrop-blur-xl shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
         <div className="flex items-center justify-between px-5 h-14">
@@ -285,6 +291,15 @@ export function Topbar() {
             >
               Template
             </button>
+
+            {patientName && (
+              <button
+                onClick={() => setDashboardOpen(true)}
+                className="h-[32px] px-3 rounded-md text-[12px] font-medium border border-accent/20 text-accent bg-accent/5 hover:bg-accent/10 hover:border-accent/30 transition-colors cursor-pointer"
+              >
+                Prontuário
+              </button>
+            )}
 
             {patientName && (
               <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-bg-2 rounded-full border border-border-subtle max-w-[180px]">
