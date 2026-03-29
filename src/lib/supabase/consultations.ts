@@ -83,6 +83,32 @@ export async function listConsultations(userId: string) {
     .limit(50);
 }
 
+export async function searchConsultations(
+  userId: string,
+  query: string,
+  dateFrom?: string,
+  dateTo?: string
+) {
+  const supabase = createClient();
+  let q = supabase
+    .from("consultations")
+    .select("id, date, created_at, problems, vitals, patient_snapshot, patient_id")
+    .eq("user_id", userId)
+    .order("date", { ascending: false })
+    .limit(50);
+
+  if (dateFrom) q = q.gte("date", dateFrom);
+  if (dateTo) q = q.lte("date", dateTo);
+
+  if (query.trim()) {
+    q = q.or(
+      `patient_snapshot->>name.ilike.%${query}%,assessment.ilike.%${query}%,problems_other.ilike.%${query}%,prescription.ilike.%${query}%`
+    );
+  }
+
+  return q;
+}
+
 export async function listConsultationsByPatient(patientId: string) {
   const supabase = createClient();
   return supabase
