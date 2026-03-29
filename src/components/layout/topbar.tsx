@@ -8,6 +8,7 @@ import { useConsultationStore } from "@/stores/consultation-store";
 import { showToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 import { saveConsultation } from "@/lib/supabase/consultations";
+import { getFollowupFromLastConsultation } from "@/lib/supabase/followup";
 import { HistoryPanel } from "@/components/consultation/history-panel";
 import { PatientSelector } from "@/components/consultation/patient-selector";
 import { TemplateSelector } from "@/components/consultation/template-selector";
@@ -33,7 +34,7 @@ const SUBSCRIPTION_META = {
 } as const;
 
 export function Topbar() {
-  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient, setPatientName, patientName } = useConsultationStore();
+  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient, setPatientName, patientName, setFollowupItems } = useConsultationStore();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -133,6 +134,12 @@ export function Topbar() {
     reset();
     setPatientId(patient.id);
     setPatientName(patient.name);
+    // Carregar pendências da última consulta deste paciente
+    if (userId) {
+      getFollowupFromLastConsultation(userId, patient.id).then((items) => {
+        if (items.length > 0) setFollowupItems(items);
+      });
+    }
     const age = patient.birth_date
       ? (() => {
           const today = new Date();

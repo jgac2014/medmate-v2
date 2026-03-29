@@ -6,6 +6,7 @@ import { PatientInfo } from "@/components/consultation/patient-info";
 import { ProblemList } from "@/components/consultation/problem-list";
 import { VitalsForm } from "@/components/consultation/vitals-form";
 import { PreventionList } from "@/components/consultation/prevention-list";
+import { FollowupPanel } from "@/components/consultation/followup-panel";
 import { ExamGrid } from "@/components/consultation/exam-grid";
 import { ClinicalSummary } from "@/components/consultation/clinical-summary";
 import { SoapForm } from "@/components/consultation/soap-form";
@@ -67,6 +68,8 @@ export default function ConsultaPage() {
             <VitalsForm />
             <hr className="border-0 border-t border-border-subtle my-4" />
             <PreventionList />
+            <hr className="border-0 border-t border-border-subtle my-4" />
+            <FollowupPanel />
           </WorkspacePanel>
 
           <WorkspacePanel
