@@ -128,3 +128,14 @@ export interface UserSnippet {
   body: string;
   created_at: string;
 }
+
+export interface PatientProblem {
+  id: string;
+  patient_id: string;
+  user_id: string;
+  problem_text: string;
+  active: boolean;
+  created_at: string;
+  resolved_at: string | null;
+}
+
