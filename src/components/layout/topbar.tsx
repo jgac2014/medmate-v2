@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { BRAND } from "@/lib/branding";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { HistoryPanel } from "@/components/consultation/history-panel";
 import { PatientSelector } from "@/components/consultation/patient-selector";
 import { TemplateSelector } from "@/components/consultation/template-selector";
 import { PatientDashboard } from "@/components/consultation/patient-dashboard";
+import { useHotkeys } from "@/hooks/useHotkeys";
 import type { Patient } from "@/types";
 
 const SUBSCRIPTION_META = {
@@ -87,6 +88,19 @@ export function Topbar() {
     if (menuOpen) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [menuOpen]);
+
+  const hotkeyMap = useMemo(
+    () => ({
+      "mod+s": () => handleSave(),
+      "mod+n": () => setPatientSelectorOpen(true),
+      "mod+h": () => setHistoryOpen((v) => !v),
+      "mod+p": () => { if (patientName) setDashboardOpen((v) => !v); },
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [userId, patientName]
+  );
+
+  useHotkeys(hotkeyMap);
 
   async function handleCheckout() {
     setCheckoutLoading(true);
