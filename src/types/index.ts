@@ -153,3 +153,5 @@ export interface ClinicalRule {
   condition: (p: PatientRuleInput) => boolean;
 }
 
+export type OutputMode = "esus" | "resumido" | "detalhado";
+
