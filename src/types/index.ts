@@ -139,3 +139,17 @@ export interface PatientProblem {
   resolved_at: string | null;
 }
 
+export interface PatientRuleInput {
+  age: number | null;   // null se não informado
+  gender: string;       // "Masculino" | "Feminino" | "Outro" | ""
+  problems: string[];
+  preventions: string[];
+}
+
+export interface ClinicalRule {
+  id: string;
+  preventionLabel: string;  // deve ser exatamente igual a um item de PREVENTIONS
+  description: string;      // texto exibido ao médico (ex: "A cada 2 anos — MS/INCA 2025")
+  condition: (p: PatientRuleInput) => boolean;
+}
+
