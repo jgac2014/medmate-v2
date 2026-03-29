@@ -5,29 +5,39 @@ import { useConsultationStore } from "@/stores/consultation-store";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Button } from "@/components/ui/button";
 import { generateEsusSummary } from "@/lib/esus-generator";
+import { generateResumoOutput, generateDetalhadoOutput } from "@/lib/output-generators";
 import { copyToClipboard } from "@/lib/clipboard";
 import { showToast } from "@/components/ui/toast";
 import { SnippetPopover } from "@/components/consultation/snippet-popover";
+import type { OutputMode, ConsultationState } from "@/types";
+
+function getOutput(state: ConsultationState, mode: OutputMode): string {
+  if (mode === "resumido") return generateResumoOutput(state);
+  if (mode === "detalhado") return generateDetalhadoOutput(state);
+  return generateEsusSummary(state);
+}
 
 export function OutputColumn() {
   const store = useConsultationStore();
+  const [outputMode, setOutputMode] = useState<OutputMode>("esus");
   const [summary, setSummary] = useState(() =>
-    generateEsusSummary(useConsultationStore.getState())
+    getOutput(useConsultationStore.getState(), "esus")
   );
   const [copied, setCopied] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const modeRef = useRef<OutputMode>("esus");
 
-  const generateSummary = useCallback(() => {
-    const state = useConsultationStore.getState();
-    return generateEsusSummary(state);
-  }, []);
+  useEffect(() => {
+    modeRef.current = outputMode;
+    setSummary(getOutput(useConsultationStore.getState(), outputMode));
+  }, [outputMode]);
 
   useEffect(() => {
     const unsub = useConsultationStore.subscribe(() => {
       clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        setSummary(generateSummary());
+        setSummary(getOutput(useConsultationStore.getState(), modeRef.current));
       }, 300);
     });
 
@@ -35,7 +45,7 @@ export function OutputColumn() {
       unsub();
       clearTimeout(debounceRef.current);
     };
-  }, [generateSummary]);
+  }, []);
 
   const hasSummary = summary.trim().length > 0;
 
@@ -66,9 +76,38 @@ export function OutputColumn() {
     }
   };
 
+  const modeLabels: Record<OutputMode, string> = {
+    esus: "eSUS",
+    resumido: "Resumido",
+    detalhado: "Detalhado",
+  };
+
+  const sectionLabel =
+    outputMode === "resumido"
+      ? "Resumo Rápido"
+      : outputMode === "detalhado"
+      ? "Prontuário Completo"
+      : "Resumo eSUS PEC";
+
   return (
     <div>
-      <SectionHeader label="Resumo eSUS PEC" color="cyan" />
+      <div className="flex gap-1 mb-3">
+        {(["esus", "resumido", "detalhado"] as OutputMode[]).map((mode) => (
+          <button
+            key={mode}
+            onClick={() => setOutputMode(mode)}
+            className={`px-2.5 py-1 text-[11px] rounded-md border transition-colors cursor-pointer ${
+              outputMode === mode
+                ? "bg-accent/15 border-accent/30 text-accent font-medium"
+                : "bg-transparent border-border-subtle text-text-tertiary hover:text-text-secondary"
+            }`}
+          >
+            {modeLabels[mode]}
+          </button>
+        ))}
+      </div>
+
+      <SectionHeader label={sectionLabel} color="cyan" />
       {hasSummary ? (
         <pre className="bg-bg-1 border border-border-subtle border-l-[3px] border-l-[rgba(34,211,238,0.35)] rounded-xl p-3 font-mono text-[10.5px] leading-[1.9] text-text-primary min-h-[240px] whitespace-pre-wrap break-words mb-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
           {summary}
@@ -76,7 +115,7 @@ export function OutputColumn() {
       ) : (
         <div className="bg-bg-1 border border-dashed border-border-default rounded-xl p-3 min-h-[240px] mb-1 flex flex-col justify-center">
           <p className="text-[12px] font-medium text-text-primary mb-1.5">
-            O texto para o eSUS será montado automaticamente.
+            O texto será montado automaticamente.
           </p>
           <p className="text-[11px] text-text-secondary leading-relaxed mb-3">
             Este painel organiza a consulta para copiar e colar com menos retrabalho no PEC.
@@ -97,7 +136,7 @@ export function OutputColumn() {
             : "border-border-default text-text-secondary hover:bg-bg-3 hover:text-text-primary hover:border-text-tertiary"
         } disabled:cursor-not-allowed disabled:opacity-50`}
       >
-        {copied ? "Copiado!" : "Copiar para eSUS"}
+        {copied ? "Copiado!" : `Copiar — ${modeLabels[outputMode]}`}
       </button>
 
       <div className="mt-4">
