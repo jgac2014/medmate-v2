@@ -136,8 +136,11 @@ export function Topbar() {
     setPatientName(patient.name);
     // Carregar pendências da última consulta deste paciente
     if (userId) {
-      getFollowupFromLastConsultation(userId, patient.id).then((items) => {
-        if (items.length > 0) setFollowupItems(items);
+      const selectedPatientId = patient.id;
+      getFollowupFromLastConsultation(userId, patient.id, currentConsultationId ?? undefined).then((items) => {
+        if (useConsultationStore.getState().patientId === selectedPatientId && items.length > 0) {
+          setFollowupItems(items);
+        }
       });
     }
     const age = patient.birth_date
