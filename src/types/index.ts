@@ -153,5 +153,16 @@ export interface ClinicalRule {
   condition: (p: PatientRuleInput) => boolean;
 }
 
+export interface PatientMedication {
+  id: string;
+  patient_id: string;
+  user_id: string;
+  medication_name: string;
+  dosage: string;
+  active: boolean;
+  created_at: string;
+  discontinued_at: string | null;
+}
+
 export type OutputMode = "esus" | "resumido" | "detalhado";
 
