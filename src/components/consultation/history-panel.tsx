@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { listConsultations, loadConsultation, dbRecordToState } from "@/lib/supabase/consultations";
+import { listConsultations, searchConsultations, loadConsultation, dbRecordToState } from "@/lib/supabase/consultations";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { showToast } from "@/components/ui/toast";
 import { formatDateBR } from "@/lib/utils";
@@ -25,6 +25,10 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
   const [loading, setLoading] = useState(false);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [pendingLoadId, setPendingLoadId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { loadState, currentConsultationId, setPatientName } = useConsultationStore();
 
   const fetchHistory = useCallback(async () => {
@@ -36,7 +40,10 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await listConsultations(user.id);
+      const hasFilters = searchQuery.trim() || dateFrom || dateTo;
+      const { data, error } = hasFilters
+        ? await searchConsultations(user.id, searchQuery, dateFrom || undefined, dateTo || undefined)
+        : await listConsultations(user.id);
       if (error) throw error;
       setItems((data as ConsultationListItem[]) ?? []);
     } catch {
@@ -44,11 +51,21 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [searchQuery, dateFrom, dateTo]);
 
   useEffect(() => {
     if (open) fetchHistory();
   }, [open, fetchHistory]);
+
+  useEffect(() => {
+    if (!open) return;
+    clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      fetchHistory();
+    }, 300);
+    return () => clearTimeout(searchTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, dateFrom, dateTo]);
 
   async function doLoad(id: string) {
     setLoadingId(id);
@@ -133,6 +150,33 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
           >
             ×
           </button>
+        </div>
+
+        {/* Search */}
+        <div className="px-3 py-2 border-b border-border-subtle/60 space-y-1.5">
+          <input
+            type="text"
+            placeholder="Buscar paciente, problema, texto..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-8 px-2.5 text-[12px] border border-border-subtle rounded-md bg-bg-2 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent"
+          />
+          <div className="flex gap-1.5">
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="flex-1 h-7 px-2 text-[11px] border border-border-subtle rounded-md bg-bg-2 text-text-secondary focus:outline-none focus:border-accent"
+              title="Data inicial"
+            />
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="flex-1 h-7 px-2 text-[11px] border border-border-subtle rounded-md bg-bg-2 text-text-secondary focus:outline-none focus:border-accent"
+              title="Data final"
+            />
+          </div>
         </div>
 
         {/* List */}
