@@ -9,6 +9,8 @@ import { showToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 import { saveConsultation } from "@/lib/supabase/consultations";
 import { getFollowupFromLastConsultation } from "@/lib/supabase/followup";
+import { getPatientProblems, upsertPatientProblems } from "@/lib/supabase/patient-problems";
+import { PROBLEMS } from "@/lib/constants";
 import { HistoryPanel } from "@/components/consultation/history-panel";
 import { PatientSelector } from "@/components/consultation/patient-selector";
 import { TemplateSelector } from "@/components/consultation/template-selector";
@@ -34,7 +36,7 @@ const SUBSCRIPTION_META = {
 } as const;
 
 export function Topbar() {
-  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient, setPatientName, patientName, setFollowupItems } = useConsultationStore();
+  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient, setPatientName, patientName, setFollowupItems, toggleProblem, setProblemsOther } = useConsultationStore();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -142,6 +144,23 @@ export function Topbar() {
       getFollowupFromLastConsultation(userId, patient.id, excludeId).then((items) => {
         if (useConsultationStore.getState().patientId === selectedPatientId && items.length > 0) {
           setFollowupItems(items);
+        }
+      });
+      // Pré-marcar problemas ativos do paciente
+      getPatientProblems(patient.id).then((activeProblems) => {
+        const knownSet = new Set<string>(PROBLEMS);
+        const freeProblems: string[] = [];
+
+        activeProblems.forEach((p) => {
+          if (knownSet.has(p)) {
+            useConsultationStore.getState().toggleProblem(p);
+          } else {
+            freeProblems.push(p);
+          }
+        });
+
+        if (freeProblems.length > 0) {
+          setProblemsOther(freeProblems.join(", "));
         }
       });
     }
