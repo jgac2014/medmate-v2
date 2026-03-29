@@ -5,6 +5,8 @@ import { listConsultationsByPatient } from "@/lib/supabase/consultations";
 import { getPatientProblems } from "@/lib/supabase/patient-problems";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { formatDateBR } from "@/lib/utils";
+import { Sparkline } from "@/components/ui/sparkline";
+import { buildTrendSeries } from "@/lib/trend-data";
 
 interface PatientDashboardProps {
   open: boolean;
@@ -48,6 +50,8 @@ export function PatientDashboard({ open, onClose }: PatientDashboardProps) {
   useEffect(() => {
     if (open && patientId) fetchData();
   }, [open, patientId, fetchData]);
+
+  const trends = buildTrendSeries(consultations);
 
   if (!patientId) return null;
 
@@ -121,6 +125,26 @@ export function PatientDashboard({ open, onClose }: PatientDashboardProps) {
                   {consultations.length}
                 </p>
               </section>
+
+              {/* Tendências */}
+              {trends.length > 0 && (
+                <section className="mb-5">
+                  <p className="text-[10px] text-text-tertiary uppercase tracking-wide mb-2">
+                    Tendências
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {trends.map((t) => (
+                      <Sparkline
+                        key={t.label}
+                        label={t.label}
+                        unit={t.unit}
+                        data={t.data}
+                        color={t.color}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {/* Lista de consultas */}
               <section>
