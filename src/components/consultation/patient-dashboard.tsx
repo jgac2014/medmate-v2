@@ -3,10 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { listConsultationsByPatient } from "@/lib/supabase/consultations";
 import { getPatientProblems } from "@/lib/supabase/patient-problems";
+import { getPatientMedications, addPatientMedication, discontinuePatientMedication } from "@/lib/supabase/patient-medications";
+import { createClient } from "@/lib/supabase/client";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { formatDateBR } from "@/lib/utils";
 import { Sparkline } from "@/components/ui/sparkline";
 import { buildTrendSeries } from "@/lib/trend-data";
+import type { PatientMedication } from "@/types";
 
 interface PatientDashboardProps {
   open: boolean;
@@ -28,18 +31,30 @@ export function PatientDashboard({ open, onClose }: PatientDashboardProps) {
   const { patientId, patientName, patient } = useConsultationStore();
   const [consultations, setConsultations] = useState<ConsultationSummary[]>([]);
   const [activeProblems, setActiveProblems] = useState<string[]>([]);
+  const [medications, setMedications] = useState<PatientMedication[]>([]);
+  const [newMedName, setNewMedName] = useState("");
+  const [newMedDosage, setNewMedDosage] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id);
+    });
+  }, []);
 
   const fetchData = useCallback(async () => {
     if (!patientId) return;
     setLoading(true);
     try {
-      const [consResult, problems] = await Promise.all([
+      const [consResult, problems, meds] = await Promise.all([
         listConsultationsByPatient(patientId),
         getPatientProblems(patientId),
+        getPatientMedications(patientId),
       ]);
       setConsultations((consResult.data as ConsultationSummary[]) ?? []);
       setActiveProblems(problems);
+      setMedications(meds);
     } catch {
       // silencioso
     } finally {
@@ -52,6 +67,27 @@ export function PatientDashboard({ open, onClose }: PatientDashboardProps) {
   }, [open, patientId, fetchData]);
 
   const trends = buildTrendSeries(consultations);
+
+  async function handleAddMedication() {
+    if (!userId || !patientId || !newMedName.trim()) return;
+    try {
+      const med = await addPatientMedication(userId, patientId, newMedName.trim(), newMedDosage.trim());
+      setMedications((prev) => [...prev, med]);
+      setNewMedName("");
+      setNewMedDosage("");
+    } catch {
+      // silencioso
+    }
+  }
+
+  async function handleDiscontinue(medId: string) {
+    try {
+      await discontinuePatientMedication(medId);
+      setMedications((prev) => prev.filter((m) => m.id !== medId));
+    } catch {
+      // silencioso
+    }
+  }
 
   if (!patientId) return null;
 
@@ -115,6 +151,61 @@ export function PatientDashboard({ open, onClose }: PatientDashboardProps) {
                   </div>
                 </section>
               )}
+
+              {/* Medicamentos contínuos */}
+              <section className="mb-5">
+                <p className="text-[10px] text-text-tertiary uppercase tracking-wide mb-2">
+                  Medicamentos contínuos
+                </p>
+                {medications.length > 0 ? (
+                  <div className="flex flex-col gap-1 mb-2">
+                    {medications.map((med) => (
+                      <div key={med.id} className="flex items-center justify-between gap-2 py-1 px-2 rounded-md bg-bg-2/50 border border-border-subtle/40">
+                        <div className="min-w-0">
+                          <p className="text-[11px] text-text-primary truncate">{med.medication_name}</p>
+                          {med.dosage && (
+                            <p className="text-[10px] text-text-tertiary">{med.dosage}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleDiscontinue(med.id)}
+                          className="text-[10px] text-text-tertiary hover:text-status-crit transition-colors cursor-pointer shrink-0"
+                          title="Suspender"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-text-tertiary mb-2">Nenhum medicamento registrado.</p>
+                )}
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    placeholder="Medicamento"
+                    value={newMedName}
+                    onChange={(e) => setNewMedName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddMedication()}
+                    className="flex-1 h-7 px-2 text-[11px] border border-border-subtle rounded-md bg-bg-2 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Dose"
+                    value={newMedDosage}
+                    onChange={(e) => setNewMedDosage(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddMedication()}
+                    className="w-24 h-7 px-2 text-[11px] border border-border-subtle rounded-md bg-bg-2 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent"
+                  />
+                  <button
+                    onClick={handleAddMedication}
+                    disabled={!newMedName.trim()}
+                    className="h-7 px-2 text-[11px] rounded-md border border-accent/20 text-accent bg-accent/5 hover:bg-accent/10 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    +
+                  </button>
+                </div>
+              </section>
 
               {/* Resumo: total de consultas */}
               <section className="mb-5">
