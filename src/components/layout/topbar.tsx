@@ -125,6 +125,19 @@ export function Topbar() {
       }
 
       showToast("Consulta salva!", "success");
+      // Persistir problemas longitudinais no nível do paciente
+      const currentState = useConsultationStore.getState();
+      if (currentState.patientId) {
+        const allProblems = [
+          ...currentState.problems,
+          ...(currentState.problemsOther
+            ? currentState.problemsOther.split(",").map((s) => s.trim()).filter(Boolean)
+            : []),
+        ];
+        upsertPatientProblems(userId, currentState.patientId, allProblems).catch(() => {
+          // silencioso — não bloqueia o fluxo principal
+        });
+      }
     } catch {
       showToast("Erro ao salvar consulta", "error");
     } finally {
