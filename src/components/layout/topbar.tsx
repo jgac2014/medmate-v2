@@ -135,9 +135,11 @@ export function Topbar() {
     setPatientId(patient.id);
     setPatientName(patient.name);
     // Carregar pendências da última consulta deste paciente
+    // Usa getState() após reset() para obter currentConsultationId pós-reset (null em nova consulta)
     if (userId) {
       const selectedPatientId = patient.id;
-      getFollowupFromLastConsultation(userId, patient.id, currentConsultationId ?? undefined).then((items) => {
+      const excludeId = useConsultationStore.getState().currentConsultationId ?? undefined;
+      getFollowupFromLastConsultation(userId, patient.id, excludeId).then((items) => {
         if (useConsultationStore.getState().patientId === selectedPatientId && items.length > 0) {
           setFollowupItems(items);
         }
