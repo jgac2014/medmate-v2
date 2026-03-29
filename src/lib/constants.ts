@@ -26,6 +26,14 @@ export const PREVENTIONS = [
   "Hepatite C (anti-HCV)",
   "Hepatite B (anti-HBs)",
   "PSA (disc. compartilhada)",
+  // --- Rastreamentos MS/SBC expandidos ---
+  "Glicemia de jejum / TOTG",
+  "Perfil lipídico",
+  "Sífilis (VDRL/teste rápido)",
+  "dT / dTpa (vacinado)",
+  "Rastreio depressão (PHQ-2)",
+  "Avaliação visual (idoso)",
+  "Avaliação auditiva (idoso)",
 ] as const;
 
 export const GENDER_OPTIONS = ["Masculino", "Feminino", "Outro"] as const;
