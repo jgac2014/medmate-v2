@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { saveConsultation } from "@/lib/supabase/consultations";
 import { getFollowupFromLastConsultation } from "@/lib/supabase/followup";
 import { getPatientProblems, upsertPatientProblems } from "@/lib/supabase/patient-problems";
+import { getPatientMedications } from "@/lib/supabase/patient-medications";
 import { PROBLEMS } from "@/lib/constants";
 import { HistoryPanel } from "@/components/consultation/history-panel";
 import { PatientSelector } from "@/components/consultation/patient-selector";
@@ -159,6 +160,15 @@ export function Topbar() {
       getFollowupFromLastConsultation(userId, patient.id, excludeId).then((items) => {
         if (useConsultationStore.getState().patientId === selectedPatientId && items.length > 0) {
           setFollowupItems(items);
+        }
+      });
+      // Pré-carregar medicamentos contínuos no campo prescrição
+      getPatientMedications(patient.id).then((meds) => {
+        if (meds.length > 0 && useConsultationStore.getState().patientId === selectedPatientId) {
+          const medLines = meds.map((m) =>
+            m.dosage ? `${m.medication_name} - ${m.dosage}` : m.medication_name
+          );
+          useConsultationStore.getState().setPrescription(medLines.join("\n"));
         }
       });
       // Pré-marcar problemas ativos do paciente
