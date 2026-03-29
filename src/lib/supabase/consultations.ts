@@ -82,3 +82,13 @@ export async function listConsultations(userId: string) {
     .order("date", { ascending: false })
     .limit(50);
 }
+
+export async function listConsultationsByPatient(patientId: string) {
+  const supabase = createClient();
+  return supabase
+    .from("consultations")
+    .select("id, date, created_at, problems, problems_other, vitals, labs, patient_snapshot, prescription, assessment, followup_items")
+    .eq("patient_id", patientId)
+    .order("date", { ascending: false })
+    .limit(50);
+}
