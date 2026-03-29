@@ -56,6 +56,7 @@ export async function saveConsultation(userId: string, state: ConsultationState,
     prescription: state.prescription,
     requested_exams: state.requestedExams,
     patient_instructions: state.patientInstructions,
+    followup_items: state.followupItems,
     esus_summary: esusSummary,
     updated_at: new Date().toISOString(),
   };
