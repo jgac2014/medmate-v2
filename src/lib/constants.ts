@@ -157,3 +157,7 @@ export const EXAM_CARDS = [
     ],
   },
 ] as const;
+
+export const EXAM_FIELD_KEYS: string[] = EXAM_CARDS.flatMap((c) =>
+  c.fields.map((f) => f.key)
+);

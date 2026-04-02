@@ -70,6 +70,7 @@ export interface ConsultationState {
   requestedExams: string;
   patientInstructions: string;
   followupItems: FollowUpItem[];
+  labsExtras: string;
 }
 
 export interface ExamFieldDef {

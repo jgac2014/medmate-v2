@@ -28,6 +28,7 @@ export function dbRecordToState(record: any): ConsultationState {
     requestedExams: record.requested_exams ?? "",
     patientInstructions: record.patient_instructions ?? "",
     followupItems: record.followup_items ?? [],
+    labsExtras: record.labs_extras ?? "",
   };
 }
 

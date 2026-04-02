@@ -23,6 +23,7 @@ const initialState: ConsultationState = {
   requestedExams: "",
   patientInstructions: "",
   followupItems: [],
+  labsExtras: "",
 };
 
 interface ConsultationActions {
@@ -34,6 +35,7 @@ interface ConsultationActions {
   setLab: (key: string, value: string) => void;
   setLabsDate: (date: string) => void;
   setImaging: (imaging: Partial<ImagingData>) => void;
+  setLabsExtras: (text: string) => void;
   setCalculations: (calcs: Partial<Calculations>) => void;
   setSoap: (soap: Partial<SoapNotes>) => void;
   setHistory: (history: Partial<History>) => void;
@@ -121,6 +123,8 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
 
   setImaging: (imaging) =>
     set((state) => ({ imaging: { ...state.imaging, ...imaging } })),
+
+  setLabsExtras: (text) => set({ labsExtras: text }),
 
   setCalculations: (calcs) =>
     set((state) => ({ calculations: { ...state.calculations, ...calcs } })),
