@@ -10,11 +10,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Variant, string> = {
   primary:
-    "bg-accent text-black font-bold hover:bg-accent-hover hover:shadow-[0_0_10px_rgba(0,208,132,0.25)] active:scale-[0.98]",
+    "bg-primary text-on-primary font-semibold hover:bg-primary-container active:scale-[0.98]",
   secondary:
-    "bg-transparent text-text-secondary border border-border-default hover:text-text-primary hover:border-text-tertiary",
+    "bg-surface-highest text-on-surface-variant hover:bg-surface-high hover:text-on-surface",
   ghost:
-    "bg-transparent text-text-secondary hover:text-text-primary hover:bg-bg-2",
+    "bg-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -22,7 +22,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        className={`px-3.5 py-1.5 rounded-[5px] text-sm font-medium cursor-pointer transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${className}`}
+        className={`px-3.5 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${className}`}
         {...props}
       >
         {children}

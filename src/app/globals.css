@@ -1,69 +1,114 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────
+   Aura Clínica — Design System Tokens
+   ───────────────────────────────────────── */
 :root {
-  /* Background layers */
-  --bg-0: #0c0f1a;
-  --bg-1: #131720;
-  --bg-2: #1a1f2e;
-  --bg-3: #20263a;
+  /* Superfícies */
+  --surface:              #f5fafe;
+  --surface-low:          #eff4f8;
+  --surface-container:    #e9eff2;
+  --surface-high:         #e3e9ec;
+  --surface-highest:      #dee3e7;
+  --surface-lowest:       #ffffff;
+  --surface-dim:          #d5dbde;
 
-  /* Borders */
-  --border-subtle: #252d40;
-  --border-default: #344060;
-  --border-focus: var(--accent);
+  /* Texto */
+  --on-surface:           #171c1f;
+  --on-surface-variant:   #414844;
+  --on-surface-muted:     #6d7a6e;
 
-  /* Text */
-  --text-primary: #dde1eb;
-  --text-secondary: #7a8499;
-  --text-tertiary: #424d62;
+  /* Primária */
+  --primary:              #012d1d;
+  --primary-container:    #1b4332;
+  --on-primary:           #ffffff;
+  --on-primary-container: #86af99;
 
-  /* Accent */
-  --accent: #00d084;
-  --accent-hover: #00b870;
-  --accent-dim: rgba(0, 208, 132, 0.07);
+  /* Secundária */
+  --secondary:            #3b6756;
+  --secondary-container:  #bdedd7;
+  --on-secondary:         #ffffff;
+  --on-secondary-container: #416d5c;
 
-  /* Status */
-  --status-ok: #00d084;
-  --status-warn: #f5a623;
-  --status-crit: #ff5252;
-  --status-info: #4b9eff;
-  --status-calc: #22d3ee;
-  --status-misc: #9b8af8;
+  /* Bordas */
+  --outline:              #717973;
+  --outline-variant:      #c1c8c2;
 
-  /* Status backgrounds (7% opacity) */
-  --status-ok-bg: rgba(0, 208, 132, 0.07);
-  --status-warn-bg: rgba(245, 166, 35, 0.07);
-  --status-crit-bg: rgba(255, 82, 82, 0.07);
-  --status-info-bg: rgba(75, 158, 255, 0.07);
-  --status-calc-bg: rgba(34, 211, 238, 0.07);
-  --status-misc-bg: rgba(155, 138, 248, 0.07);
+  /* Erro */
+  --error:                #ba1a1a;
+  --error-container:      #ffdad6;
+  --on-error-container:   #93000a;
+
+  /* Status clínico */
+  --status-ok:            #1b7a4a;
+  --status-warn:          #c77a20;
+  --status-crit:          #ba1a1a;
+  --status-info:          #1565c0;
+  --status-calc:          #00838f;
+  --status-misc:          #6a4fc5;
+
+  --status-ok-bg:         rgba(27, 122, 74, 0.08);
+  --status-warn-bg:       rgba(199, 122, 32, 0.08);
+  --status-crit-bg:       rgba(186, 26, 26, 0.08);
+  --status-info-bg:       rgba(21, 101, 192, 0.08);
+  --status-calc-bg:       rgba(0, 131, 143, 0.08);
+  --status-misc-bg:       rgba(106, 79, 197, 0.08);
+
+  /* ── Backward-compat aliases (remover após Fase 3) ── */
+  --bg-0: var(--surface-lowest);
+  --bg-1: var(--surface-low);
+  --bg-2: var(--surface-container);
+  --bg-3: var(--surface-high);
+  --border-subtle: var(--outline-variant);
+  --border-default: var(--outline);
+  --border-focus: var(--primary);
+  --text-primary: var(--on-surface);
+  --text-secondary: var(--on-surface-variant);
+  --text-tertiary: var(--on-surface-muted);
+  --accent: var(--primary);
+  --accent-hover: var(--primary-container);
+  --accent-dim: rgba(1, 45, 29, 0.06);
+  --accent-light: var(--secondary);
 }
 
 @theme inline {
-  --color-bg-0: var(--bg-0);
-  --color-bg-1: var(--bg-1);
-  --color-bg-2: var(--bg-2);
-  --color-bg-3: var(--bg-3);
+  /* Novas cores Aura Clínica */
+  --color-surface: var(--surface);
+  --color-surface-low: var(--surface-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-high: var(--surface-high);
+  --color-surface-highest: var(--surface-highest);
+  --color-surface-lowest: var(--surface-lowest);
+  --color-surface-dim: var(--surface-dim);
 
-  --color-border-subtle: var(--border-subtle);
-  --color-border-default: var(--border-default);
-  --color-border-focus: var(--border-focus);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-on-surface-muted: var(--on-surface-muted);
 
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-tertiary: var(--text-tertiary);
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary: var(--on-primary);
+  --color-on-primary-container: var(--on-primary-container);
 
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-dim: var(--accent-dim);
+  --color-secondary: var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary: var(--on-secondary);
+  --color-on-secondary-container: var(--on-secondary-container);
 
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+
+  --color-error: var(--error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+
+  /* Status clínico */
   --color-status-ok: var(--status-ok);
   --color-status-warn: var(--status-warn);
   --color-status-crit: var(--status-crit);
   --color-status-info: var(--status-info);
   --color-status-calc: var(--status-calc);
   --color-status-misc: var(--status-misc);
-
   --color-status-ok-bg: var(--status-ok-bg);
   --color-status-warn-bg: var(--status-warn-bg);
   --color-status-crit-bg: var(--status-crit-bg);
@@ -71,18 +116,33 @@
   --color-status-calc-bg: var(--status-calc-bg);
   --color-status-misc-bg: var(--status-misc-bg);
 
-  --font-sans: "Inter", system-ui, sans-serif;
+  /* Backward-compat — tokens antigos (remover após Fase 3) */
+  --color-bg-0: var(--bg-0);
+  --color-bg-1: var(--bg-1);
+  --color-bg-2: var(--bg-2);
+  --color-bg-3: var(--bg-3);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-focus: var(--border-focus);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-light: var(--accent-light);
+
+  /* Fontes */
+  --font-sans: "Public Sans", system-ui, sans-serif;
+  --font-headline: "Newsreader", Georgia, serif;
   --font-mono: "JetBrains Mono", monospace;
 }
 
 body {
-  background: var(--bg-0);
-  background-image:
-    radial-gradient(circle at top, rgba(75, 158, 255, 0.08), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 22%);
-  color: var(--text-primary);
-  font-size: 13px;
-  line-height: 1.5;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-size: 14px;
+  line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -93,9 +153,10 @@ body {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 3px; height: 3px; }
-::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--outline-variant); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--outline); }
 ::-webkit-scrollbar-track { background: transparent; }
 
 /* Selection */
-::selection { background: rgba(0, 208, 132, 0.2); }
+::selection { background: rgba(1, 45, 29, 0.12); }

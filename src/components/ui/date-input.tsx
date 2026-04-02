@@ -13,7 +13,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
     return (
       <div className="mb-2">
         {label && (
-          <label className="block text-[10.5px] text-text-tertiary mb-0.5 font-medium">
+          <label className="block text-[10.5px] text-on-surface-muted mb-0.5 font-medium">
             {label}
           </label>
         )}
@@ -22,7 +22,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
           type="date"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full h-[29px] px-2 border border-border-subtle rounded-[5px] bg-bg-2 text-text-primary font-sans text-xs transition-[border,box-shadow] duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_2px_rgba(0,208,132,0.1)] ${className}`}
+          className={`w-full h-[29px] px-2 border-0 border-b border-outline-variant/40 bg-transparent text-on-surface font-sans text-xs transition-[border,box-shadow] duration-150 focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(1,45,29,0.08)] ${className}`}
           {...props}
         />
       </div>

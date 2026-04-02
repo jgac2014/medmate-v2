@@ -15,15 +15,15 @@ export function showToast(message: string, type: "success" | "error" | "info" = 
 }
 
 const borderColors = {
-  success: "border-accent",
-  error: "border-status-crit",
-  info: "border-status-info",
+  success: "border-primary",
+  error:   "border-error",
+  info:    "border-status-info",
 };
 
 const textColors = {
-  success: "text-accent",
-  error: "text-status-crit",
-  info: "text-status-info",
+  success: "text-primary",
+  error:   "text-error",
+  info:    "text-status-info",
 };
 
 export function ToastProvider() {
@@ -45,7 +45,7 @@ export function ToastProvider() {
 
   return (
     <div
-      className={`fixed bottom-4 right-4 bg-bg-3 border ${borderColors[toast.type]} ${textColors[toast.type]} px-4 py-2 rounded-[5px] text-xs font-medium tracking-[0.01em] z-[9999] transition-all duration-200 ${
+      className={`fixed bottom-4 right-4 bg-surface-highest/90 backdrop-blur-xl border ${borderColors[toast.type]} ${textColors[toast.type]} px-4 py-2 rounded-lg text-xs font-medium tracking-[0.01em] z-[9999] transition-all duration-200 ${
         toast.visible
           ? "opacity-100 translate-y-0"
           : "opacity-0 translate-y-1.5 pointer-events-none"

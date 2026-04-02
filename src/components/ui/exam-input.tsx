@@ -23,14 +23,14 @@ export const ExamInput = forwardRef<HTMLInputElement, ExamInputProps>(
 
     return (
       <div className="flex items-center gap-[3px] mb-1">
-        <span className="text-[10px] text-text-secondary flex-1 whitespace-nowrap">
+        <span className="text-[10px] text-on-surface-variant flex-1 whitespace-nowrap">
           {label}
         </span>
         <input
           ref={ref}
-          className={`w-[58px] h-[22px] px-1 border border-border-subtle rounded-[3px] bg-bg-2 text-text-primary font-mono text-[10px] text-right transition-[border,color,background] duration-150 focus:outline-none focus:border-accent focus:shadow-[0_0_0_2px_rgba(0,208,132,0.1)] tabular-nums ${
+          className={`w-[58px] h-[22px] px-1 border border-outline-variant/40 rounded-[3px] bg-surface-container text-on-surface font-mono text-[10px] text-right transition-[border,color,background] duration-150 focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(1,45,29,0.08)] tabular-nums ${
             auto
-              ? "bg-status-calc-bg text-status-calc cursor-default border-[rgba(34,211,238,0.25)] font-semibold"
+              ? "bg-status-calc-bg text-status-calc cursor-default border-[rgba(0,131,143,0.25)] font-semibold"
               : ""
           } ${statusStyles[status]} ${className}`}
           readOnly={auto}

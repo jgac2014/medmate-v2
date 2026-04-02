@@ -9,7 +9,7 @@ interface SparklineProps {
   unit: string;
 }
 
-export function Sparkline({ data, width = 120, height = 32, color = "var(--color-accent)", label, unit }: SparklineProps) {
+export function Sparkline({ data, width = 120, height = 32, color = "var(--color-secondary)", label, unit }: SparklineProps) {
   if (data.length < 2) return null;
 
   const min = Math.min(...data);
@@ -30,9 +30,9 @@ export function Sparkline({ data, width = 120, height = 32, color = "var(--color
   return (
     <div className="flex items-center gap-2">
       <div className="min-w-0">
-        <p className="text-[10px] text-text-tertiary truncate">{label}</p>
-        <p className="text-[13px] font-semibold text-text-primary tabular-nums">
-          {last} <span className="text-[10px] font-normal text-text-tertiary">{unit}</span>
+        <p className="text-[10px] text-on-surface-muted truncate">{label}</p>
+        <p className="text-[13px] font-semibold text-on-surface tabular-nums">
+          {last} <span className="text-[10px] font-normal text-on-surface-muted">{unit}</span>
         </p>
       </div>
       <svg width={width} height={height} className="shrink-0">
