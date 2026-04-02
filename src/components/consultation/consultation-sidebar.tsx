@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { getPatientProblems } from "@/lib/supabase/patient-problems";
 import { getPatientMedications } from "@/lib/supabase/patient-medications";
@@ -19,12 +19,18 @@ function getDismissedAlerts(): Set<string> {
   }
 }
 
+interface PatientData {
+  problems: string[];
+  medications: PatientMedication[];
+  alerts: Alert[];
+}
+
+const EMPTY_DATA: PatientData = { problems: [], medications: [], alerts: [] };
+
 export function ConsultationSidebar() {
   const { patientId, patientName, patient } = useConsultationStore();
   const [userId, setUserId] = useState<string | null>(null);
-  const [activeProblems, setActiveProblems] = useState<string[]>([]);
-  const [medications, setMedications] = useState<PatientMedication[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [patientData, setPatientData] = useState<PatientData>(EMPTY_DATA);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -33,28 +39,29 @@ export function ConsultationSidebar() {
     });
   }, []);
 
-  useEffect(() => {
-    if (!patientId || !userId) {
-      setActiveProblems([]);
-      setMedications([]);
-      setAlerts([]);
-      return;
-    }
+  const fetchPatientData = useCallback(async () => {
+    if (!patientId || !userId) return;
     setLoading(true);
-    Promise.all([
-      getPatientProblems(patientId),
-      getPatientMedications(patientId),
-      getPatientAlerts(patientId, userId),
-    ])
-      .then(([problems, meds, newAlerts]) => {
-        setActiveProblems(problems);
-        setMedications(meds.filter((m) => m.active));
-        // Filtrar alertas já dispensados (localStorage)
-        const dismissed = getDismissedAlerts();
-        setAlerts(newAlerts.filter((a) => !dismissed.has(a.id)));
-      })
-      .finally(() => setLoading(false));
+    try {
+      const [problems, meds, newAlerts] = await Promise.all([
+        getPatientProblems(patientId),
+        getPatientMedications(patientId),
+        getPatientAlerts(patientId, userId),
+      ]);
+      const dismissed = getDismissedAlerts();
+      setPatientData({
+        problems,
+        medications: meds.filter((m) => m.active),
+        alerts: newAlerts.filter((a) => !dismissed.has(a.id)),
+      });
+    } finally {
+      setLoading(false);
+    }
   }, [patientId, userId]);
+
+  useEffect(() => {
+    if (patientId && userId) fetchPatientData();
+  }, [patientId, userId, fetchPatientData]);
 
   function handleDismiss(id: string) {
     try {
@@ -64,9 +71,14 @@ export function ConsultationSidebar() {
     } catch {
       // silencioso
     }
-    setAlerts((prev) => prev.filter((a) => a.id !== id));
+    setPatientData((prev) => ({
+      ...prev,
+      alerts: prev.alerts.filter((a) => a.id !== id),
+    }));
   }
 
+  // Derive displayed data: clear when no patient selected (avoids sync setState in effect)
+  const { problems: activeProblems, medications, alerts } = patientId ? patientData : EMPTY_DATA;
   const displayName = patientName ?? patient.name ?? null;
   const age = patient.age ? `${patient.age} anos` : null;
   const gender = patient.gender || null;
