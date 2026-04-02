@@ -12,6 +12,8 @@ import { FollowupPanel } from "@/components/consultation/followup-panel";
 import { PreventionList } from "@/components/consultation/prevention-list";
 import { PatientInfo } from "@/components/consultation/patient-info";
 import { ProblemList } from "@/components/consultation/problem-list";
+import { VitalsForm } from "@/components/consultation/vitals-form";
+import { ExamGrid } from "@/components/consultation/exam-grid";
 import { useDraftAutosave } from "@/hooks/useDraftAutosave";
 
 export default function ConsultaPage() {
@@ -54,7 +56,14 @@ export default function ConsultaPage() {
             <SoapForm />
           </section>
 
-          {/* Bloco 3: Antecedentes */}
+          {/* Bloco 3: Dados Objetivos */}
+          <section className="rounded-xl bg-surface-lowest border border-outline-variant/20 p-5 space-y-4">
+            <VitalsForm />
+            <div className="h-px bg-outline-variant/20" />
+            <ExamGrid />
+          </section>
+
+          {/* Bloco 4: Antecedentes */}
           <section className="rounded-xl bg-surface-lowest border border-outline-variant/20 p-5">
             <HistoryForm />
           </section>
