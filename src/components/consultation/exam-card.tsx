@@ -15,11 +15,11 @@ export function ExamCard({ card, span2 = false }: ExamCardProps) {
 
   return (
     <div
-      className={`border border-border-subtle rounded-lg p-[10px] bg-bg-1 transition-[border-color] duration-150 hover:border-border-default ${
+      className={`rounded-xl p-3 bg-surface-lowest shadow-sm transition-shadow duration-150 hover:shadow-md ${
         span2 ? "col-span-2" : ""
       }`}
     >
-      <div className="text-[9px] font-bold tracking-[0.09em] uppercase text-text-secondary mb-2 pb-1.5 border-b border-border-subtle">
+      <div className="text-[9px] font-bold tracking-[0.10em] uppercase text-on-surface-muted mb-2 pb-1.5">
         {card.title}
       </div>
       {card.fields.map((field) => {
