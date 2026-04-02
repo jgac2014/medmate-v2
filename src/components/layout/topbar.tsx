@@ -16,6 +16,8 @@ import { HistoryPanel } from "@/components/consultation/history-panel";
 import { PatientSelector } from "@/components/consultation/patient-selector";
 import { TemplateSelector } from "@/components/consultation/template-selector";
 import { PatientDashboard } from "@/components/consultation/patient-dashboard";
+import { ConsultaConcluidaModal } from "@/components/consultation/consulta-concluida-modal";
+import { generateEsusSummary } from "@/lib/esus-generator";
 import { useHotkeys } from "@/hooks/useHotkeys";
 import type { Patient } from "@/types";
 
@@ -47,6 +49,8 @@ export function Topbar() {
   const [templateSelectorOpen, setTemplateSelectorOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [consultaConcluida, setConsultaConcluida] = useState(false);
+  const [esusTextSnapshot, setEsusTextSnapshot] = useState("");
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState("");
@@ -142,6 +146,10 @@ export function Topbar() {
       }
 
       showToast("Consulta salva!", "success");
+      // Abrir modal de conclusão com snapshot do texto eSUS
+      const esusText = generateEsusSummary(useConsultationStore.getState());
+      setEsusTextSnapshot(esusText);
+      setConsultaConcluida(true);
       // Persistir problemas longitudinais no nível do paciente
       const currentState = useConsultationStore.getState();
       if (currentState.patientId) {
@@ -258,6 +266,20 @@ export function Topbar() {
       <PatientDashboard
         open={dashboardOpen}
         onClose={() => setDashboardOpen(false)}
+      />
+      <ConsultaConcluidaModal
+        open={consultaConcluida}
+        esusText={esusTextSnapshot}
+        patientName={patientName}
+        onNewConsulta={() => {
+          setConsultaConcluida(false);
+          setPatientSelectorOpen(true);
+          reset();
+        }}
+        onHistory={() => {
+          setConsultaConcluida(false);
+          setHistoryOpen(true);
+        }}
       />
 
       <div className="sticky top-0 z-30 bg-surface-low">
