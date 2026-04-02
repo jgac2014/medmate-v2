@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BRAND } from "@/lib/branding";
+import Link from "next/link";
 
 export default function LoginForm({ initialError }: { initialError: string }) {
   const [email, setEmail] = useState("");
@@ -54,62 +55,73 @@ export default function LoginForm({ initialError }: { initialError: string }) {
   };
 
   return (
-    <div className="w-full max-w-sm bg-bg-1 border border-border-subtle rounded-lg p-8">
-      <div className="flex items-center gap-2 mb-6 justify-center">
-        <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-black text-[12px] font-extrabold font-mono">
-          {BRAND.shortName}
-        </div>
-        <span className="font-bold text-[14px] text-text-primary">{BRAND.name}</span>
+    <div className="w-full max-w-sm">
+      {/* Logo */}
+      <div className="text-center mb-8">
+        <Link href="/" className="inline-block">
+          <span className="text-[26px] font-bold tracking-[-0.03em] text-text-primary">{BRAND.name}</span>
+        </Link>
+        <p className="text-[14px] text-text-secondary mt-1">Bem-vindo de volta</p>
       </div>
 
-      <form onSubmit={handleLogin} className="space-y-3">
-        <Input
-          label="Email"
-          id="email"
-          type="email"
-          placeholder="seu@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <div>
+      <div className="bg-white border border-border-subtle rounded-2xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+        <form onSubmit={handleLogin} className="space-y-4">
           <Input
-            label="Senha"
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            label="Email"
+            id="email"
+            type="email"
+            placeholder="seu@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <div className="flex justify-end mt-1">
-            <a href="/forgot-password" className="text-xs text-text-tertiary hover:text-accent transition-colors">
-              Esqueceu a senha?
-            </a>
+          <div>
+            <Input
+              label="Senha"
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <div className="flex justify-end mt-1">
+              <a href="/forgot-password" className="text-[12px] text-text-tertiary hover:text-accent transition-colors">
+                Esqueceu a senha?
+              </a>
+            </div>
           </div>
-        </div>
 
-        {error && <p className="text-xs text-status-crit">{error}</p>}
-        {info && <p className="text-xs text-accent">{info}</p>}
+          {error && (
+            <div className="px-3 py-2.5 bg-status-crit-bg border border-status-crit/20 rounded-lg">
+              <p className="text-[13px] text-status-crit">{error}</p>
+            </div>
+          )}
+          {info && (
+            <div className="px-3 py-2.5 bg-status-ok-bg border border-status-ok/20 rounded-lg">
+              <p className="text-[13px] text-status-ok">{info}</p>
+            </div>
+          )}
 
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Entrando..." : "Entrar"}
-        </Button>
-      </form>
+          <Button type="submit" className="w-full h-[44px] text-[14px]" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
+          </Button>
+        </form>
 
-      <button
-        onClick={handleMagicLink}
-        className="w-full mt-3 text-xs text-text-secondary hover:text-text-primary transition-colors bg-transparent border-none cursor-pointer"
-        disabled={loading || !email}
-      >
-        Entrar com link mágico
-      </button>
+        <button
+          onClick={handleMagicLink}
+          className="w-full mt-3 text-[13px] text-text-tertiary hover:text-text-primary transition-colors bg-transparent border-none cursor-pointer disabled:opacity-40"
+          disabled={loading || !email}
+        >
+          Entrar com link mágico
+        </button>
+      </div>
 
-      <p className="text-xs text-text-tertiary text-center mt-4">
+      <p className="text-[13px] text-text-tertiary text-center mt-5">
         Não tem conta?{" "}
-        <a href="/signup" className="text-accent hover:underline">
-          Criar conta
-        </a>
+        <Link href="/signup" className="text-accent font-medium hover:underline">
+          Criar conta grátis
+        </Link>
       </p>
     </div>
   );
