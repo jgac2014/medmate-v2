@@ -110,80 +110,74 @@ export function PatientSelector({ open, onSelect, onClose }: PatientSelectorProp
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed left-1/2 top-1/2 z-[60] w-[480px] max-w-[95vw] -translate-x-1/2 -translate-y-1/2 bg-bg-1 border border-border-subtle rounded-2xl shadow-[0_24px_64px_rgba(0,0,0,0.5)] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
-          <div>
-            <p className="text-[13px] font-semibold text-text-primary">Selecionar paciente</p>
-            <p className="text-[11px] text-text-tertiary mt-0.5">Nova consulta</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-md border border-border-subtle flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-bg-2 transition-colors cursor-pointer text-lg leading-none"
-          >
-            ×
-          </button>
-        </div>
+      <div className="fixed left-1/2 top-1/2 z-[60] w-[520px] max-w-[95vw] -translate-x-1/2 -translate-y-1/2 bg-surface-lowest rounded-2xl shadow-[0_32px_64px_-12px_rgba(23,28,31,0.12)] overflow-hidden">
 
-        {/* Tabs */}
-        <div className="flex border-b border-border-subtle">
-          {(["search", "create"] as View[]).map((v) => (
+        {/* Decorative blobs */}
+        <div className="absolute top-[-15%] right-[-5%] w-[40%] h-[40%] rounded-full bg-secondary-container opacity-30 blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[30%] h-[30%] rounded-full bg-primary/5 blur-[60px] pointer-events-none" />
+
+        {/* Content */}
+        <div className="relative p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="font-headline text-2xl font-medium text-primary">
+                {view === "search" ? "Iniciar consulta" : "Novo paciente"}
+              </h2>
+              <p className="text-sm text-on-surface-muted mt-0.5">
+                {view === "search" ? "Busque o paciente ou crie um novo" : "Preencha os dados do paciente"}
+              </p>
+            </div>
             <button
-              key={v}
-              onClick={() => setView(v)}
-              className={`flex-1 py-2.5 text-[12px] font-medium transition-colors cursor-pointer ${
-                view === v
-                  ? "text-text-primary border-b-2 border-accent"
-                  : "text-text-tertiary hover:text-text-secondary"
-              }`}
+              onClick={onClose}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-muted hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer text-xl leading-none"
             >
-              {v === "search" ? "Buscar existente" : "Novo paciente"}
+              ×
             </button>
-          ))}
-        </div>
+          </div>
 
-        <div className="p-5">
           {view === "search" ? (
             <>
-              <input
-                autoFocus
-                type="text"
-                placeholder="Digite o nome do paciente..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-bg-2 text-text-primary text-[12px] placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_2px_rgba(0,208,132,0.1)]"
-              />
+              <div className="relative mb-5">
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Buscar paciente por nome ou CPF..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="w-full h-14 pl-5 pr-4 border-0 border-b-2 border-outline-variant/50 bg-transparent text-on-surface text-lg placeholder:text-on-surface-muted focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
 
-              <div className="mt-3 min-h-[120px]">
+              <div className="min-h-[140px]">
                 {searching && (
-                  <p className="text-[11px] text-text-tertiary text-center py-8">Buscando...</p>
+                  <p className="text-sm text-on-surface-muted text-center py-10">Buscando...</p>
                 )}
                 {!searching && query.length >= 2 && results.length === 0 && (
-                  <div className="text-center py-8">
-                    <p className="text-[12px] text-text-secondary">Nenhum paciente encontrado</p>
+                  <div className="text-center py-10">
+                    <p className="text-sm text-on-surface-variant">Nenhum paciente encontrado</p>
                     <button
                       onClick={() => setView("create")}
-                      className="mt-2 text-[11px] text-accent hover:underline cursor-pointer"
+                      className="mt-2 text-sm text-secondary hover:underline cursor-pointer"
                     >
                       Criar novo paciente
                     </button>
                   </div>
                 )}
                 {!searching && results.length > 0 && (
-                  <div className="space-y-1 max-h-[240px] overflow-y-auto">
+                  <div className="space-y-1 max-h-[280px] overflow-y-auto">
                     {results.map((p) => (
                       <button
                         key={p.id}
                         onClick={() => onSelect(p)}
-                        className="w-full text-left px-3 py-2.5 rounded-lg border border-border-subtle hover:border-border-default hover:bg-bg-2 transition-colors cursor-pointer"
+                        className="w-full text-left px-4 py-3 rounded-xl hover:bg-surface-container transition-colors cursor-pointer group"
                       >
-                        <p className="text-[12px] font-medium text-text-primary">{p.name}</p>
-                        <p className="text-[10.5px] text-text-tertiary mt-0.5">
+                        <p className="text-[14px] font-medium text-on-surface group-hover:text-primary transition-colors">{p.name}</p>
+                        <p className="text-[12px] text-on-surface-muted mt-0.5">
                           {p.birth_date ? ageFromBirthDate(p.birth_date) : "Idade não informada"}
                           {p.gender ? ` · ${p.gender}` : ""}
                         </p>
@@ -192,41 +186,56 @@ export function PatientSelector({ open, onSelect, onClose }: PatientSelectorProp
                   </div>
                 )}
                 {!searching && query.length < 2 && (
-                  <p className="text-[11px] text-text-tertiary text-center py-8">
+                  <p className="text-sm text-on-surface-muted text-center py-10">
                     Digite pelo menos 2 caracteres para buscar
                   </p>
                 )}
               </div>
+
+              <div className="mt-6 pt-5 border-t border-outline-variant/30 flex justify-between items-center">
+                <button
+                  onClick={() => setView("create")}
+                  className="text-sm text-secondary hover:text-primary transition-colors cursor-pointer font-medium"
+                >
+                  + Novo paciente
+                </button>
+                <button
+                  onClick={onClose}
+                  className="text-sm text-on-surface-muted hover:text-on-surface transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+              </div>
             </>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="block text-[11px] text-text-secondary mb-1">Nome completo *</label>
+                <label className="block text-[13px] text-on-surface-variant mb-1 font-medium">Nome completo *</label>
                 <input
                   autoFocus
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-bg-2 text-text-primary text-[12px] placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_2px_rgba(0,208,132,0.1)]"
+                  className="w-full h-11 border-0 border-b-2 border-outline-variant/50 bg-transparent text-on-surface text-[14px] placeholder:text-on-surface-muted focus:outline-none focus:border-primary transition-colors"
                   placeholder="Nome do paciente"
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-text-secondary mb-1">Data de nascimento</label>
+                <label className="block text-[13px] text-on-surface-variant mb-1 font-medium">Data de nascimento</label>
                 <input
                   type="date"
                   value={newBirthDate}
                   onChange={(e) => setNewBirthDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-bg-2 text-text-primary text-[12px] focus:outline-none focus:border-accent focus:shadow-[0_0_0_2px_rgba(0,208,132,0.1)]"
+                  className="w-full h-11 border-0 border-b-2 border-outline-variant/50 bg-transparent text-on-surface text-[14px] focus:outline-none focus:border-primary transition-colors"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] text-text-secondary mb-1">Sexo</label>
+                  <label className="block text-[13px] text-on-surface-variant mb-1 font-medium">Sexo</label>
                   <select
                     value={newGender}
                     onChange={(e) => setNewGender(e.target.value)}
-                    className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-bg-2 text-text-primary text-[12px] focus:outline-none focus:border-accent"
+                    className="w-full h-11 border-0 border-b-2 border-outline-variant/50 bg-transparent text-on-surface text-[14px] focus:outline-none focus:border-primary transition-colors cursor-pointer"
                   >
                     <option value="">—</option>
                     <option value="Masculino">Masculino</option>
@@ -235,11 +244,11 @@ export function PatientSelector({ open, onSelect, onClose }: PatientSelectorProp
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] text-text-secondary mb-1">Raça/Cor</label>
+                  <label className="block text-[13px] text-on-surface-variant mb-1 font-medium">Raça/Cor</label>
                   <select
                     value={newRace}
                     onChange={(e) => setNewRace(e.target.value)}
-                    className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-bg-2 text-text-primary text-[12px] focus:outline-none focus:border-accent"
+                    className="w-full h-11 border-0 border-b-2 border-outline-variant/50 bg-transparent text-on-surface text-[14px] focus:outline-none focus:border-primary transition-colors cursor-pointer"
                   >
                     <option value="">—</option>
                     <option value="Branco">Branco</option>
@@ -251,25 +260,33 @@ export function PatientSelector({ open, onSelect, onClose }: PatientSelectorProp
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] text-text-secondary mb-1">CPF (opcional)</label>
+                <label className="block text-[13px] text-on-surface-variant mb-1 font-medium">CPF (opcional)</label>
                 <input
                   type="text"
                   value={newCpf}
                   onChange={(e) => setNewCpf(e.target.value)}
-                  className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-bg-2 text-text-primary text-[12px] placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_2px_rgba(0,208,132,0.1)]"
+                  className="w-full h-11 border-0 border-b-2 border-outline-variant/50 bg-transparent text-on-surface text-[14px] placeholder:text-on-surface-muted focus:outline-none focus:border-primary transition-colors"
                   placeholder="000.000.000-00"
                 />
               </div>
               {createError && (
-                <p className="text-[11px] text-status-crit">{createError}</p>
+                <p className="text-[13px] text-error">{createError}</p>
               )}
-              <button
-                onClick={handleCreate}
-                disabled={!newName.trim() || creating}
-                className="w-full py-2.5 rounded-lg bg-accent text-black text-[12px] font-semibold hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
-              >
-                {creating ? "Criando..." : "Criar paciente e iniciar consulta"}
-              </button>
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setView("search")}
+                  className="flex-1 h-12 rounded-xl border border-outline-variant/50 text-on-surface-variant text-[14px] font-medium hover:bg-surface-container transition-colors cursor-pointer"
+                >
+                  Voltar
+                </button>
+                <button
+                  onClick={handleCreate}
+                  disabled={!newName.trim() || creating}
+                  className="flex-1 h-12 rounded-xl bg-primary text-on-primary text-[14px] font-semibold hover:bg-primary-container disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                >
+                  {creating ? "Criando..." : "Criar e iniciar"}
+                </button>
+              </div>
             </div>
           )}
         </div>
