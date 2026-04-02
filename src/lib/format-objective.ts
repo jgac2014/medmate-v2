@@ -5,7 +5,7 @@ import { EXAM_CARDS } from "@/lib/constants";
 const LAB_LABEL_MAP: Record<string, string> = {};
 for (const card of EXAM_CARDS) {
   for (const field of card.fields) {
-    if (!field.auto) {
+    if (!('auto' in field)) {
       const unitSuffix = field.unit ? ` (${field.unit})` : "";
       LAB_LABEL_MAP[field.key] = `${field.label}${unitSuffix}`;
     }
