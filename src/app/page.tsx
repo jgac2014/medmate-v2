@@ -1,558 +1,254 @@
 import Link from "next/link";
 import { BRAND } from "@/lib/branding";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { LandingCheckoutButton } from "@/components/landing/checkout-button";
+import { LandingNavbar } from "@/components/landing/navbar";
+import { LandingFooter } from "@/components/landing/footer";
 
-function Logo({ size = "lg" }: { size?: "sm" | "lg" }) {
-  const dim = size === "lg" ? "w-10 h-10" : "w-7 h-7";
-  const text = size === "lg" ? "text-[14px]" : "text-[12px]";
-  const label = size === "lg" ? "text-[18px]" : "text-[14px]";
-  return (
-    <div className="flex items-center gap-2">
-      <div
-        className={`${dim} rounded-lg bg-accent flex items-center justify-center text-black ${text} font-extrabold font-mono`}
-      >
-        {BRAND.shortName}
-      </div>
-      <span className={`font-bold ${label} text-text-primary`}>
-        {BRAND.name}
-      </span>
-    </div>
-  );
-}
-
-const STEPS = [
+const PAIN_POINTS = [
   {
-    num: "1",
-    title: "Preencha a consulta",
-    desc: "Dados do paciente, problemas, vitais e exames numa interface limpa e rápida.",
+    icon: "description",
+    title: "Informação Dispersa",
+    desc: "Dados espalhados entre anotações soltas e planilhas. Tempo que deveria ser gasto com o paciente vai para a burocracia digital na APS.",
   },
   {
-    num: "2",
-    title: "Cálculos automáticos",
-    desc: "IMC, TFG, risco cardiovascular e FIB-4 calculados em tempo real conforme você digita.",
+    icon: "warning",
+    title: "Atrito no eSUS PEC",
+    desc: "A interface oficial do eSUS PEC é essencial para o registro médico, mas não foi pensada para agilizar o fluxo clínico do MFC.",
   },
   {
-    num: "3",
-    title: "Copie para o eSUS",
-    desc: "Texto estruturado gerado automaticamente — cole direto no eSUS PEC sem retrabalho.",
+    icon: "psychology",
+    title: "Fadiga Cognitiva",
+    desc: "Dezenas de telas e formulários demandam energia e reduzem a atenção ao paciente. O MedMate resolve isso de forma diferente.",
   },
 ];
 
-const BENEFITS = [
+const FEATURES = [
   {
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-    title: "Economize tempo",
-    desc: "Consultas documentadas em minutos, não em meia hora. Menos digitação repetitiva.",
+    title: "Identificação e sinais vitais",
+    desc: "Cadastro rápido com IMC, TFG e RCV calculados automaticamente enquanto você digita.",
   },
   {
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 012.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" />
-      </svg>
-    ),
-    title: "Estrutura clínica pronta",
-    desc: "SOAP, lista de problemas, prevenção e exames organizados como você precisa na APS.",
+    title: "SOAP estruturado",
+    desc: "Nota SOAP com suporte a templates e snippets reutilizáveis para agilizar o registro clínico.",
   },
   {
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25v-.008zm2.498-6.75h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007v-.008zm2.504-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008v-.008zm2.498-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008v-.008zM8.25 6h7.5v2.25h-7.5V6zM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.65 4.5 4.757V19.5a2.25 2.25 0 002.25 2.25h10.5a2.25 2.25 0 002.25-2.25V4.757c0-1.108-.806-2.057-1.907-2.185A48.507 48.507 0 0012 2.25z" />
-      </svg>
-    ),
-    title: "Cálculos integrados",
-    desc: "IMC, TFG (CKD-EPI), risco cardiovascular e FIB-4 — sem precisar de calculadoras externas.",
+    title: "Monitoramento longitudinal",
+    desc: "Acompanhamento de métricas com sparklines e histórico de consultas por paciente.",
   },
   {
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3" />
-      </svg>
-    ),
-    title: "Texto pronto para o eSUS",
-    desc: "Gera o texto formatado da consulta. Copie e cole direto no PEC sem editar.",
+    title: "Resumo pronto para o eSUS PEC",
+    desc: "Um clique gera o texto formatado. Sem retrabalho, sem digitação dupla.",
+  },
+  {
+    title: "Rastreamento preventivo",
+    desc: "Checklist de prevenção alinhado com o Ministério da Saúde e calendário vacinal.",
+  },
+  {
+    title: "Cálculos clínicos integrados",
+    desc: "IMC, TFG CKD-EPI 2021, FIB-4 e RCV Framingham — no fluxo, sem calculadoras externas.",
   },
 ];
 
-const FAQS = [
-  {
-    q: "O MedMate substitui o eSUS PEC?",
-    a: "Não. O MedMate complementa o eSUS. Você estrutura a consulta aqui e cola o texto no PEC. Nenhum dado é enviado ao eSUS automaticamente.",
-  },
-  {
-    q: "Meus dados ficam seguros?",
-    a: "Sim. Usamos Supabase com criptografia em trânsito e em repouso. Seus dados ficam isolados por conta e nunca são compartilhados.",
-  },
-  {
-    q: "Posso cancelar a qualquer momento?",
-    a: "Sim. Sem fidelidade. Cancele pelo painel da sua conta e o acesso continua até o fim do período pago.",
-  },
-  {
-    q: "Funciona no celular?",
-    a: "O MedMate é otimizado para uso em desktop/notebook, que é como a maioria dos médicos usa o eSUS PEC no consultório.",
-  },
-  {
-    q: "Preciso instalar alguma coisa?",
-    a: "Não. O MedMate roda no navegador. Basta acessar, logar e usar.",
-  },
+const FLOW_STEPS = [
+  { num: "01", title: "Selecione o paciente", desc: "Busca por nome ou CPF. Dados da última consulta carregam automaticamente." },
+  { num: "02", title: "Preencha vitais e contexto clínico", desc: "Sinais vitais, problemas ativos e exames — cálculos automáticos em tempo real." },
+  { num: "03", title: "Estruture o SOAP e a conduta", desc: "Nota SOAP com templates. Prescrição, exames e orientações em seções separadas." },
+  { num: "04", title: "Copie para o eSUS PEC", desc: "Resumo formatado em um clique. Documentação completa em segundos." },
 ];
-
-const OUTPUT_PREVIEW_WIDTHS = [92, 71, 88, 77, 96, 69, 84, 74];
 
 export default async function LandingPage() {
-  // Check if user is logged in to show contextual CTA
   let isLoggedIn = false;
   try {
     const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     isLoggedIn = !!user;
   } catch {
     // Not logged in
   }
 
   return (
-    <div className="min-h-screen bg-bg-0 text-text-primary">
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-bg-0/80 backdrop-blur-md border-b border-border-subtle">
-        <div className="max-w-5xl mx-auto flex items-center justify-between px-6 h-14">
-          <Logo size="lg" />
-          <div className="flex items-center gap-3">
-            {isLoggedIn ? (
-              <Link
-                href="/consulta"
-                className="px-4 py-2 bg-accent hover:bg-accent-hover text-black font-semibold rounded-lg text-[13px] transition-colors"
-              >
-                Ir para o consultório
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="px-4 py-2 text-text-secondary hover:text-text-primary text-[13px] transition-colors"
-                >
-                  Entrar
-                </Link>
-                <Link
-                  href="/signup"
-                  className="px-4 py-2 bg-accent hover:bg-accent-hover text-black font-semibold rounded-lg text-[13px] transition-colors"
-                >
-                  Começar grátis
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-surface text-on-surface">
+      <LandingNavbar isLoggedIn={isLoggedIn} />
 
       {/* Hero */}
-      <section className="max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
-        <div className="inline-block px-3 py-1 mb-6 rounded-full border border-border-subtle bg-bg-1 text-[12px] text-text-secondary">
-          Pensado para médicos que usam eSUS PEC
-        </div>
-        <h1 className="text-[36px] sm:text-[48px] font-bold leading-[1.1] tracking-[-0.03em] max-w-3xl mx-auto mb-5">
-          Documente consultas no eSUS{" "}
-          <span className="text-accent">mais rápido</span>
-        </h1>
-        <p className="text-[16px] sm:text-[18px] text-text-secondary leading-relaxed max-w-xl mx-auto mb-8">
-          Estrutura clínica, cálculos automáticos e texto pronto para colar.
-          Menos digitação repetitiva, mais tempo com o paciente.
-        </p>
-        <div className="flex items-center justify-center gap-3">
-          {isLoggedIn ? (
-            <Link
-              href="/consulta"
-              className="px-6 py-3 bg-accent hover:bg-accent-hover text-black font-bold rounded-lg text-[15px] transition-all hover:shadow-[0_0_20px_rgba(0,208,132,0.3)]"
-            >
-              Ir para o consultório
-            </Link>
-          ) : (
-            <>
-              <Link
-                href="/signup"
-                className="px-6 py-3 bg-accent hover:bg-accent-hover text-black font-bold rounded-lg text-[15px] transition-all hover:shadow-[0_0_20px_rgba(0,208,132,0.3)]"
-              >
-                Começar grátis — 14 dias
-              </Link>
-              <a
-                href="#pricing"
-                className="px-6 py-3 bg-bg-2 hover:bg-bg-3 text-text-primary font-medium rounded-lg text-[15px] border border-border-subtle transition-colors"
-              >
-                Ver planos
-              </a>
-            </>
-          )}
-        </div>
-
-        {/* App preview mockup */}
-        <div className="mt-14 max-w-4xl mx-auto rounded-xl border border-border-subtle bg-bg-1 overflow-hidden shadow-2xl shadow-black/40">
-          {/* Fake topbar */}
-          <div className="flex items-center gap-2 px-4 h-10 bg-bg-1 border-b border-border-subtle">
-            <div className="w-6 h-6 rounded-md bg-accent flex items-center justify-center text-black text-[9px] font-extrabold font-mono">
-              {BRAND.shortName}
-            </div>
-            <span className="text-[11px] font-semibold text-text-primary">
-              {BRAND.name}
+      <section className="relative pt-24 pb-20 md:pt-36 md:pb-32 overflow-hidden bg-surface">
+        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-16 items-center">
+          <div className="lg:col-span-5 relative z-10">
+            <span className="inline-block px-4 py-1.5 bg-secondary-container text-on-secondary-container rounded-full text-[11px] font-black tracking-[0.2em] uppercase mb-8 border border-primary/5">
+              Projetado para Médicos da APS
             </span>
-            <div className="flex gap-4 ml-6">
-              {["Consulta", "Prescrição", "Exames"].map((t, i) => (
-                <span
-                  key={t}
-                  className={`text-[10px] ${i === 0 ? "text-text-primary font-medium" : "text-text-tertiary"}`}
-                >
-                  {t}
-                </span>
-              ))}
+            <h1 className="font-headline text-5xl md:text-6xl xl:text-7xl font-medium text-primary leading-[1.05] mb-6">
+              Organize a consulta. Gere o resumo pronto para o eSUS PEC.
+            </h1>
+            <p className="text-lg text-secondary leading-relaxed max-w-xl mb-10 font-light">
+              {BRAND.name} é o workspace clínico definitivo para a Atenção Primária. Automatize métricas, organize o SOAP e exporte a documentação estruturada direto para o eSUS PEC em segundos.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link
+                href={isLoggedIn ? "/consulta" : "/signup"}
+                className="px-8 py-4 bg-primary hover:bg-primary-container text-on-primary font-bold text-base rounded-lg shadow-lg shadow-primary/10 hover:shadow-primary/20 hover:-translate-y-0.5 transition-all active:scale-95 text-center"
+              >
+                {isLoggedIn ? "Ir para o consultório" : "Começar teste grátis"}
+              </Link>
+              <Link
+                href="/funcionalidades"
+                className="px-8 py-4 bg-surface-lowest border border-outline-variant/30 text-primary font-bold text-base rounded-lg hover:bg-surface-container transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                Ver demonstração
+              </Link>
             </div>
-          </div>
-          {/* Fake content grid */}
-          <div className="grid grid-cols-4 gap-px bg-border-subtle/30 p-4 min-h-[260px]">
-            {/* Col 1: Patient info */}
-            <div className="bg-bg-2 rounded-lg p-3 space-y-2">
-              <div className="text-[9px] font-semibold text-accent uppercase tracking-wider mb-2">
-                Paciente
-              </div>
-              {["Nome", "Idade", "Sexo", "Problemas"].map((f) => (
-                <div key={f} className="space-y-1">
-                  <div className="text-[8px] text-text-tertiary">{f}</div>
-                  <div className="h-5 bg-bg-3 rounded" />
-                </div>
-              ))}
-              <div className="mt-2 text-[9px] font-semibold text-accent uppercase tracking-wider">
-                Sinais Vitais
-              </div>
-              <div className="grid grid-cols-2 gap-1">
-                {["PA", "FC", "Peso", "Alt."].map((v) => (
-                  <div key={v} className="space-y-0.5">
-                    <div className="text-[7px] text-text-tertiary">{v}</div>
-                    <div className="h-4 bg-bg-3 rounded" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Col 2: Exames */}
-            <div className="bg-bg-2 rounded-lg p-3 space-y-2">
-              <div className="text-[9px] font-semibold text-accent uppercase tracking-wider mb-2">
-                Exames
-              </div>
-              {["Lipidograma", "Perfil Renal", "Glicêmico"].map((e) => (
-                <div key={e} className="bg-bg-3 rounded p-2 space-y-1">
-                  <div className="text-[8px] text-text-secondary">{e}</div>
-                  <div className="grid grid-cols-2 gap-1">
-                    <div className="h-3 bg-bg-1 rounded" />
-                    <div className="h-3 bg-bg-1 rounded" />
-                  </div>
-                </div>
-              ))}
-            </div>
-            {/* Col 3: SOAP */}
-            <div className="bg-bg-2 rounded-lg p-3 space-y-2">
-              <div className="text-[9px] font-semibold text-accent uppercase tracking-wider mb-2">
-                SOAP
-              </div>
-              {["Subjetivo", "Objetivo", "Avaliação", "Plano"].map((s) => (
-                <div key={s} className="space-y-1">
-                  <div className="text-[8px] text-text-tertiary">{s}</div>
-                  <div className="h-8 bg-bg-3 rounded" />
-                </div>
-              ))}
-            </div>
-            {/* Col 4: Output */}
-            <div className="bg-bg-2 rounded-lg p-3 space-y-2">
-              <div className="text-[9px] font-semibold text-accent uppercase tracking-wider mb-2">
-                Texto para eSUS
-              </div>
-              <div className="space-y-1">
-                {OUTPUT_PREVIEW_WIDTHS.map((width, i) => (
-                  <div
-                    key={i}
-                    className="h-3 bg-bg-3 rounded"
-                    style={{ width: `${width}%` }}
-                  />
-                ))}
-              </div>
-              <div className="mt-3 h-7 bg-accent/10 border border-accent/20 rounded flex items-center justify-center">
-                <span className="text-[8px] text-accent font-medium">
-                  Copiar para eSUS
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <h2 className="text-[24px] font-bold text-center mb-3 tracking-[-0.02em]">
-          Como funciona
-        </h2>
-        <p className="text-text-secondary text-center text-[14px] mb-12 max-w-lg mx-auto">
-          Três passos entre abrir o MedMate e ter o texto pronto no eSUS PEC.
-        </p>
-        <div className="grid md:grid-cols-3 gap-6">
-          {STEPS.map((step) => (
-            <div
-              key={step.num}
-              className="bg-bg-1 border border-border-subtle rounded-xl p-6"
-            >
-              <div className="w-8 h-8 rounded-lg bg-accent/10 text-accent font-bold text-[14px] flex items-center justify-center mb-4">
-                {step.num}
-              </div>
-              <h3 className="text-[15px] font-semibold mb-2">{step.title}</h3>
-              <p className="text-[13px] text-text-secondary leading-relaxed">
-                {step.desc}
+            {!isLoggedIn && (
+              <p className="text-[11px] font-bold text-on-surface-muted uppercase tracking-widest mt-4">
+                14 dias grátis — sem cartão de crédito.
               </p>
+            )}
+          </div>
+
+          {/* Product mockup */}
+          <div className="lg:col-span-7 relative">
+            <div className="absolute -inset-4 bg-primary-container/5 rounded-[2.5rem] blur-3xl" />
+            <div className="relative bg-surface-lowest rounded-xl shadow-[0_32px_64px_-16px_rgba(1,45,29,0.12)] border border-outline-variant/20 overflow-hidden flex flex-col aspect-[4/3] max-h-[520px]">
+              {/* Mockup header */}
+              <div className="bg-surface-low px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-xs font-bold">MS</div>
+                  <div>
+                    <p className="text-xs font-bold text-primary">Maria Silva dos Santos</p>
+                    <p className="text-[10px] text-secondary">Feminino, 58 anos • HAS • DM2</p>
+                  </div>
+                </div>
+                <div className="flex gap-1.5">
+                  <span className="px-2 py-0.5 bg-status-crit-bg text-status-crit text-[9px] font-bold rounded uppercase">Hipertensa</span>
+                  <span className="px-2 py-0.5 bg-status-info-bg text-status-info text-[9px] font-bold rounded uppercase">Diabética</span>
+                </div>
+              </div>
+              <div className="flex flex-1 overflow-hidden">
+                {/* Sidebar */}
+                <div className="w-1/3 border-r border-outline-variant/10 bg-surface-lowest p-5 space-y-5">
+                  <div>
+                    <p className="text-[9px] font-bold text-primary/40 uppercase tracking-widest mb-3">Sinais Vitais</p>
+                    <div className="space-y-2">
+                      {[["PA", "132/84"], ["IMC", "24.2"], ["FC", "72 bpm"]].map(([label, value]) => (
+                        <div key={label} className="flex justify-between items-center p-2 bg-surface rounded border border-primary/5">
+                          <span className="text-[10px] font-semibold text-secondary">{label}</span>
+                          <span className="text-xs font-bold text-primary">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-primary/40 uppercase tracking-widest mb-2">Problemas</p>
+                    <ul className="text-[10px] space-y-1.5 text-primary font-medium">
+                      <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary/40" /> HAS Estágio 1</li>
+                      <li className="flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary/40" /> DM Tipo 2</li>
+                    </ul>
+                  </div>
+                </div>
+                {/* Editor */}
+                <div className="flex-1 flex flex-col bg-surface-lowest">
+                  <div className="p-5 border-b border-outline-variant/10 flex-1">
+                    <p className="text-[9px] font-bold text-primary/40 uppercase tracking-widest mb-4">SOAP</p>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-[10px] font-bold text-primary uppercase block mb-1">Subjetivo</span>
+                        <p className="text-[11px] text-secondary italic border-l-2 border-primary/20 pl-2">
+                          Paciente refere cefaleia occipital ocasional...
+                        </p>
+                      </div>
+                      <div className="h-10 bg-surface rounded border border-dashed border-outline-variant/40 flex items-center justify-center text-[10px] text-on-surface-muted italic">
+                        Toque para preencher exame físico
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-5 bg-primary/[0.02]">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[9px] font-bold text-primary uppercase tracking-widest">Resumo Pronto para eSUS</p>
+                      <button className="bg-primary text-on-primary text-[8px] px-2.5 py-1 rounded font-bold uppercase tracking-wider">Copiar</button>
+                    </div>
+                    <div className="bg-surface-lowest p-2.5 rounded border border-primary/10 text-[9px] font-mono text-primary leading-relaxed">
+                      <p># SUBJETIVO: Pct c/ cefaleia occipital...</p>
+                      <p># OBJETIVO: PA 132/84 mmHg, IMC 24.2...</p>
+                      <p># AVALIAÇÃO: HAS (I10) controlada...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
-      {/* Pain point */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="bg-bg-1 border border-border-subtle rounded-2xl p-8 md:p-12 grid md:grid-cols-2 gap-8 items-center">
-          <div>
-            <h2 className="text-[22px] font-bold mb-4 tracking-[-0.02em] leading-tight">
-              Você documenta no eSUS PEC e sabe que poderia ser mais rápido
-            </h2>
-            <p className="text-[14px] text-text-secondary leading-relaxed mb-4">
-              Campos soltos, sem estrutura SOAP, sem cálculos integrados. O texto
-              fica bagunçado, e no final do dia são horas perdidas com
-              retrabalho.
-            </p>
-            <p className="text-[14px] text-text-secondary leading-relaxed">
-              O MedMate organiza a consulta do jeito que o MFC precisa e gera o
-              texto formatado para colar direto no PEC. Simples assim.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: "Antes", items: ["Texto livre sem estrutura", "Cálculos em sites separados", "Copiar/colar manual", "Retrabalho todo dia"] },
-              { label: "Com MedMate", items: ["SOAP estruturado", "Cálculos automáticos", "Texto pronto, um clique", "Minutos, não meia hora"] },
-            ].map((col) => (
-              <div key={col.label} className="space-y-2">
-                <div className={`text-[11px] font-semibold uppercase tracking-wider ${col.label === "Antes" ? "text-status-crit" : "text-accent"}`}>
-                  {col.label}
-                </div>
-                {col.items.map((item) => (
-                  <div
-                    key={item}
-                    className="text-[12px] text-text-secondary bg-bg-2 rounded-lg px-3 py-2 border border-border-subtle"
-                  >
-                    {item}
-                  </div>
-                ))}
+      {/* Pain Points */}
+      <section className="py-24 bg-surface-low">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="font-headline text-4xl text-primary mb-16 font-medium">
+            Por que o MFC precisa de uma ferramenta melhor?
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {PAIN_POINTS.map((p) => (
+              <div key={p.title} className="bg-surface-lowest p-8 rounded-xl">
+                <span className="material-symbols-outlined text-3xl text-primary mb-4 block">{p.icon}</span>
+                <h3 className="font-headline text-xl text-primary font-semibold mb-3">{p.title}</h3>
+                <p className="text-secondary leading-relaxed text-sm">{p.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Benefits */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <h2 className="text-[24px] font-bold text-center mb-12 tracking-[-0.02em]">
-          Feito para a rotina da APS
-        </h2>
-        <div className="grid sm:grid-cols-2 gap-5">
-          {BENEFITS.map((b) => (
-            <div
-              key={b.title}
-              className="flex gap-4 bg-bg-1 border border-border-subtle rounded-xl p-5"
-            >
-              <div className="w-10 h-10 shrink-0 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
-                {b.icon}
-              </div>
-              <div>
-                <h3 className="text-[14px] font-semibold mb-1">{b.title}</h3>
-                <p className="text-[13px] text-text-secondary leading-relaxed">
-                  {b.desc}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="max-w-5xl mx-auto px-6 py-16">
-        <h2 className="text-[24px] font-bold text-center mb-3 tracking-[-0.02em]">
-          Planos simples
-        </h2>
-        <p className="text-text-secondary text-center text-[14px] mb-10">
-          Comece grátis. Assine quando fizer sentido.
-        </p>
-        <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          {/* Trial */}
-          <div className="bg-bg-1 border border-border-subtle rounded-2xl p-7">
-            <div className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider mb-3">
-              Trial
-            </div>
-            <div className="flex items-baseline gap-1 mb-1">
-              <span className="text-[32px] font-bold tracking-tight">R$ 0</span>
-            </div>
-            <p className="text-[13px] text-text-secondary mb-6">
-              14 dias grátis, acesso completo
-            </p>
-            <ul className="space-y-2.5 mb-7">
-              {[
-                "Consulta estruturada completa",
-                "Cálculos automáticos",
-                "Geração de texto para eSUS",
-                "Sem cartão de crédito",
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-2 text-[13px] text-text-secondary">
-                  <svg className="w-4 h-4 text-accent shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/signup"
-              className="block w-full text-center px-5 py-2.5 bg-bg-2 hover:bg-bg-3 text-text-primary font-semibold rounded-lg text-[13px] border border-border-subtle transition-colors"
-            >
-              Criar conta grátis
-            </Link>
-          </div>
-
-          {/* Pro */}
-          <div className="bg-bg-1 border-2 border-accent/40 rounded-2xl p-7 relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-accent text-black text-[10px] font-bold rounded-full uppercase tracking-wider">
-              Recomendado
-            </div>
-            <div className="text-[11px] font-semibold text-accent uppercase tracking-wider mb-3">
-              Pro
-            </div>
-            <div className="flex items-baseline gap-1 mb-1">
-              {/* sync with Stripe */}
-              <span className="text-[32px] font-bold tracking-tight">R$ 49</span>
-              <span className="text-[13px] text-text-tertiary">/mês</span>
-            </div>
-            <p className="text-[13px] text-text-secondary mb-6">
-              Tudo do trial, sem limite de tempo
-            </p>
-            <ul className="space-y-2.5 mb-7">
-              {[
-                "Tudo do trial incluído",
-                "Uso ilimitado",
-                "Atualizações e novos recursos",
-                "Cancele quando quiser",
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-2 text-[13px] text-text-secondary">
-                  <svg className="w-4 h-4 text-accent shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            {isLoggedIn ? (
-              <LandingCheckoutButton />
-            ) : (
-              <Link
-                href="/signup"
-                className="block w-full text-center px-5 py-2.5 bg-accent hover:bg-accent-hover text-black font-bold rounded-lg text-[13px] transition-all hover:shadow-[0_0_12px_rgba(0,208,132,0.25)]"
-              >
-                Começar grátis — 14 dias
-              </Link>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="max-w-3xl mx-auto px-6 py-16">
-        <h2 className="text-[24px] font-bold text-center mb-10 tracking-[-0.02em]">
-          Perguntas frequentes
-        </h2>
-        <div className="space-y-4">
-          {FAQS.map((faq) => (
-            <details
-              key={faq.q}
-              className="group bg-bg-1 border border-border-subtle rounded-xl"
-            >
-              <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-[14px] font-medium text-text-primary list-none [&::-webkit-details-marker]:hidden">
-                {faq.q}
-                <svg
-                  className="w-4 h-4 text-text-tertiary shrink-0 transition-transform group-open:rotate-180"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                </svg>
-              </summary>
-              <div className="px-5 pb-4 text-[13px] text-text-secondary leading-relaxed">
-                {faq.a}
-              </div>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="max-w-5xl mx-auto px-6 py-16 text-center">
-        <div className="bg-bg-1 border border-border-subtle rounded-2xl p-10">
-          <h2 className="text-[24px] font-bold mb-3 tracking-[-0.02em]">
-            Pronto para documentar mais rápido?
-          </h2>
-          <p className="text-[14px] text-text-secondary mb-6 max-w-md mx-auto">
-            14 dias grátis. Sem cartão. Cancele quando quiser.
+      {/* Features */}
+      <section className="py-24 bg-surface">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="font-headline text-4xl text-primary mb-4 font-medium">Os 6 Pilares do {BRAND.name}</h2>
+          <p className="text-secondary text-lg mb-16 max-w-2xl">
+            Cada funcionalidade foi pensada para a realidade clínica da APS brasileira.
           </p>
-          {isLoggedIn ? (
-            <Link
-              href="/consulta"
-              className="inline-block px-8 py-3 bg-accent hover:bg-accent-hover text-black font-bold rounded-lg text-[15px] transition-all hover:shadow-[0_0_20px_rgba(0,208,132,0.3)]"
-            >
-              Ir para o consultório
-            </Link>
-          ) : (
-            <Link
-              href="/signup"
-              className="inline-block px-8 py-3 bg-accent hover:bg-accent-hover text-black font-bold rounded-lg text-[15px] transition-all hover:shadow-[0_0_20px_rgba(0,208,132,0.3)]"
-            >
-              Começar grátis — 14 dias
-            </Link>
-          )}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {FEATURES.map((f) => (
+              <div key={f.title} className="p-6 bg-surface-lowest rounded-xl border border-outline-variant/20">
+                <h3 className="font-headline text-lg text-primary font-semibold mb-2">{f.title}</h3>
+                <p className="text-on-surface-variant text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border-subtle">
-        <div className="max-w-5xl mx-auto px-6 py-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div>
-              <Logo size="sm" />
-              <p className="text-[12px] text-text-tertiary mt-2">
-                Desenvolvido para a rotina da Atenção Primária à Saúde.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-text-secondary">
-              <Link href="/login" className="hover:text-text-primary transition-colors">
-                Entrar
-              </Link>
-              <Link href="/signup" className="hover:text-text-primary transition-colors">
-                Criar conta
-              </Link>
-              <a href="mailto:contato@medmate.com.br" className="hover:text-text-primary transition-colors">
-                Contato
-              </a>
-              <Link href="/politica-de-privacidade" className="hover:text-text-primary transition-colors">
-                Privacidade
-              </Link>
-            </div>
-          </div>
-          <div className="mt-8 pt-6 border-t border-border-subtle text-[11px] text-text-tertiary">
-            &copy; {new Date().getFullYear()} MedMate. Todos os direitos reservados.
+      {/* Flow */}
+      <section className="py-24 bg-surface-low">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="font-headline text-4xl text-primary mb-16 font-medium">Como funciona</h2>
+          <div className="grid md:grid-cols-4 gap-8">
+            {FLOW_STEPS.map((s) => (
+              <div key={s.num}>
+                <span className="font-headline text-5xl text-primary/10 font-medium block mb-4">{s.num}</span>
+                <h3 className="font-headline text-lg text-primary font-semibold mb-2">{s.title}</h3>
+                <p className="text-on-surface-variant text-sm leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* CTA Final */}
+      <section className="py-24 bg-primary-container">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <h2 className="font-headline text-4xl md:text-5xl text-surface-lowest font-medium mb-6">
+            Pronto para transformar sua consulta?
+          </h2>
+          <p className="text-on-primary-container text-lg mb-10">
+            14 dias grátis. Sem cartão de crédito. Cancele quando quiser.
+          </p>
+          <Link
+            href={isLoggedIn ? "/consulta" : "/signup"}
+            className="inline-block px-10 py-4 bg-surface-lowest text-primary font-bold text-base rounded-lg hover:bg-surface transition-all active:scale-95"
+          >
+            {isLoggedIn ? "Ir para o consultório" : "Começar teste grátis"}
+          </Link>
+        </div>
+      </section>
+
+      <LandingFooter />
     </div>
   );
 }
