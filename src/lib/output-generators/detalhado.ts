@@ -4,7 +4,7 @@ import { EXAM_CARDS } from "@/lib/constants";
 
 export function generateDetalhadoOutput(state: ConsultationState): string {
   const lines: string[] = [];
-  const { patient, vitals, problems, problemsOther, labs, labsDate, imaging, calculations, soap, history, prescription, requestedExams, patientInstructions } = state;
+  const { patient, vitals, problems, problemsOther, labs, labsDate, labsExtras, imaging, calculations, soap, history, prescription, requestedExams, patientInstructions } = state;
 
   const date = formatDateBR(patient.consultationDate) || formatDateBR(new Date().toISOString().split("T")[0]);
   lines.push(`PRONTUÁRIO — ${date}`);
@@ -81,6 +81,11 @@ export function generateDetalhadoOutput(state: ConsultationState): string {
   if (labLines.length > 0) {
     lines.push(`\nBIOQUÍMICA${dateLab ? ` (${dateLab})` : ""}`);
     labLines.forEach((l) => lines.push(l));
+  }
+
+  if (labsExtras?.trim()) {
+    lines.push("\nOUTROS EXAMES");
+    labsExtras.trim().split("\n").filter(Boolean).forEach((l) => lines.push(l));
   }
 
   // Imagens

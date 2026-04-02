@@ -2,7 +2,7 @@ import type { ConsultationState } from "@/types";
 
 export function generateResumoOutput(state: ConsultationState): string {
   const lines: string[] = [];
-  const { patient, vitals, problems, problemsOther, soap, prescription, requestedExams, patientInstructions } = state;
+  const { patient, vitals, problems, problemsOther, soap, prescription, requestedExams, patientInstructions, labsExtras } = state;
 
   const patientLine = [patient.name, patient.age, patient.gender].filter(Boolean).join(" · ");
   if (patientLine) lines.push(`**${patientLine}**`);
@@ -18,6 +18,8 @@ export function generateResumoOutput(state: ConsultationState): string {
   if (vitals.peso) vitalParts.push(`Peso ${vitals.peso} kg`);
   if (vitals.imc) vitalParts.push(`IMC ${vitals.imc}`);
   if (vitalParts.length > 0) lines.push(`Vitais: ${vitalParts.join(" | ")}`);
+
+  if (labsExtras?.trim()) lines.push(`\nOutros exames:\n${labsExtras.trim()}`);
 
   if (soap.assessment) lines.push(`\nAvaliação: ${soap.assessment}`);
   if (soap.plan) lines.push(`Plano: ${soap.plan}`);
