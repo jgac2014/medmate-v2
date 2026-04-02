@@ -166,3 +166,13 @@ export interface PatientMedication {
 
 export type OutputMode = "esus" | "resumido" | "detalhado";
 
+export type AlertType = "followup" | "chronic";
+export type AlertSeverity = "warning" | "alert";
+
+export interface Alert {
+  id: string;
+  type: AlertType;
+  message: string;
+  severity: AlertSeverity;
+}
+
