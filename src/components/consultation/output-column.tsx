@@ -96,10 +96,10 @@ export function OutputColumn() {
           <button
             key={mode}
             onClick={() => setOutputMode(mode)}
-            className={`px-2.5 py-1 text-[11px] rounded-md border transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 text-[12px] rounded-lg transition-colors cursor-pointer font-medium ${
               outputMode === mode
-                ? "bg-accent/15 border-accent/30 text-accent font-medium"
-                : "bg-transparent border-border-subtle text-text-tertiary hover:text-text-secondary"
+                ? "bg-primary/8 text-primary border-b-2 border-primary"
+                : "text-on-surface-muted hover:text-on-surface hover:bg-surface-container"
             }`}
           >
             {modeLabels[mode]}
@@ -109,18 +109,18 @@ export function OutputColumn() {
 
       <SectionHeader label={sectionLabel} color="cyan" />
       {hasSummary ? (
-        <pre className="bg-bg-1 border border-border-subtle border-l-[3px] border-l-[rgba(34,211,238,0.35)] rounded-xl p-3 font-mono text-[10.5px] leading-[1.9] text-text-primary min-h-[240px] whitespace-pre-wrap break-words mb-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+        <pre className="bg-surface-container rounded-xl p-4 font-mono text-[11px] leading-[1.9] text-on-surface min-h-[240px] whitespace-pre-wrap break-words mb-1">
           {summary}
         </pre>
       ) : (
-        <div className="bg-bg-1 border border-dashed border-border-default rounded-xl p-3 min-h-[240px] mb-1 flex flex-col justify-center">
-          <p className="text-[12px] font-medium text-text-primary mb-1.5">
+        <div className="bg-surface-container rounded-xl p-4 min-h-[240px] mb-1 flex flex-col justify-center">
+          <p className="text-[13px] font-medium text-on-surface mb-1.5">
             O texto será montado automaticamente.
           </p>
-          <p className="text-[11px] text-text-secondary leading-relaxed mb-3">
+          <p className="text-[12px] text-on-surface-variant leading-relaxed mb-3">
             Este painel organiza a consulta para copiar e colar com menos retrabalho no PEC.
           </p>
-          <div className="space-y-1 text-[10.5px] text-text-tertiary font-mono">
+          <div className="space-y-1 text-[11px] text-on-surface-muted font-mono">
             <div>- problemas</div>
             <div>- vitais e exames alterados</div>
             <div>- SOAP, prescrição e orientações</div>
@@ -130,10 +130,10 @@ export function OutputColumn() {
       <button
         onClick={handleCopy}
         disabled={!hasSummary}
-        className={`w-full h-[28px] mt-[5px] bg-transparent border rounded-[5px] text-xs cursor-pointer font-sans transition-all duration-150 flex items-center justify-center gap-1 ${
+        className={`w-full h-[40px] mt-2 rounded-xl text-[13px] font-semibold cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 ${
           copied
-            ? "border-accent text-accent bg-accent-dim"
-            : "border-border-default text-text-secondary hover:bg-bg-3 hover:text-text-primary hover:border-text-tertiary"
+            ? "bg-secondary-container text-on-secondary-container"
+            : "bg-primary text-on-primary hover:bg-primary-container"
         } disabled:cursor-not-allowed disabled:opacity-50`}
       >
         {copied ? "Copiado!" : `Copiar — ${modeLabels[outputMode]}`}
@@ -146,7 +146,7 @@ export function OutputColumn() {
             <button
               key={cmd}
               onClick={() => document.execCommand(cmd)}
-              className="w-[26px] h-[26px] border border-border-default rounded-md bg-bg-3 text-text-secondary cursor-pointer inline-flex items-center justify-center text-[10px] hover:bg-bg-2 hover:text-text-primary hover:border-text-tertiary transition-all duration-100"
+              className="w-[26px] h-[26px] border border-outline-variant/40 rounded-md bg-surface-container text-on-surface-muted cursor-pointer inline-flex items-center justify-center text-[10px] hover:bg-surface-high hover:text-on-surface transition-all duration-100"
               style={{
                 fontWeight: cmd === "bold" ? 700 : undefined,
                 fontStyle: cmd === "italic" ? "italic" : undefined,
@@ -160,7 +160,7 @@ export function OutputColumn() {
         <div
           ref={editorRef}
           contentEditable
-          className="min-h-[150px] p-3 border border-border-subtle rounded-xl bg-bg-3/85 text-text-primary text-xs leading-[1.75] outline-none transition-[border,background-color] duration-150 focus:border-border-default focus:bg-bg-3"
+          className="min-h-[150px] p-3 rounded-xl bg-surface-container text-on-surface text-[13px] leading-[1.75] outline-none"
         />
         <Button
           variant="primary"
@@ -188,7 +188,7 @@ export function OutputColumn() {
           placeholder={"1. Metformina 850mg - 1cp 2x/dia\n2. Losartana 50mg - 1cp/dia"}
           value={store.prescription}
           onChange={(e) => store.setPrescription(e.target.value)}
-          className="w-full h-20 px-2 py-[7px] border border-border-subtle rounded-[5px] bg-bg-2 text-text-primary font-sans text-xs resize-y leading-relaxed placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_2px_rgba(0,208,132,0.1)]"
+          className="w-full h-20 px-0 py-2 border-0 border-b border-outline-variant/50 rounded-none bg-transparent text-on-surface text-[13px] resize-y leading-relaxed placeholder:text-on-surface-muted focus:outline-none focus:border-primary transition-colors"
         />
       </div>
 
@@ -208,7 +208,7 @@ export function OutputColumn() {
           placeholder="HbA1c, lipidograma, TSH..."
           value={store.requestedExams}
           onChange={(e) => store.setRequestedExams(e.target.value)}
-          className="w-full h-16 px-2 py-[7px] border border-border-subtle rounded-[5px] bg-bg-2 text-text-primary font-sans text-xs resize-y leading-relaxed placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_2px_rgba(0,208,132,0.1)]"
+          className="w-full h-16 px-0 py-2 border-0 border-b border-outline-variant/50 rounded-none bg-transparent text-on-surface text-[13px] resize-y leading-relaxed placeholder:text-on-surface-muted focus:outline-none focus:border-primary transition-colors"
         />
       </div>
 
@@ -230,7 +230,7 @@ export function OutputColumn() {
           placeholder="Dieta hipossódica, atividade física 150min/semana..."
           value={store.patientInstructions}
           onChange={(e) => store.setPatientInstructions(e.target.value)}
-          className="w-full h-16 px-2 py-[7px] border border-border-subtle rounded-[5px] bg-bg-2 text-text-primary font-sans text-xs resize-y leading-relaxed placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_2px_rgba(0,208,132,0.1)]"
+          className="w-full h-16 px-0 py-2 border-0 border-b border-outline-variant/50 rounded-none bg-transparent text-on-surface text-[13px] resize-y leading-relaxed placeholder:text-on-surface-muted focus:outline-none focus:border-primary transition-colors"
         />
       </div>
     </div>
