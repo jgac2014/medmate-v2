@@ -4,15 +4,27 @@ import { useEffect, useState } from "react";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { getPatientProblems } from "@/lib/supabase/patient-problems";
 import { getPatientMedications } from "@/lib/supabase/patient-medications";
+import { getPatientAlerts } from "@/lib/supabase/alerts";
+import { AlertList } from "@/components/consultation/alert-list";
 import { createClient } from "@/lib/supabase/client";
-import type { PatientMedication } from "@/types";
-import { User, AlertCircle } from "lucide-react";
+import type { PatientMedication, Alert } from "@/types";
+import { User } from "lucide-react";
+
+function getDismissedAlerts(): Set<string> {
+  try {
+    const raw = localStorage.getItem("medmate_dismissed_alerts");
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set();
+  }
+}
 
 export function ConsultationSidebar() {
   const { patientId, patientName, patient } = useConsultationStore();
   const [userId, setUserId] = useState<string | null>(null);
   const [activeProblems, setActiveProblems] = useState<string[]>([]);
   const [medications, setMedications] = useState<PatientMedication[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -22,22 +34,38 @@ export function ConsultationSidebar() {
   }, []);
 
   useEffect(() => {
-    if (!patientId) {
+    if (!patientId || !userId) {
       setActiveProblems([]);
       setMedications([]);
+      setAlerts([]);
       return;
     }
     setLoading(true);
     Promise.all([
       getPatientProblems(patientId),
       getPatientMedications(patientId),
+      getPatientAlerts(patientId, userId),
     ])
-      .then(([problems, meds]) => {
+      .then(([problems, meds, newAlerts]) => {
         setActiveProblems(problems);
         setMedications(meds.filter((m) => m.active));
+        // Filtrar alertas já dispensados (localStorage)
+        const dismissed = getDismissedAlerts();
+        setAlerts(newAlerts.filter((a) => !dismissed.has(a.id)));
       })
       .finally(() => setLoading(false));
-  }, [patientId]);
+  }, [patientId, userId]);
+
+  function handleDismiss(id: string) {
+    try {
+      const dismissed = getDismissedAlerts();
+      dismissed.add(id);
+      localStorage.setItem("medmate_dismissed_alerts", JSON.stringify([...dismissed]));
+    } catch {
+      // silencioso
+    }
+    setAlerts((prev) => prev.filter((a) => a.id !== id));
+  }
 
   const displayName = patientName ?? patient.name ?? null;
   const age = patient.age ? `${patient.age} anos` : null;
@@ -123,8 +151,17 @@ export function ConsultationSidebar() {
         )}
       </div>
 
-      {/* Placeholder para alertas — Task 6 (Sessão 2) preencherá esta seção */}
-      <div id="sidebar-alerts-slot" className="px-4 py-3 flex-1" />
+      {/* Alertas clínicos */}
+      {alerts.length > 0 && (
+        <div className="px-4 py-3 border-t border-outline-variant/20">
+          <p className="text-[10px] font-semibold text-on-surface-muted uppercase tracking-wide mb-2">
+            Alertas
+          </p>
+          <AlertList alerts={alerts} onDismiss={handleDismiss} />
+        </div>
+      )}
+
+      <div className="flex-1" />
     </aside>
   );
 }
