@@ -260,31 +260,24 @@ export function Topbar() {
         onClose={() => setDashboardOpen(false)}
       />
 
-      <div className="sticky top-0 z-30 border-b border-white/5 bg-bg-1/88 backdrop-blur-xl shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-        <div className="flex items-center justify-between px-5 h-14">
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="flex items-center gap-[9px] font-bold text-[14px] tracking-[-0.02em] text-text-primary shrink-0">
-              <div className="w-8 h-8 rounded-[9px] bg-accent flex items-center justify-center text-black text-[12px] font-extrabold font-mono tracking-[-0.04em] shrink-0 shadow-[0_0_18px_rgba(0,208,132,0.16)]">
-                {BRAND.shortName}
-              </div>
-              <div className="flex flex-col leading-none">
-                <span>{BRAND.name}</span>
-                <span className="text-[10px] font-medium tracking-[0.08em] uppercase text-text-tertiary mt-1">
-                  Área clínica
-                </span>
-              </div>
-            </div>
-
-            <div className="hidden md:flex items-center gap-2 min-w-0">
-              <div className="h-6 w-px bg-border-subtle" />
-              <div className="inline-flex items-center gap-2 rounded-full border border-border-subtle bg-bg-2/80 px-3 py-1 text-[11px] text-text-secondary">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_10px_rgba(0,208,132,0.3)]" />
-                <span className="font-medium text-text-primary">Consulta</span>
-                <span className="text-text-tertiary">workspace principal</span>
-              </div>
-            </div>
+      <div className="sticky top-0 z-30 bg-surface-low">
+        <div className="flex items-center justify-between px-6 h-14">
+          {/* Logo */}
+          <div className="flex items-center gap-5 min-w-0 shrink-0">
+            <span className="font-headline text-xl font-bold text-primary">{BRAND.name}</span>
           </div>
 
+          {/* Patient name — centro */}
+          {patientName && (
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-status-ok shrink-0" />
+              <span className="font-headline italic text-[15px] text-on-surface truncate max-w-[280px]">
+                {patientName}
+              </span>
+            </div>
+          )}
+
+          {/* Ações — direita */}
           <div className="flex gap-2 items-center">
             <div
               className={`hidden sm:inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium ${subscriptionMeta.className}`}
@@ -296,7 +289,7 @@ export function Topbar() {
               <button
                 onClick={handleCheckout}
                 disabled={checkoutLoading}
-                className="px-3 py-1.5 rounded-md text-[11px] font-semibold tracking-wide cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-status-info/20 text-status-info bg-status-info-bg hover:bg-[rgba(75,158,255,0.12)] hover:border-status-info/40"
+                className="px-3 py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-on-primary hover:bg-primary-container"
               >
                 {checkoutLoading ? "Redirecionando..." : "Ativar Pro"}
               </button>
@@ -304,14 +297,14 @@ export function Topbar() {
 
             <button
               onClick={() => setHistoryOpen(true)}
-              className="h-[32px] px-3 rounded-md text-[12px] font-medium border border-border-subtle text-text-secondary bg-transparent hover:bg-bg-2 hover:text-text-primary hover:border-border-default transition-colors cursor-pointer"
+              className="h-[34px] px-3 rounded-lg text-[13px] font-medium border border-outline-variant/50 text-on-surface-variant bg-surface-lowest hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
             >
               Histórico
             </button>
 
             <button
               onClick={() => setTemplateSelectorOpen(true)}
-              className="h-[32px] px-3 rounded-md text-[12px] font-medium border border-border-subtle text-text-secondary bg-transparent hover:bg-bg-2 hover:text-text-primary hover:border-border-default transition-colors cursor-pointer"
+              className="h-[34px] px-3 rounded-lg text-[13px] font-medium border border-outline-variant/50 text-on-surface-variant bg-surface-lowest hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
             >
               Template
             </button>
@@ -319,22 +312,15 @@ export function Topbar() {
             {patientName && (
               <button
                 onClick={() => setDashboardOpen(true)}
-                className="h-[32px] px-3 rounded-md text-[12px] font-medium border border-accent/20 text-accent bg-accent/5 hover:bg-accent/10 hover:border-accent/30 transition-colors cursor-pointer"
+                className="h-[34px] px-3 rounded-lg text-[13px] font-medium border border-secondary/30 text-secondary bg-secondary-container/20 hover:bg-secondary-container/40 transition-colors cursor-pointer"
               >
                 Prontuário
               </button>
             )}
 
-            {patientName && (
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-bg-2 rounded-full border border-border-subtle max-w-[180px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
-                <span className="text-[11px] text-text-primary truncate font-medium">{patientName}</span>
-              </div>
-            )}
-
             <Button
               variant="secondary"
-              className="h-[32px] px-3 text-[12px]"
+              className="h-[34px] px-3 text-[13px]"
               onClick={() => setPatientSelectorOpen(true)}
             >
               Nova consulta
@@ -342,7 +328,7 @@ export function Topbar() {
 
             <Button
               variant="primary"
-              className="h-[32px] px-3.5 text-[12px]"
+              className="h-[34px] px-4 text-[13px]"
               onClick={handleSave}
               disabled={saveLoading}
             >
@@ -352,45 +338,39 @@ export function Topbar() {
             <div className="relative ml-1" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="h-9 rounded-full border border-border-subtle bg-bg-2/90 pl-1.5 pr-2 flex items-center gap-2 text-left hover:border-border-default transition-colors cursor-pointer"
+                className="h-9 rounded-full border border-outline-variant/50 bg-surface-lowest pl-1.5 pr-2.5 flex items-center gap-2 text-left hover:bg-surface-container transition-colors cursor-pointer"
               >
-                <span className="w-7 h-7 rounded-full bg-bg-3 border border-border-subtle flex items-center justify-center text-[11px] font-semibold text-text-secondary">
+                <span className="w-7 h-7 rounded-full bg-surface-container border border-outline-variant/30 flex items-center justify-center text-[11px] font-semibold text-on-surface-variant">
                   {initials || "?"}
                 </span>
                 <span className="hidden lg:flex flex-col leading-none min-w-0">
-                  <span className="text-[11px] font-medium text-text-primary truncate max-w-[140px]">
+                  <span className="text-[12px] font-medium text-on-surface truncate max-w-[140px]">
                     {userName || "Minha conta"}
-                  </span>
-                  <span className="text-[10px] text-text-tertiary mt-1">
-                    Configurações e assinatura
                   </span>
                 </span>
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-11 w-56 bg-bg-1 border border-border-subtle rounded-xl shadow-[0_16px_40px_rgba(0,0,0,0.3)] py-1.5 z-[60]">
+                <div className="absolute right-0 top-11 w-56 bg-surface-lowest border border-outline-variant/30 rounded-xl shadow-[0_8px_30px_rgba(23,28,31,0.10)] py-1.5 z-[60]">
                   {userName && (
-                    <div className="px-3 py-2.5 border-b border-border-subtle">
-                      <p className="text-[12px] font-medium text-text-primary truncate">
+                    <div className="px-4 py-3 border-b border-outline-variant/30">
+                      <p className="text-[13px] font-medium text-on-surface truncate">
                         {userName}
                       </p>
-                      <p className="text-[11px] text-text-tertiary mt-0.5">
+                      <p className="text-[12px] text-on-surface-muted mt-0.5">
                         {subscriptionMeta.label}
                       </p>
                     </div>
                   )}
                   <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      router.push("/conta");
-                    }}
-                    className="w-full text-left px-3 py-2 text-[12px] text-text-secondary hover:text-text-primary hover:bg-bg-2 transition-colors cursor-pointer"
+                    onClick={() => { setMenuOpen(false); router.push("/conta"); }}
+                    className="w-full text-left px-4 py-2.5 text-[13px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
                   >
                     Minha conta
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-3 py-2 text-[12px] text-text-secondary hover:text-status-crit hover:bg-bg-2 transition-colors cursor-pointer"
+                    className="w-full text-left px-4 py-2.5 text-[13px] text-on-surface-variant hover:text-error hover:bg-surface-container transition-colors cursor-pointer"
                   >
                     Sair
                   </button>
