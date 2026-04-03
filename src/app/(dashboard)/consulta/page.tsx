@@ -58,22 +58,35 @@ export default function ConsultaPage() {
       {/* Coluna central: área de trabalho com scroll */}
       <main className="flex-1 overflow-y-auto min-w-0">
         {/* Topbar da consulta */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 h-11 bg-[var(--surface-lowest)] border-b border-[var(--outline-variant)]">
-          <div className="flex items-center gap-3">
-            <span className="text-[13px] font-semibold text-[var(--accent)]">
-              {patientName ?? patient.name ?? "Nova consulta"}
-            </span>
-            <span className="h-3 w-px bg-[var(--outline-variant)]" />
-            <span className="text-[11px] text-[var(--on-surface-muted)]">Atendimento em andamento</span>
+        <header className="sticky top-0 z-10 flex items-center justify-between px-6 h-12 bg-white border-b border-primary/10">
+          <div className="flex items-center gap-4">
+            <h1 className="font-headline font-bold text-primary flex items-center gap-2 text-[17px]">
+              AjudaMed
+              <span className="px-1.5 py-0.5 bg-primary/5 text-[9px] font-sans font-bold tracking-tighter text-primary/60 rounded border border-primary/10 uppercase">
+                Clinical v4
+              </span>
+            </h1>
+            <div className="h-4 w-px bg-gray-200" />
+            <div className="flex items-center gap-2 text-[11px] font-medium text-secondary">
+              <span className="material-symbols-outlined text-sm">person</span>
+              {patientName ?? patient.name ?? "Nenhum paciente"}
+            </div>
           </div>
-          <button
-            onClick={handleFinalize}
-            disabled={saving}
-            className="px-4 py-1.5 bg-[var(--accent)] text-white text-[11px] font-bold rounded-lg hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {saving ? "Salvando..." : "Finalizar atendimento"}
-          </button>
-        </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 px-2 py-1 bg-[#e9eff2] rounded text-[10px] font-bold text-[#717973] uppercase tracking-tight">
+              <span className="w-1.5 h-1.5 rounded-full bg-secondary inline-block" />
+              Rascunho Salvo
+            </div>
+            <button
+              onClick={handleFinalize}
+              disabled={saving}
+              className="px-5 py-2 bg-primary text-white text-[11px] rounded font-bold hover:bg-primary/90 transition-all active:scale-95 flex items-center gap-2 uppercase tracking-wide disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[16px]">check_circle</span>
+              {saving ? "Salvando..." : "Finalizar Atendimento"}
+            </button>
+          </div>
+        </header>
 
         <DraftRecoveryBanner />
         <div className="max-w-3xl mx-auto p-4 space-y-4">

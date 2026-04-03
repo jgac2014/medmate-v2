@@ -1,13 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { getPatientProblems } from "@/lib/supabase/patient-problems";
 import { getPatientMedications } from "@/lib/supabase/patient-medications";
 import { getPatientAlerts } from "@/lib/supabase/alerts";
 import { AlertList } from "@/components/consultation/alert-list";
-import { createClient } from "@/lib/supabase/client";
 import type { PatientMedication, Alert } from "@/types";
+
+const NAV_ITEMS = [
+  { label: "Atendimento", icon: "clinical_notes", id: "consulta" },
+  { label: "Exames", icon: "biotech", id: "exames" },
+  { label: "Prontuário", icon: "history", id: "historico" },
+  { label: "Prevenção", icon: "vaccines", id: "prevencao" },
+] as const;
+
+type NavId = (typeof NAV_ITEMS)[number]["id"];
 
 function getDismissedAlerts(): Set<string> {
   try {
@@ -27,15 +37,19 @@ interface PatientData {
 const EMPTY_DATA: PatientData = { problems: [], medications: [], alerts: [] };
 
 export function ConsultationSidebar() {
-  const { patientId, patientName, patient } = useConsultationStore();
+  const { patientId, patientName, patient, vitals } = useConsultationStore();
   const [userId, setUserId] = useState<string | null>(null);
   const [patientData, setPatientData] = useState<PatientData>(EMPTY_DATA);
   const [loading, setLoading] = useState(false);
+  const [activeNav, setActiveNav] = useState<NavId>("consulta");
+  const router = useRouter();
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data: { user } }) => {
-      if (user) setUserId(user.id);
-    });
+    createClient()
+      .auth.getUser()
+      .then(({ data: { user } }) => {
+        if (user) setUserId(user.id);
+      });
   }, []);
 
   const fetchPatientData = useCallback(async () => {
@@ -66,7 +80,10 @@ export function ConsultationSidebar() {
     try {
       const dismissed = getDismissedAlerts();
       dismissed.add(id);
-      localStorage.setItem("medmate_dismissed_alerts", JSON.stringify([...dismissed]));
+      localStorage.setItem(
+        "medmate_dismissed_alerts",
+        JSON.stringify([...dismissed])
+      );
     } catch {
       // silencioso
     }
@@ -76,115 +93,169 @@ export function ConsultationSidebar() {
     }));
   }
 
-  // Derive displayed data: clear when no patient selected (avoids sync setState in effect)
   const { problems: activeProblems, medications, alerts } = patientId ? patientData : EMPTY_DATA;
   const displayName = patientName ?? patient.name ?? null;
-  const age = patient.age ? `${patient.age} anos` : null;
+  const age = patient.age ? `${patient.age}a` : null;
   const gender = patient.gender || null;
+  const currentPA =
+    vitals.pas && vitals.pad ? `${vitals.pas}/${vitals.pad} mmHg` : null;
 
   return (
-    <aside className="w-72 shrink-0 h-full overflow-y-auto border-r border-[var(--outline-variant)] bg-[var(--bg-1)] flex flex-col">
-
-      {/* Header: Avatar + Nome + Badge */}
-      <div className="p-4 border-b border-[var(--outline-variant)]">
+    <aside className="w-64 shrink-0 h-full flex flex-col bg-[#F5F7F6] border-r border-primary/10">
+      {/* Header: Patient */}
+      <div className="p-3 border-b border-primary/5">
         <div className="flex items-center gap-3 mb-3">
-          {/* Avatar com inicial */}
+          {/* Avatar */}
           <div className="relative shrink-0">
-            <div className="w-10 h-10 rounded-full bg-[var(--accent-subtle)] border border-[var(--accent-border)] flex items-center justify-center">
-              <span className="text-[15px] font-bold text-[var(--accent)]">
+            <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <span className="text-[15px] font-bold text-primary">
                 {displayName ? displayName[0].toUpperCase() : "?"}
               </span>
             </div>
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[var(--status-ok)] border-2 border-[var(--bg-1)] rounded-full" />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#F5F7F6] rounded-full" />
           </div>
-          {/* Nome e dados */}
+
+          {/* Nome + badge */}
           <div className="min-w-0">
             {displayName ? (
               <>
-                <p className="text-[14px] font-semibold text-[var(--on-surface)] leading-tight truncate">
+                <h2 className="font-headline italic text-lg text-primary truncate leading-tight">
                   {displayName}
-                </p>
-                <p className="text-[11px] text-[var(--on-surface-muted)] mt-0.5">
-                  {[age, gender].filter(Boolean).join(" · ")}
-                </p>
+                </h2>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <p className="font-label text-[9px] tracking-wider uppercase text-[#454B4E]">
+                    {[age, gender].filter(Boolean).join(" • ")}
+                  </p>
+                  {alerts.length > 0 && (
+                    <span className="px-1.5 py-0.5 bg-error/10 text-error text-[8px] font-bold rounded uppercase tracking-tighter">
+                      {alerts.length} alerta{alerts.length > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
               </>
             ) : (
-              <p className="text-[12px] text-[var(--on-surface-muted)] italic">
-                Nenhum paciente selecionado
+              <p className="text-[12px] text-[#717973] italic">
+                Nenhum paciente
               </p>
             )}
           </div>
         </div>
 
-        {/* Memória Clínica compacta */}
+        {/* Memória Clínica */}
         {patientId && (
-          <div className="bg-[var(--bg-0)] rounded-lg p-2.5 border border-[var(--outline-variant)] space-y-2">
-            <p className="text-[9px] uppercase font-bold text-[var(--on-surface-muted)] tracking-wider">
+          <div className="bg-white/50 p-2 rounded border border-primary/5 space-y-1.5">
+            <p className="font-label text-[8px] uppercase tracking-[0.12em] text-primary/70 font-bold flex items-center gap-1">
+              <span className="material-symbols-outlined text-[10px]">
+                history_edu
+              </span>
               Memória Clínica
             </p>
-            {activeProblems.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {activeProblems.slice(0, 4).map((p) => (
+
+            {currentPA && (
+              <div className="flex justify-between items-baseline">
+                <span className="text-[9px] text-[#717973] font-medium">
+                  PA atual
+                </span>
+                <span className="text-[10px] font-bold text-primary">
+                  {currentPA}
+                </span>
+              </div>
+            )}
+
+            {medications.length > 0 && (
+              <div className="flex justify-between items-baseline">
+                <span className="text-[9px] text-[#717973] font-medium">
+                  Medicamentos
+                </span>
+                <span className="text-[10px] font-bold text-[#454B4E]">
+                  {medications.length} ativo{medications.length > 1 ? "s" : ""}
+                </span>
+              </div>
+            )}
+
+            {loading && (
+              <p className="text-[9px] text-[#717973] italic">Carregando...</p>
+            )}
+
+            {activeProblems.length > 0 && (
+              <div className="flex flex-wrap gap-1 pt-1.5 border-t border-primary/5">
+                {activeProblems.slice(0, 3).map((p) => (
                   <span
                     key={p}
-                    className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)]"
+                    className="px-1 py-0.5 bg-[#bdedd7]/40 text-[#416d5c] text-[8px] rounded font-bold border border-[#3b6756]/10"
                   >
                     {p}
                   </span>
                 ))}
-                {activeProblems.length > 4 && (
-                  <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-[var(--bg-2)] text-[var(--on-surface-muted)]">
-                    +{activeProblems.length - 4}
+                {activeProblems.length > 3 && (
+                  <span className="px-1 py-0.5 bg-gray-100 text-[#717973] text-[8px] rounded font-bold">
+                    +{activeProblems.length - 3}
                   </span>
                 )}
               </div>
-            ) : (
-              <p className="text-[10px] text-[var(--on-surface-muted)] italic">
-                Nenhum problema registrado
-              </p>
             )}
           </div>
         )}
       </div>
 
-      {/* Medicamentos contínuos */}
-      <div className="px-4 py-3 border-b border-[var(--outline-variant)]">
-        <p className="text-[10px] font-semibold text-[var(--on-surface-muted)] uppercase tracking-wide mb-2">
-          Medicamentos contínuos
-        </p>
-        {loading ? (
-          <p className="text-[11px] text-[var(--on-surface-muted)] italic">Carregando...</p>
-        ) : medications.length > 0 ? (
-          <div className="flex flex-col gap-1.5">
-            {medications.map((m) => (
-              <div key={m.id}>
-                <p className="text-[11px] text-[var(--on-surface)] font-medium leading-tight">
-                  {m.medication_name}
-                </p>
-                {m.dosage && (
-                  <p className="text-[10px] text-[var(--on-surface-muted)]">{m.dosage}</p>
-                )}
-              </div>
-            ))}
+      {/* Navegação */}
+      <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
+        {NAV_ITEMS.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setActiveNav(item.id)}
+            className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
+              activeNav === item.id
+                ? "text-primary font-bold bg-primary/5 border-l-4 border-primary"
+                : "text-[#454B4E] hover:bg-primary/5 hover:text-primary"
+            }`}
+          >
+            <span className="material-symbols-outlined text-lg">
+              {item.icon}
+            </span>
+            <span className="font-label text-[10px] tracking-widest uppercase">
+              {item.label}
+            </span>
+          </button>
+        ))}
+
+        {/* Alertas clínicos */}
+        {alerts.length > 0 && (
+          <div className="mt-3 px-2">
+            <p className="text-[9px] font-bold text-[#717973] uppercase tracking-wider mb-1.5">
+              Alertas
+            </p>
+            <AlertList alerts={alerts} onDismiss={handleDismiss} />
           </div>
-        ) : (
-          <p className="text-[11px] text-[var(--on-surface-muted)] italic">
-            {patientId ? "Nenhum medicamento" : "—"}
-          </p>
         )}
-      </div>
+      </nav>
 
-      {/* Alertas clínicos */}
-      {alerts.length > 0 && (
-        <div className="px-4 py-3 border-b border-[var(--outline-variant)]">
-          <p className="text-[10px] font-semibold text-[var(--on-surface-muted)] uppercase tracking-wide mb-2">
-            Alertas
-          </p>
-          <AlertList alerts={alerts} onDismiss={handleDismiss} />
+      {/* Rodapé */}
+      <div className="p-3 border-t border-primary/10 bg-white/30">
+        <div className="flex justify-between items-center text-[10px] text-[#454B4E]">
+          <button
+            onClick={() => router.push("/conta")}
+            className="hover:text-primary flex items-center gap-1 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              settings
+            </span>
+            Ajustes
+          </button>
+          <button
+            onClick={async () => {
+              await createClient().auth.signOut();
+              router.push("/auth/login");
+            }}
+            className="hover:text-error flex items-center gap-1 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              logout
+            </span>
+            Sair
+          </button>
         </div>
-      )}
-
-      <div className="flex-1" />
+      </div>
     </aside>
   );
 }
