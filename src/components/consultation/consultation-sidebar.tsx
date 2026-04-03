@@ -8,7 +8,6 @@ import { getPatientAlerts } from "@/lib/supabase/alerts";
 import { AlertList } from "@/components/consultation/alert-list";
 import { createClient } from "@/lib/supabase/client";
 import type { PatientMedication, Alert } from "@/types";
-import { User } from "lucide-react";
 
 function getDismissedAlerts(): Set<string> {
   try {
@@ -84,89 +83,101 @@ export function ConsultationSidebar() {
   const gender = patient.gender || null;
 
   return (
-    <aside className="w-72 shrink-0 h-full overflow-y-auto border-r border-outline-variant/20 bg-surface-lowest flex flex-col">
-      {/* Cabeçalho do paciente */}
-      <div className="px-4 py-4 border-b border-outline-variant/20">
-        <div className="flex items-center gap-2 mb-1">
-          <User size={14} className="text-on-surface-muted shrink-0" />
-          <span className="text-[11px] font-medium text-on-surface-muted uppercase tracking-wide">
-            Paciente
-          </span>
-        </div>
-        {displayName ? (
-          <>
-            <p className="text-[14px] font-semibold text-on-surface leading-tight mt-1">
-              {displayName}
-            </p>
-            {(age || gender) && (
-              <p className="text-[11px] text-on-surface-muted mt-0.5">
-                {[age, gender].filter(Boolean).join(" · ")}
+    <aside className="w-72 shrink-0 h-full overflow-y-auto border-r border-[var(--outline-variant)] bg-[var(--bg-1)] flex flex-col">
+
+      {/* Header: Avatar + Nome + Badge */}
+      <div className="p-4 border-b border-[var(--outline-variant)]">
+        <div className="flex items-center gap-3 mb-3">
+          {/* Avatar com inicial */}
+          <div className="relative shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[var(--accent-subtle)] border border-[var(--accent-border)] flex items-center justify-center">
+              <span className="text-[15px] font-bold text-[var(--accent)]">
+                {displayName ? displayName[0].toUpperCase() : "?"}
+              </span>
+            </div>
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[var(--status-ok)] border-2 border-[var(--bg-1)] rounded-full" />
+          </div>
+          {/* Nome e dados */}
+          <div className="min-w-0">
+            {displayName ? (
+              <>
+                <p className="text-[14px] font-semibold text-[var(--on-surface)] leading-tight truncate">
+                  {displayName}
+                </p>
+                <p className="text-[11px] text-[var(--on-surface-muted)] mt-0.5">
+                  {[age, gender].filter(Boolean).join(" · ")}
+                </p>
+              </>
+            ) : (
+              <p className="text-[12px] text-[var(--on-surface-muted)] italic">
+                Nenhum paciente selecionado
               </p>
             )}
-          </>
-        ) : (
-          <p className="text-[12px] text-on-surface-muted italic mt-1">
-            Nenhum paciente selecionado
-          </p>
-        )}
-      </div>
-
-      {/* Problemas ativos */}
-      <div className="px-4 py-3 border-b border-outline-variant/20">
-        <p className="text-[10px] font-semibold text-on-surface-muted uppercase tracking-wide mb-2">
-          Problemas ativos
-        </p>
-        {loading ? (
-          <p className="text-[11px] text-on-surface-muted italic">Carregando...</p>
-        ) : activeProblems.length > 0 ? (
-          <div className="flex flex-col gap-1">
-            {activeProblems.map((p) => (
-              <span
-                key={p}
-                className="inline-block text-[11px] px-2 py-0.5 rounded bg-error/10 text-error w-fit"
-              >
-                {p}
-              </span>
-            ))}
           </div>
-        ) : (
-          <p className="text-[11px] text-on-surface-muted italic">
-            {patientId ? "Nenhum problema registrado" : "—"}
-          </p>
+        </div>
+
+        {/* Memória Clínica compacta */}
+        {patientId && (
+          <div className="bg-[var(--bg-0)] rounded-lg p-2.5 border border-[var(--outline-variant)] space-y-2">
+            <p className="text-[9px] uppercase font-bold text-[var(--on-surface-muted)] tracking-wider">
+              Memória Clínica
+            </p>
+            {activeProblems.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {activeProblems.slice(0, 4).map((p) => (
+                  <span
+                    key={p}
+                    className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)]"
+                  >
+                    {p}
+                  </span>
+                ))}
+                {activeProblems.length > 4 && (
+                  <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-[var(--bg-2)] text-[var(--on-surface-muted)]">
+                    +{activeProblems.length - 4}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <p className="text-[10px] text-[var(--on-surface-muted)] italic">
+                Nenhum problema registrado
+              </p>
+            )}
+          </div>
         )}
       </div>
 
       {/* Medicamentos contínuos */}
-      <div className="px-4 py-3 border-b border-outline-variant/20">
-        <p className="text-[10px] font-semibold text-on-surface-muted uppercase tracking-wide mb-2">
+      <div className="px-4 py-3 border-b border-[var(--outline-variant)]">
+        <p className="text-[10px] font-semibold text-[var(--on-surface-muted)] uppercase tracking-wide mb-2">
           Medicamentos contínuos
         </p>
         {loading ? (
-          <p className="text-[11px] text-on-surface-muted italic">Carregando...</p>
+          <p className="text-[11px] text-[var(--on-surface-muted)] italic">Carregando...</p>
         ) : medications.length > 0 ? (
           <div className="flex flex-col gap-1.5">
             {medications.map((m) => (
               <div key={m.id}>
-                <p className="text-[11px] text-on-surface font-medium leading-tight">
+                <p className="text-[11px] text-[var(--on-surface)] font-medium leading-tight">
                   {m.medication_name}
                 </p>
                 {m.dosage && (
-                  <p className="text-[10px] text-on-surface-muted">{m.dosage}</p>
+                  <p className="text-[10px] text-[var(--on-surface-muted)]">{m.dosage}</p>
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-[11px] text-on-surface-muted italic">
-            {patientId ? "Nenhum medicamento registrado" : "—"}
+          <p className="text-[11px] text-[var(--on-surface-muted)] italic">
+            {patientId ? "Nenhum medicamento" : "—"}
           </p>
         )}
       </div>
 
       {/* Alertas clínicos */}
       {alerts.length > 0 && (
-        <div className="px-4 py-3 border-t border-outline-variant/20">
-          <p className="text-[10px] font-semibold text-on-surface-muted uppercase tracking-wide mb-2">
+        <div className="px-4 py-3 border-b border-[var(--outline-variant)]">
+          <p className="text-[10px] font-semibold text-[var(--on-surface-muted)] uppercase tracking-wide mb-2">
             Alertas
           </p>
           <AlertList alerts={alerts} onDismiss={handleDismiss} />
