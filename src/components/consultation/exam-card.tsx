@@ -19,7 +19,7 @@ export function ExamCard({ card, span2 = false }: ExamCardProps) {
         span2 ? "col-span-2" : ""
       }`}
     >
-      <div className="text-[9px] font-bold tracking-[0.10em] uppercase text-on-surface-muted mb-2 pb-1.5">
+      <div className="text-[9px] font-bold tracking-[0.10em] uppercase text-[var(--on-surface-muted)] mb-2 pb-1.5">
         {card.title}
       </div>
       {card.fields.map((field) => {

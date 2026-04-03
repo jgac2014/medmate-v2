@@ -34,7 +34,7 @@ export function VitalsForm() {
       </div>
       <div className="grid grid-cols-2 gap-[5px]">
         <div className="mb-2">
-          <label className="block text-[10.5px] text-text-tertiary mb-0.5 font-medium">
+          <label className="block text-[10.5px] text-[var(--on-surface-muted)] mb-0.5 font-medium">
             IMC <span className="text-[8px] bg-status-calc-bg text-status-calc px-[5px] py-[1px] rounded-[3px] font-bold ml-1 border border-[rgba(34,211,238,0.2)] tracking-[0.05em]">AUTO</span>
           </label>
           <input

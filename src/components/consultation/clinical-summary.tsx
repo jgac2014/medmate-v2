@@ -10,7 +10,7 @@ import type { StatusLevel } from "@/types";
 function TagGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="mb-2.5">
-      <div className="text-[9px] font-semibold tracking-[0.08em] uppercase text-text-tertiary mb-[5px]">
+      <div className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[var(--on-surface-muted)] mb-[5px]">
         {label}
       </div>
       <div className="flex flex-wrap gap-[3px]">{children}</div>
@@ -49,11 +49,11 @@ export function ClinicalSummary() {
       <SectionHeader label="Resumo Clínico" color="purple" />
 
       {!hasSummaryContent && (
-        <div className="rounded-xl border border-dashed border-border-default bg-bg-2/55 px-3.5 py-3 mb-3">
-          <p className="text-[12px] font-medium text-text-primary mb-1">
+        <div className="rounded-xl border border-dashed border-[var(--outline)] bg-[var(--surface-container)] px-3.5 py-3 mb-3">
+          <p className="text-[12px] font-medium text-[var(--on-surface)] mb-1">
             O resumo clínico aparece conforme a consulta ganha contexto.
           </p>
-          <p className="text-[11px] leading-relaxed text-text-secondary">
+          <p className="text-[11px] leading-relaxed text-[var(--on-surface-variant)]">
             Preencha identificação, vitais, problemas ou exames para visualizar os principais sinais desta consulta em um bloco só.
           </p>
         </div>

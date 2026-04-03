@@ -103,15 +103,15 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
 
       {pendingLoadId && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60">
-          <div className="bg-bg-1 border border-border-subtle rounded-xl p-5 max-w-[320px] w-full mx-4 shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
-            <p className="text-[13px] font-semibold text-text-primary mb-1">Substituir consulta atual?</p>
-            <p className="text-[12px] text-text-secondary leading-relaxed mb-4">
+          <div className="bg-[var(--surface-low)] border border-[var(--outline-variant)] rounded-xl p-5 max-w-[320px] w-full mx-4 shadow-[0_20px_40px_rgba(0,0,0,0.15)]">
+            <p className="text-[13px] font-semibold text-[var(--on-surface)] mb-1">Substituir consulta atual?</p>
+            <p className="text-[12px] text-[var(--on-surface-variant)] leading-relaxed mb-4">
               A consulta em edição será substituída. Salve antes se quiser preservá-la.
             </p>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setPendingLoadId(null)}
-                className="px-3 py-1.5 text-[12px] text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                className="px-3 py-1.5 text-[12px] text-[var(--on-surface-variant)] hover:text-[var(--on-surface)] transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -132,48 +132,48 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
 
       {/* Sliding panel */}
       <div
-        className={`fixed left-0 top-0 h-full w-[320px] z-50 bg-bg-1 border-r border-border-subtle shadow-[4px_0_32px_rgba(0,0,0,0.35)] transition-transform duration-200 flex flex-col ${
+        className={`fixed left-0 top-0 h-full w-[320px] z-50 bg-[var(--surface-low)] border-r border-[var(--outline-variant)] shadow-[4px_0_32px_rgba(0,0,0,0.12)] transition-transform duration-200 flex flex-col ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 h-14 border-b border-border-subtle shrink-0">
+        <div className="flex items-center justify-between px-4 h-14 border-b border-[var(--outline-variant)] shrink-0">
           <div>
-            <p className="text-[13px] font-semibold tracking-[-0.01em] text-text-primary">
+            <p className="text-[13px] font-semibold tracking-[-0.01em] text-[var(--on-surface)]">
               Histórico
             </p>
-            <p className="text-[11px] text-text-tertiary mt-0.5">Consultas salvas</p>
+            <p className="text-[11px] text-[var(--on-surface-muted)] mt-0.5">Consultas salvas</p>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-md border border-border-subtle flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-bg-2 transition-colors cursor-pointer text-lg leading-none"
+            className="w-7 h-7 rounded-md border border-[var(--outline-variant)] flex items-center justify-center text-[var(--on-surface-muted)] hover:text-[var(--on-surface)] hover:bg-[var(--surface-container)] transition-colors cursor-pointer text-lg leading-none"
           >
             ×
           </button>
         </div>
 
         {/* Search */}
-        <div className="px-3 py-2 border-b border-border-subtle/60 space-y-1.5">
+        <div className="px-3 py-2 border-b border-[var(--outline-variant)] space-y-1.5">
           <input
             type="text"
             placeholder="Buscar paciente, problema, texto..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-8 px-2.5 text-[12px] border border-border-subtle rounded-md bg-bg-2 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent"
+            className="w-full h-8 px-2.5 text-[12px] border border-[var(--outline-variant)] rounded-md bg-[var(--surface-container)] text-[var(--on-surface)] placeholder:text-[var(--on-surface-muted)] focus:outline-none focus:border-primary"
           />
           <div className="flex gap-1.5">
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="flex-1 h-7 px-2 text-[11px] border border-border-subtle rounded-md bg-bg-2 text-text-secondary focus:outline-none focus:border-accent"
+              className="flex-1 h-7 px-2 text-[11px] border border-[var(--outline-variant)] rounded-md bg-[var(--surface-container)] text-[var(--on-surface-variant)] focus:outline-none focus:border-primary"
               title="Data inicial"
             />
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="flex-1 h-7 px-2 text-[11px] border border-border-subtle rounded-md bg-bg-2 text-text-secondary focus:outline-none focus:border-accent"
+              className="flex-1 h-7 px-2 text-[11px] border border-[var(--outline-variant)] rounded-md bg-[var(--surface-container)] text-[var(--on-surface-variant)] focus:outline-none focus:border-primary"
               title="Data final"
             />
           </div>
@@ -183,14 +183,14 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center h-32">
-              <p className="text-[12px] text-text-tertiary">Carregando...</p>
+              <p className="text-[12px] text-[var(--on-surface-muted)]">Carregando...</p>
             </div>
           ) : items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 px-6 text-center">
-              <p className="text-[12px] font-medium text-text-secondary mb-1">
+              <p className="text-[12px] font-medium text-[var(--on-surface-variant)] mb-1">
                 Nenhuma consulta salva
               </p>
-              <p className="text-[11px] text-text-tertiary leading-relaxed">
+              <p className="text-[11px] text-[var(--on-surface-muted)] leading-relaxed">
                 Salve uma consulta para vê-la aqui.
               </p>
             </div>
@@ -208,32 +208,32 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
                     key={item.id}
                     onClick={() => handleLoad(item.id)}
                     disabled={loadingId === item.id}
-                    className={`w-full text-left px-4 py-3 border-b border-border-subtle/40 transition-colors cursor-pointer disabled:opacity-50 ${
+                    className={`w-full text-left px-4 py-3 border-b border-[var(--outline-variant)] transition-colors cursor-pointer disabled:opacity-50 ${
                       isActive
                         ? "bg-accent/8 border-l-2 border-l-accent pl-[14px]"
-                        : "hover:bg-bg-2"
+                        : "hover:bg-[var(--surface-container)]"
                     }`}
                   >
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className="text-[12px] font-medium text-text-primary truncate flex-1">
+                      <p className="text-[12px] font-medium text-[var(--on-surface)] truncate flex-1">
                         {patientName}
                       </p>
-                      <span className="text-[10px] text-text-tertiary shrink-0 tabular-nums">
+                      <span className="text-[10px] text-[var(--on-surface-muted)] shrink-0 tabular-nums">
                         {formatDateBR(item.date)}
                       </span>
                     </div>
 
                     {topProblems.length > 0 && (
-                      <p className="text-[10.5px] text-text-secondary mt-0.5 truncate">
+                      <p className="text-[10.5px] text-[var(--on-surface-variant)] mt-0.5 truncate">
                         {topProblems.join(" · ")}
                         {extra > 0 && (
-                          <span className="text-text-tertiary"> +{extra}</span>
+                          <span className="text-[var(--on-surface-muted)]"> +{extra}</span>
                         )}
                       </p>
                     )}
 
                     {!item.patient_id && (
-                      <span className="inline-block mt-1 text-[10px] text-text-tertiary border border-border-subtle rounded px-1.5 py-0.5">
+                      <span className="inline-block mt-1 text-[10px] text-[var(--on-surface-muted)] border border-[var(--outline-variant)] rounded px-1.5 py-0.5">
                         legado
                       </span>
                     )}
@@ -255,8 +255,8 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
         </div>
 
         {/* Footer hint */}
-        <div className="px-4 py-3 border-t border-border-subtle shrink-0">
-          <p className="text-[10.5px] text-text-tertiary leading-relaxed">
+        <div className="px-4 py-3 border-t border-[var(--outline-variant)] shrink-0">
+          <p className="text-[10.5px] text-[var(--on-surface-muted)] leading-relaxed">
             Clique em uma consulta para continuar a edição.
           </p>
         </div>
