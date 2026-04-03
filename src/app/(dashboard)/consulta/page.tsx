@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ConsultationSidebar } from "@/components/consultation/consultation-sidebar";
 import { ConsultationRightPanel } from "@/components/consultation/consultation-right-panel";
@@ -16,9 +17,10 @@ import { VitalsForm } from "@/components/consultation/vitals-form";
 import { ExamGrid } from "@/components/consultation/exam-grid";
 import { ExamUploadButton } from "@/components/consultation/exam-upload-button";
 import { ExamReviewModal } from "@/components/consultation/exam-review-modal";
+import { ConsultaConcluidaModal } from "@/components/consultation/consulta-concluida-modal";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useDraftAutosave } from "@/hooks/useDraftAutosave";
-import { showToast } from "@/components/ui/toast";
+import { useSaveConsultation } from "@/hooks/useSaveConsultation";
 
 export default function ConsultaPage() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -33,6 +35,9 @@ export default function ConsultaPage() {
 
   useDraftAutosave(userId);
 
+  const router = useRouter();
+  const { saving, save, modalOpen, esusTextSnapshot, closeModal } = useSaveConsultation(userId);
+
   const labsExtras = useConsultationStore((s) => s.labsExtras);
   const setLabsExtras = useConsultationStore((s) => s.setLabsExtras);
   const [reviewModal, setReviewModal] = useState<{
@@ -41,9 +46,8 @@ export default function ConsultaPage() {
     extras: string;
   }>({ open: false, matched: {}, extras: "" });
 
-  function handleFinalize() {
-    // TODO: save consultation, reset store, navigate to patient list
-    showToast("Atendimento finalizado!", "success");
+  async function handleFinalize() {
+    await save();
   }
 
   return (
@@ -64,9 +68,10 @@ export default function ConsultaPage() {
           </div>
           <button
             onClick={handleFinalize}
-            className="px-4 py-1.5 bg-[var(--accent)] text-white text-[11px] font-bold rounded-lg hover:opacity-90 active:scale-[0.98] transition-all"
+            disabled={saving}
+            className="px-4 py-1.5 bg-[var(--accent)] text-white text-[11px] font-bold rounded-lg hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Finalizar atendimento
+            {saving ? "Salvando..." : "Finalizar atendimento"}
           </button>
         </div>
 
@@ -140,6 +145,20 @@ export default function ConsultaPage() {
         matched={reviewModal.matched}
         extras={reviewModal.extras}
         onClose={() => setReviewModal({ open: false, matched: {}, extras: "" })}
+      />
+
+      <ConsultaConcluidaModal
+        open={modalOpen}
+        esusText={esusTextSnapshot}
+        patientName={patientName ?? patient.name ?? null}
+        onNewConsulta={() => {
+          closeModal();
+          useConsultationStore.getState().reset();
+        }}
+        onHistory={() => {
+          closeModal();
+          router.push("/consulta");
+        }}
       />
     </div>
   );
