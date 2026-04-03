@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ConsultationSidebar } from "@/components/consultation/consultation-sidebar";
+import { ConsultationRightPanel } from "@/components/consultation/consultation-right-panel";
 import { ClinicalSummary } from "@/components/consultation/clinical-summary";
 import { SoapForm } from "@/components/consultation/soap-form";
 import { HistoryForm } from "@/components/consultation/history-form";
@@ -18,9 +19,12 @@ import { ExamUploadButton } from "@/components/consultation/exam-upload-button";
 import { ExamReviewModal } from "@/components/consultation/exam-review-modal";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useDraftAutosave } from "@/hooks/useDraftAutosave";
+import { showToast } from "@/components/ui/toast";
 
 export default function ConsultaPage() {
   const [userId, setUserId] = useState<string | null>(null);
+  const patientName = useConsultationStore((s) => s.patientName);
+  const patient = useConsultationStore((s) => s.patient);
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
@@ -38,79 +42,103 @@ export default function ConsultaPage() {
     extras: string;
   }>({ open: false, matched: {}, extras: "" });
 
+  function handleFinalize() {
+    showToast("Atendimento finalizado!", "success");
+  }
+
   return (
-    <div className="flex h-[calc(100vh-56px)] overflow-hidden bg-surface-low">
-      {/* Sidebar fixa */}
+    <div className="theme-light flex h-[calc(100vh-56px)] overflow-hidden bg-[var(--bg-0)]">
+      {/* Coluna esquerda: contexto do paciente */}
       <ConsultationSidebar />
 
-      {/* Área principal scrollável */}
-      <main className="flex-1 overflow-y-auto">
-        <DraftRecoveryBanner />
-        <div className="max-w-5xl mx-auto p-4 space-y-4">
+      {/* Coluna central: área de trabalho com scroll */}
+      <main className="flex-1 overflow-y-auto min-w-0">
+        {/* Topbar da consulta */}
+        <div className="sticky top-0 z-10 flex items-center justify-between px-6 h-11 bg-[var(--surface-lowest)] border-b border-[var(--outline-variant)]">
+          <div className="flex items-center gap-3">
+            <span className="text-[13px] font-semibold text-[var(--accent)]">
+              {patientName ?? patient.name ?? "Nova consulta"}
+            </span>
+            <span className="h-3 w-px bg-[var(--outline-variant)]" />
+            <span className="text-[11px] text-[var(--on-surface-muted)]">Atendimento em andamento</span>
+          </div>
+          <button
+            onClick={handleFinalize}
+            className="px-4 py-1.5 bg-[var(--accent)] text-white text-[11px] font-bold rounded-lg hover:opacity-90 active:scale-[0.98] transition-all"
+          >
+            Finalizar atendimento
+          </button>
+        </div>
 
-          {/* Bloco 1: Identificação + Problemas (compacto, menos destaque) */}
+        <DraftRecoveryBanner />
+        <div className="max-w-3xl mx-auto p-4 space-y-4">
+
+          {/* Bloco 1: Identificação + Problemas */}
           <details className="group">
-            <summary className="cursor-pointer text-[11px] font-medium text-on-surface-muted uppercase tracking-wide select-none list-none flex items-center gap-1 hover:text-on-surface transition-colors">
+            <summary className="cursor-pointer text-[11px] font-medium text-[var(--on-surface-muted)] uppercase tracking-wide select-none list-none flex items-center gap-1 hover:text-[var(--on-surface)] transition-colors">
               <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
-              Identificação e problemas da consulta
+              Identificação e problemas
             </summary>
-            <div className="mt-3 grid grid-cols-2 gap-4 p-4 rounded-xl bg-surface-lowest border border-outline-variant/20">
+            <div className="mt-3 grid grid-cols-2 gap-4 p-4 rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)]">
               <PatientInfo />
               <ProblemList />
             </div>
           </details>
 
-          {/* Bloco 2: SOAP — foco principal */}
-          <section className="rounded-xl bg-surface-lowest border border-outline-variant/20 p-5">
+          {/* Bloco 2: SOAP */}
+          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
             <ClinicalSummary />
-            <div className="my-3 h-px bg-outline-variant/20" />
+            <div className="my-3 h-px bg-[var(--outline-variant)]" />
             <SoapForm />
           </section>
 
           {/* Bloco 3: Dados Objetivos */}
-          <section className="rounded-xl bg-surface-lowest border border-outline-variant/20 p-5 space-y-4">
+          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5 space-y-4">
             <ExamUploadButton
               onResult={({ matched, extras }) =>
                 setReviewModal({ open: true, matched, extras })
               }
             />
             <VitalsForm />
-            <div className="h-px bg-outline-variant/20" />
+            <div className="h-px bg-[var(--outline-variant)]" />
             <ExamGrid />
             {labsExtras && (
               <div className="space-y-1.5 pt-1">
-                <label className="text-[11px] font-medium text-on-surface-muted uppercase tracking-wide">
+                <label className="text-[11px] font-medium text-[var(--on-surface-muted)] uppercase tracking-wide">
                   Outros exames
                 </label>
                 <textarea
                   value={labsExtras}
                   onChange={(e) => setLabsExtras(e.target.value)}
                   rows={Math.min(6, labsExtras.split("\n").length + 1)}
-                  className="w-full text-[13px] text-on-surface bg-transparent border border-outline-variant/30 rounded-lg px-3 py-2 resize-y font-mono focus:outline-none focus:border-primary transition-colors"
+                  className="w-full text-[13px] text-[var(--on-surface)] bg-transparent border border-[var(--outline-variant)] rounded-lg px-3 py-2 resize-y font-mono focus:outline-none focus:border-[var(--accent)] transition-colors"
                 />
               </div>
             )}
           </section>
 
           {/* Bloco 4: Antecedentes */}
-          <section className="rounded-xl bg-surface-lowest border border-outline-variant/20 p-5">
+          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
             <HistoryForm />
           </section>
 
-          {/* Bloco 4: Saída */}
-          <section className="rounded-xl bg-surface-lowest border border-outline-variant/20 p-5">
+          {/* Bloco 5: Saída (mantido para compatibilidade — será removido após painel direito estável) */}
+          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
             <OutputColumn />
           </section>
 
-          {/* Bloco 5: Prevenção e seguimento (menos destaque) */}
-          <section className="rounded-xl bg-surface-lowest border border-outline-variant/20 p-5 space-y-4">
+          {/* Bloco 6: Prevenção e seguimento */}
+          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5 space-y-4">
             <PreventionList />
-            <div className="h-px bg-outline-variant/20" />
+            <div className="h-px bg-[var(--outline-variant)]" />
             <FollowupPanel />
           </section>
 
         </div>
       </main>
+
+      {/* Coluna direita: prévia eSUS + status documentação */}
+      <ConsultationRightPanel />
 
       <ExamReviewModal
         open={reviewModal.open}
