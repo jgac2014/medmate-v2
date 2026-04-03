@@ -17,8 +17,8 @@ function getOutput(state: ConsultationState, mode: OutputMode): string {
 
 const MODE_LABELS: Record<OutputMode, string> = {
   esus: "eSUS",
-  resumido: "Resumo",
-  detalhado: "Completo",
+  resumido: "Resumido",
+  detalhado: "Detalhado",
 };
 
 export function ConsultationRightPanel() {
@@ -28,6 +28,7 @@ export function ConsultationRightPanel() {
   );
   const [copied, setCopied] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const modeRef = useRef<OutputMode>("esus");
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export function ConsultationRightPanel() {
     return () => {
       unsub();
       clearTimeout(debounceRef.current);
+      clearTimeout(copiedTimerRef.current);
     };
   }, []);
 
@@ -57,7 +59,7 @@ export function ConsultationRightPanel() {
     if (ok) {
       setCopied(true);
       showToast("Copiado!", "success");
-      setTimeout(() => setCopied(false), 2000);
+      copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
     } else {
       showToast("Erro ao copiar", "error");
     }
@@ -107,7 +109,7 @@ export function ConsultationRightPanel() {
 
         {/* Área de texto */}
         <div className="flex-1 min-h-0 relative" style={{ minHeight: "200px" }}>
-          <div className="absolute inset-0 overflow-y-auto rounded-lg bg-[var(--bg-2)] border border-[var(--outline-variant)] p-3">
+          <div className="absolute inset-0 overflow-y-auto rounded-lg bg-[var(--surface-low)] border border-[var(--outline-variant)] p-3">
             {summary.trim() ? (
               <pre className="text-[11px] text-[var(--on-surface)] leading-relaxed whitespace-pre-wrap font-mono">
                 {summary}

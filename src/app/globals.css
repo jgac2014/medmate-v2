@@ -66,6 +66,8 @@
   --text-secondary: var(--on-surface-variant);
   --text-tertiary: var(--on-surface-muted);
   --accent: var(--primary);
+  --accent-subtle: rgba(0, 208, 132, 0.06);
+  --accent-border: rgba(0, 208, 132, 0.2);
   --accent-hover: var(--primary-container);
   --accent-dim: rgba(1, 45, 29, 0.06);
   --accent-light: var(--secondary);

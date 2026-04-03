@@ -43,6 +43,7 @@ export default function ConsultaPage() {
   }>({ open: false, matched: {}, extras: "" });
 
   function handleFinalize() {
+    // TODO: save consultation, reset store, navigate to patient list
     showToast("Atendimento finalizado!", "success");
   }
 

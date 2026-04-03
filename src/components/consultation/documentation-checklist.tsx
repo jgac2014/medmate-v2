@@ -28,7 +28,7 @@ export function DocumentationChecklist() {
     },
     {
       label: "Plano de retorno definido",
-      done: followupItems.length > 0,
+      done: (followupItems ?? []).length > 0,
     },
   ];
 
