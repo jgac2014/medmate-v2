@@ -7,7 +7,6 @@ import { ConsultationRightPanel } from "@/components/consultation/consultation-r
 import { ClinicalSummary } from "@/components/consultation/clinical-summary";
 import { SoapForm } from "@/components/consultation/soap-form";
 import { HistoryForm } from "@/components/consultation/history-form";
-import { OutputColumn } from "@/components/consultation/output-column";
 import { DraftRecoveryBanner } from "@/components/consultation/draft-recovery-banner";
 import { FollowupPanel } from "@/components/consultation/followup-panel";
 import { PreventionList } from "@/components/consultation/prevention-list";
@@ -121,11 +120,6 @@ export default function ConsultaPage() {
           {/* Bloco 4: Antecedentes */}
           <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
             <HistoryForm />
-          </section>
-
-          {/* Bloco 5: Saída (mantido para compatibilidade — será removido após painel direito estável) */}
-          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
-            <OutputColumn />
           </section>
 
           {/* Bloco 6: Prevenção e seguimento */}
