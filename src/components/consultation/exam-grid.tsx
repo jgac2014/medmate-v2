@@ -88,8 +88,8 @@ export function ExamGrid() {
         <ExamCard card={CALC_CARD} span2 />
       </div>
       {/* Outros / Imagens */}
-      <div className="border border-border-subtle rounded-lg p-[10px] bg-bg-1">
-        <div className="text-[9px] font-bold tracking-[0.09em] uppercase text-text-secondary mb-2 pb-1.5 border-b border-border-subtle">
+      <div className="border border-[var(--outline-variant)] rounded-lg p-[10px] bg-[var(--surface-low)]">
+        <div className="text-[9px] font-bold tracking-[0.09em] uppercase text-[var(--on-surface-variant)] mb-2 pb-1.5 border-b border-[var(--outline-variant)]">
           Outros / Imagens
         </div>
         <DateInput label="Data" value={store.imaging.date} onChange={(v) => store.setImaging({ date: v })} />
@@ -97,7 +97,7 @@ export function ExamGrid() {
           placeholder={"ECG: ritmo sinusal\nUSG abd: esteatose hepática leve"}
           value={store.imaging.entries}
           onChange={(e) => store.setImaging({ entries: e.target.value })}
-          className="w-full h-20 px-2 py-[7px] border border-border-subtle rounded-[5px] bg-bg-2 text-text-primary font-sans text-xs resize-y leading-relaxed placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:shadow-[0_0_0_2px_rgba(0,208,132,0.1)]"
+          className="w-full h-20 px-2 py-[7px] border border-[var(--outline-variant)] rounded-[5px] bg-[var(--surface-container)] text-[var(--on-surface)] font-sans text-xs resize-y leading-relaxed placeholder:text-[var(--on-surface-muted)] focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(1,45,29,0.1)]"
         />
       </div>
     </div>

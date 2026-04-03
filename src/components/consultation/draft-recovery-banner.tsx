@@ -78,7 +78,7 @@ export function DraftRecoveryBanner() {
         </button>
         <button
           onClick={handleDiscard}
-          className="px-3 py-1 rounded-md text-[11px] text-text-tertiary hover:text-text-secondary border border-border-subtle hover:bg-bg-2 transition-colors cursor-pointer"
+          className="px-3 py-1 rounded-md text-[11px] text-[var(--on-surface-muted)] hover:text-[var(--on-surface-variant)] border border-[var(--outline-variant)] hover:bg-[var(--surface-container)] transition-colors cursor-pointer"
         >
           Descartar
         </button>

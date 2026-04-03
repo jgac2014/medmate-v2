@@ -1,51 +1,20 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Button } from "@/components/ui/button";
-import { generateEsusSummary } from "@/lib/esus-generator";
-import { generateResumoOutput, generateDetalhadoOutput } from "@/lib/output-generators";
 import { copyToClipboard } from "@/lib/clipboard";
 import { showToast } from "@/components/ui/toast";
 import { SnippetPopover } from "@/components/consultation/snippet-popover";
-import type { OutputMode, ConsultationState } from "@/types";
-
-function getOutput(state: ConsultationState, mode: OutputMode): string {
-  if (mode === "resumido") return generateResumoOutput(state);
-  if (mode === "detalhado") return generateDetalhadoOutput(state);
-  return generateEsusSummary(state);
-}
+import { useOutputSummary } from "@/hooks/useOutputSummary";
+import type { OutputMode } from "@/types";
 
 export function OutputColumn() {
   const store = useConsultationStore();
-  const [outputMode, setOutputMode] = useState<OutputMode>("esus");
-  const [summary, setSummary] = useState(() =>
-    getOutput(useConsultationStore.getState(), "esus")
-  );
+  const { summary, outputMode, setOutputMode } = useOutputSummary("esus");
   const [copied, setCopied] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const modeRef = useRef<OutputMode>("esus");
-
-  useEffect(() => {
-    modeRef.current = outputMode;
-    setSummary(getOutput(useConsultationStore.getState(), outputMode));
-  }, [outputMode]);
-
-  useEffect(() => {
-    const unsub = useConsultationStore.subscribe(() => {
-      clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        setSummary(getOutput(useConsultationStore.getState(), modeRef.current));
-      }, 300);
-    });
-
-    return () => {
-      unsub();
-      clearTimeout(debounceRef.current);
-    };
-  }, []);
 
   const hasSummary = summary.trim().length > 0;
 

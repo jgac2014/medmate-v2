@@ -66,6 +66,8 @@
   --text-secondary: var(--on-surface-variant);
   --text-tertiary: var(--on-surface-muted);
   --accent: var(--primary);
+  --accent-subtle: rgba(0, 208, 132, 0.06);
+  --accent-border: rgba(0, 208, 132, 0.2);
   --accent-hover: var(--primary-container);
   --accent-dim: rgba(1, 45, 29, 0.06);
   --accent-light: var(--secondary);
@@ -160,3 +162,34 @@ body {
 
 /* Selection */
 ::selection { background: rgba(1, 45, 29, 0.12); }
+
+/* ────────────────────────────────────
+   THEME LIGHT — consulta page override
+   ──────────────────────────────────── */
+.theme-light {
+  --bg-0: #f5fafe;
+  --bg-1: #ffffff;
+  --bg-2: #eef2f6;
+  --bg-3: #e4eaf0;
+
+  --text-primary: #171c1f;
+  --text-secondary: #454b4e;
+  --text-tertiary: #717973;
+
+  --accent: #1B4332;
+  --accent-hover: #163829;
+  --accent-subtle: rgba(27, 67, 50, 0.06);
+  --accent-border: rgba(27, 67, 50, 0.15);
+
+  --status-ok: #16a34a;
+  --status-warn: #d97706;
+  --status-crit: #dc2626;
+  --status-info: #2563eb;
+  --status-calc: #0891b2;
+
+  --surface-lowest: #ffffff;
+  --surface-low: #f5fafe;
+  --on-surface: #171c1f;
+  --on-surface-muted: #717973;
+  --outline-variant: rgba(27, 67, 50, 0.12);
+}

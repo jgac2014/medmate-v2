@@ -31,12 +31,12 @@ export function FollowupPanel() {
           onChange={(e) => setNewText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           placeholder="Adicionar para próximo retorno..."
-          className="flex-1 bg-bg-2 border border-border-subtle rounded-lg px-3 py-1.5 text-[12px] text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent/50 transition-colors"
+          className="flex-1 bg-[var(--surface-container)] border border-[var(--outline-variant)] rounded-lg px-3 py-1.5 text-[12px] text-[var(--on-surface)] placeholder:text-[var(--on-surface-muted)] focus:outline-none focus:border-primary transition-colors"
         />
         <button
           onClick={handleAdd}
           disabled={!newText.trim()}
-          className="w-7 h-7 flex items-center justify-center rounded-lg border border-border-subtle text-text-tertiary hover:text-text-primary hover:bg-bg-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-base leading-none cursor-pointer"
+          className="w-7 h-7 flex items-center justify-center rounded-lg border border-[var(--outline-variant)] text-[var(--on-surface-muted)] hover:text-[var(--on-surface)] hover:bg-[var(--surface-container)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-base leading-none cursor-pointer"
         >
           +
         </button>
@@ -52,12 +52,12 @@ export function FollowupPanel() {
                 onChange={() => toggleFollowupItem(item.id)}
                 className="mt-0.5 accent-accent cursor-pointer"
               />
-              <span className="flex-1 text-[12px] text-text-secondary leading-relaxed">
+              <span className="flex-1 text-[12px] text-[var(--on-surface-variant)] leading-relaxed">
                 {item.text}
               </span>
               <button
                 onClick={() => removeFollowupItem(item.id)}
-                className="opacity-0 group-hover:opacity-100 text-text-tertiary hover:text-status-crit transition-all text-sm leading-none cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 text-[var(--on-surface-muted)] hover:text-status-crit transition-all text-sm leading-none cursor-pointer"
               >
                 ×
               </button>
@@ -68,7 +68,7 @@ export function FollowupPanel() {
 
       {done.length > 0 && (
         <div className="pt-1">
-          <p className="text-[10px] text-text-tertiary mb-1 uppercase tracking-wide">
+          <p className="text-[10px] text-[var(--on-surface-muted)] mb-1 uppercase tracking-wide">
             Resolvidos nesta consulta
           </p>
           <ul className="space-y-1">
@@ -80,7 +80,7 @@ export function FollowupPanel() {
                   onChange={() => toggleFollowupItem(item.id)}
                   className="mt-0.5 accent-accent cursor-pointer"
                 />
-                <span className="flex-1 text-[12px] text-text-tertiary line-through leading-relaxed">
+                <span className="flex-1 text-[12px] text-[var(--on-surface-muted)] line-through leading-relaxed">
                   {item.text}
                 </span>
               </li>
@@ -90,7 +90,7 @@ export function FollowupPanel() {
       )}
 
       {followupItems.length === 0 && (
-        <p className="text-[11px] text-text-tertiary">
+        <p className="text-[11px] text-[var(--on-surface-muted)]">
           Nenhuma pendência registrada.
         </p>
       )}

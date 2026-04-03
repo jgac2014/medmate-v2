@@ -19,14 +19,14 @@ export function SoapForm() {
       <SectionHeader label="SOAP" color="blue" />
       {SOAP_FIELDS.map((f) => (
         <div key={f.key} className="mb-3">
-          <label className="block text-[11px] text-on-surface-muted mb-0.5 font-medium">
+          <label className="block text-[11px] text-[var(--on-surface-muted)] mb-0.5 font-medium">
             {f.label}
           </label>
           <textarea
             placeholder={f.placeholder}
             value={soap[f.key]}
             onChange={(e) => setSoap({ [f.key]: e.target.value })}
-            className="w-full h-16 px-0 py-2 border-0 border-b border-outline-variant/50 rounded-none bg-transparent text-on-surface text-[13px] resize-y leading-relaxed placeholder:text-on-surface-muted focus:outline-none focus:border-primary transition-colors"
+            className="w-full h-16 px-0 py-2 border-0 border-b border-[var(--outline-variant)] rounded-none bg-transparent text-[var(--on-surface)] text-[13px] resize-y leading-relaxed placeholder:text-[var(--on-surface-muted)] focus:outline-none focus:border-primary transition-colors"
           />
           {f.key === "objective" && (
             <ObjectiveDataDrawer
