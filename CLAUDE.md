@@ -41,8 +41,9 @@ Prontuário eletrônico web para **Médicos de Família e Comunidade (MFC)** na 
 
 ### 🚧 Pendente / Incompleto
 
-- Listagem e histórico de pacientes (rota `/pacientes` não existe ainda)
-- Busca de consultas anteriores por paciente
+- Página `/historico` implementada (Ciclo 7): busca de paciente → timeline longitudinal 3 colunas
+- Listagem dedicada de pacientes (rota `/pacientes`) ainda não existe — `/historico` cobre o caso de uso principal
+- Exportação de prontuário completo em PDF
 - Exportação de prontuário completo em PDF
 - Modo claro (só existe dark mode — previsto para v2)
 - Testes automatizados (nenhum test file existe ainda)

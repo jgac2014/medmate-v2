@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { BRAND } from "@/lib/branding";
 import { Button } from "@/components/ui/button";
 import { useConsultationStore } from "@/stores/consultation-store";
@@ -49,6 +49,7 @@ export function Topbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const pathname = usePathname();
   const [subscriptionStatus, setSubscriptionStatus] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -276,6 +277,30 @@ export function Topbar() {
             </div>
           )}
 
+          {/* Nav — centro-esquerda */}
+          <nav className="hidden lg:flex items-center gap-1 ml-4">
+            <button
+              onClick={() => router.push("/consulta")}
+              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
+                pathname === "/consulta"
+                  ? "bg-primary/8 text-primary font-semibold"
+                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+              }`}
+            >
+              Consulta
+            </button>
+            <button
+              onClick={() => router.push("/historico")}
+              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
+                pathname === "/historico"
+                  ? "bg-primary/8 text-primary font-semibold"
+                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+              }`}
+            >
+              Histórico
+            </button>
+          </nav>
+
           {/* Ações — direita */}
           <div className="flex gap-2 items-center">
             <div
@@ -298,7 +323,7 @@ export function Topbar() {
               onClick={() => setHistoryOpen(true)}
               className="h-[34px] px-3 rounded-lg text-[13px] font-medium border border-outline-variant/50 text-on-surface-variant bg-surface-lowest hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
             >
-              Histórico
+              SOAP anterior
             </button>
 
             <button
