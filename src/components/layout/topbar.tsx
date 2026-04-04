@@ -280,6 +280,16 @@ export function Topbar() {
           {/* Nav — centro-esquerda */}
           <nav className="hidden lg:flex items-center gap-1 ml-4">
             <button
+              onClick={() => router.push("/nova-consulta")}
+              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
+                pathname === "/nova-consulta"
+                  ? "bg-primary/8 text-primary font-semibold"
+                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+              }`}
+            >
+              Nova consulta
+            </button>
+            <button
               onClick={() => router.push("/consulta")}
               className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
                 pathname === "/consulta"
@@ -345,7 +355,7 @@ export function Topbar() {
             <Button
               variant="secondary"
               className="h-[34px] px-3 text-[13px]"
-              onClick={() => setPatientSelectorOpen(true)}
+              onClick={() => router.push("/nova-consulta")}
             >
               Nova consulta
             </Button>
