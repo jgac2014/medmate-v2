@@ -264,7 +264,12 @@ export function Topbar() {
         <div className="flex items-center justify-between px-6 h-14">
           {/* Logo */}
           <div className="flex items-center gap-5 min-w-0 shrink-0">
-            <span className="font-headline text-xl font-bold text-primary">{BRAND.name}</span>
+            <button
+              onClick={() => router.push("/")}
+              className="font-headline text-xl font-bold text-primary hover:opacity-75 transition-opacity cursor-pointer"
+            >
+              {BRAND.name}
+            </button>
           </div>
 
           {/* Patient name — centro */}
