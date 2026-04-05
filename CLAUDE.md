@@ -1,137 +1,275 @@
 # MedMate — Contexto do Projeto para Claude Code
 
-> Leia este arquivo inteiro antes de escrever qualquer código. Ele é a memória persistente do projeto.
+> Leia este arquivo inteiro antes de escrever qualquer código. É a fonte de verdade do projeto.
+> Última atualização: 05/04/2026
 
 ---
 
 ## O que é o MedMate
 
-Prontuário eletrônico web para **Médicos de Família e Comunidade (MFC)** na Atenção Primária à Saúde (APS) brasileira. O workflow principal: médico preenche a consulta → sistema gera texto formatado → médico copia para o **eSUS PEC** (sistema do Ministério da Saúde).
+Prontuário eletrônico web para **Médicos de Família e Comunidade (MFC)** na Atenção Primária à Saúde (APS) brasileira.
 
-**Modelo de negócio**: SaaS com assinatura paga. Trial de 14 dias automático ao criar conta. Médicos usam isso 8h/dia — qualidade visual e performance são diferenciais competitivos, não opcionais.
+**Fluxo principal**: médico preenche a consulta → sistema gera texto formatado → médico copia para o **eSUS PEC** (sistema do Ministério da Saúde).
+
+**Modelo de negócio**: SaaS com assinatura paga (Stripe). Trial de 14 dias automático ao criar conta. Médicos usam isso 8h/dia — qualidade visual e performance são diferenciais competitivos, não opcionais.
 
 **Nome "MedMate" é provisório.** Branding centralizado em `src/lib/branding.ts`. Nunca hardcode o nome do produto fora desse arquivo.
 
 ---
 
-## Estado Atual do Projeto
+## Stack
 
-### ✅ Implementado e funcionando
-
-- **Autenticação completa**: login, signup, magic link, forgot/reset password (`src/app/(auth)/`)
-- **Tela de consulta** (`src/app/(dashboard)/consulta/`): layout 4 colunas, todos os formulários, cálculos automáticos, geração de resumo eSUS
-- **Componentes de consulta** (`src/components/consultation/`): todos os componentes da tela principal estão prontos
-- **Design system** (`src/components/ui/`): Button, Input, ExamInput, Tag, SectionHeader, Toast, Checkbox, DateInput, Sparkline
-- **Estado global** via Zustand (`src/stores/consultation-store.ts`): store único para toda a tela de consulta
-- **Cálculos médicos** (`src/lib/calculations/`): IMC, TFG CKD-EPI 2021, FIB-4, RCV Framingham — todos implementados com referências bibliográficas
-- **Valores de referência** (`src/lib/reference-values.ts`): flags ok/warn/crit para todos os exames
-- **Geração de output** (`src/lib/output-generators/`): resumido (eSUS PEC) e detalhado — dois modos de saída
-- **Gerador eSUS** (`src/lib/esus-generator.ts`): gera texto formatado em tempo real a partir do store
-- **Regras clínicas** (`src/lib/clinical-rules.ts`): lógica de status clínico por valores
-- **Auto-save com debounce** (`src/hooks/useDraftAutosave.ts`): salva rascunho automaticamente
-- **Hotkeys** (`src/hooks/useHotkeys.ts`): atalhos de teclado implementados
-- **Pagamentos Stripe**: checkout, webhooks, controle de acesso por status de assinatura
-- **Rotas de billing**: `/bloqueado`, `/cancelado`, `/sucesso`, `/conta`
-- **Middleware de autenticação**: proteção de rotas implementada
-- **Database migrations**: tabelas `users`, `patients`, `consultations` com RLS ativo
-- **Templates de consulta** (`src/lib/templates.ts`): templates pré-definidos
-- **Snippets** (`src/components/consultation/snippet-popover.tsx`): popover de snippets de texto
-- **Trend data** (`src/lib/trend-data.ts`): dados de tendência para sparklines
-- **Página de conta** (`/conta`): configurações do usuário
-
-### 🚧 Pendente / Incompleto
-
-- Página `/historico` implementada (Ciclo 7): busca de paciente → timeline longitudinal 3 colunas
-- Listagem dedicada de pacientes (rota `/pacientes`) ainda não existe — `/historico` cobre o caso de uso principal
-- Exportação de prontuário completo em PDF
-- Exportação de prontuário completo em PDF
-- Modo claro (só existe dark mode — previsto para v2)
-- Testes automatizados (nenhum test file existe ainda)
+| Tecnologia | Versão/Uso |
+|---|---|
+| Next.js | 14+ App Router — `next.config.ts` |
+| TypeScript | Estrito. Sem `any`. — `tsconfig.json` |
+| Tailwind CSS | v4 com `@import "tailwindcss"` — `globals.css` |
+| Zustand | State management — `src/stores/` |
+| Supabase | Auth + DB (Postgres + RLS) — `src/lib/supabase/` |
+| Stripe | Pagamentos, webhooks, portal — `src/lib/stripe.ts` |
+| Radix UI | Componentes acessíveis |
+| Vercel | Deploy — `.vercel/project.json` |
 
 ---
 
-## Antes de Qualquer Tarefa
+## Rotas do App
 
-**Protocolo obrigatório antes de escrever código:**
+```
+/                          → Landing page (marketing)
+/login                     → Autenticação
+/signup                    → Cadastro
+/forgot-password           → Recuperação de senha
+/reset-password            → Redefinição de senha
 
-1. **Leia os arquivos relevantes primeiro.** Nunca assuma que sabe o que está implementado. Use Read ou Grep.
-2. **Verifique o store** (`consultation-store.ts`) antes de criar qualquer estado novo — provavelmente já existe.
-3. **Verifique `constants.ts`** antes de hardcodar qualquer lista (problemas, prevenções, exames).
-4. **Verifique `reference-values.ts`** antes de criar qualquer lógica de flag de valor.
-5. **Verifique `calculations/index.ts`** antes de implementar qualquer cálculo médico.
-6. **Leia `AGENTS.md`** — contém aviso crítico sobre esta versão do Next.js ter breaking changes.
+/(dashboard)               → Layout com Topbar
+  /nova-consulta           → Iniciar nova consulta (seleção de paciente/template)
+  /consulta                → Tela principal de consulta (layout multi-coluna)
+  /historico               → Histórico longitudinal do paciente (timeline 3 colunas)
+  /receituario             → Receituário Particular (split-screen WYSIWYG)
 
----
-
-## Tech Stack (já configurado — não altere sem confirmar)
-
-| Tecnologia | Uso | Config |
-|---|---|---|
-| Next.js 14+ App Router | Framework | `next.config.ts` |
-| TypeScript | Tudo. Sem `any`. | `tsconfig.json` |
-| Tailwind CSS | Estilo | `postcss.config.mjs` + `globals.css` |
-| Radix UI | Componentes acessíveis | via `@radix-ui/*` |
-| Lucide React | Ícones | |
-| Zustand | State management | `src/stores/` |
-| Supabase | Auth + DB + Storage | `src/lib/supabase/` |
-| Stripe | Pagamentos | `src/lib/stripe.ts` |
-| Zod | Validação de schemas | |
-| React Hook Form | Formulários | |
+/conta                     → Configurações do usuário + billing
+/planos                    → Página de planos
+/funcionalidades           → Features
+/faq                       → FAQ
+/seguranca                 → Política de segurança
+/politica-de-privacidade   → LGPD
+/sucesso                   → Pós-checkout Stripe
+/cancelado                 → Cancelamento
+/bloqueado                 → Acesso bloqueado (assinatura expirada)
+```
 
 ---
 
-## Arquivos Críticos — O que Cada Um Faz
+## Estado Atual — O que está implementado
+
+### Autenticação
+- Login, signup, magic link, forgot/reset password (`src/app/(auth)/`)
+- Middleware de autenticação com proteção de rotas (`src/lib/supabase/middleware.ts`)
+
+### Tela de Consulta (`/consulta`)
+- Layout multi-coluna com sidebar de navegação
+- `ConsultationSidebar` — navegação entre seções
+- `ConsultationRightPanel` — output e eSUS PEC
+- `SoapForm` — notas SOAP
+- `VitalsForm` — sinais vitais com cálculos automáticos (IMC, TFG, FIB-4, RCV)
+- `ProblemList` — lista de problemas ativos (toggle)
+- `PreventionList` — prevenções em dia (toggle)
+- `ExamGrid` / `ExamCard` — exames laboratoriais com flags ok/warn/crit
+- `ExamUploadButton` / `ExamReviewModal` — upload e leitura de laudos por IA (Vision)
+- `ObjectiveDataDrawer` — dados objetivos (exame físico)
+- `HistoryForm` — antecedentes pessoais, familiares, hábitos, medicações, alergias
+- `FollowupPanel` — pendências da última consulta
+- `AlertList` — alertas clínicos contextuais
+- `ClinicalSummary` — resumo clínico gerado automaticamente
+- `SnippetPopover` — snippets de texto salvos
+- `TemplateSelector` — templates de consulta
+- `DocumentationChecklist` — checklist de documentação
+- `ConsultaConcluídaModal` — confirmação de finalização
+- `DraftRecoveryBanner` — recuperação de rascunho
+
+### Nova Consulta (`/nova-consulta`)
+- Seleção de paciente
+- Seleção de template
+- Dashboard do paciente (`PatientDashboard`)
+
+### Histórico (`/historico`)
+- Busca de paciente com seleção
+- Timeline longitudinal de consultas
+- Painel de monitoramento de tendências (sparklines)
+- `PatientSidebar` — dados do paciente na lateral
+
+### Receituário (`/receituario`) — **módulo novo**
+- Split-screen: editor (520px) + pré-visualização do papel ao vivo
+- Busca de medicamentos com navegação por teclado (↑↓ Enter)
+- Auto-detecção de tipo de receita (Simples / Controle Especial) por medicamento
+- Divisão automática em 2 receituários quando há medicamentos mistos
+- Verificação de interações medicamentosas em tempo real (10 pares)
+- 8 protocolos clínicos pré-configurados (ITU, amigdalite, sinusite, dor, ansiedade, insônia, HAS, DM2)
+- Preview do papel: formato CFM Notificação Branca (controle especial) e Receita Simples
+- Painel de personalização (fonte, cor, alinhamento, dados profissionais)
+- Tela de envio (impressão, WhatsApp, e-mail)
+- Toggle de assinatura digital ICP-Brasil (infra pronta para A1/A3/VIDAS)
+
+### Pagamentos
+- Checkout Stripe (`/api/create-checkout-session`)
+- Portal do cliente (`/api/create-portal-session`)
+- Webhooks (`/api/webhooks/stripe`)
+- Controle de acesso por `subscription_status`
+
+### Infraestrutura
+- Auto-save com debounce (`src/hooks/useDraftAutosave.ts`)
+- Hotkeys globais (`src/hooks/useHotkeys.ts`)
+- Output generators: resumido (eSUS PEC) e detalhado (`src/lib/output-generators/`)
+- Gerador eSUS (`src/lib/esus-generator.ts`)
+- Transcrição de exames via IA (`/api/transcribe-exams`)
+
+---
+
+## Arquivos Críticos
 
 ```
 src/
   stores/
-    consultation-store.ts     — estado global da tela de consulta (Zustand). ÚNICO store.
+    consultation-store.ts     — estado global da tela de consulta. ÚNICO store de consulta.
+    receituario-store.ts      — estado do módulo de receituário. Store separado.
+
   lib/
-    branding.ts               — nome do produto, tagline, versão. Único lugar para isso.
+    branding.ts               — nome do produto. ÚNICO lugar. Nunca hardcode.
     constants.ts              — listas: PROBLEMS, PREVENTIONS, exames. Não hardcode em componentes.
-    reference-values.ts       — limiares ok/warn/crit para cada campo de exame.
+    reference-values.ts       — limiares ok/warn/crit para cada campo de exame laboratorial.
     clinical-rules.ts         — lógica de classificação clínica por valores.
-    esus-generator.ts         — gera o texto do eSUS PEC a partir do estado.
+    esus-generator.ts         — gera o texto do eSUS PEC a partir do store.
     templates.ts              — templates pré-definidos de consulta.
     clipboard.ts              — helper de cópia com fallback para execCommand.
-    trend-data.ts             — dados históricos para sparklines.
-    calculations/
+    trend-data.ts             — dados históricos para sparklines no histórico.
+    format-objective.ts       — formatação de dados objetivos para o output.
+
+    calculations/             — cálculos médicos. Cada um tem referência bibliográfica no código.
       imc.ts                  — IMC com classificação OMS.
       tfg.ts                  — TFG CKD-EPI 2021 sem raça (KDIGO 2022).
       fib4.ts                 — FIB-4 (EASL 2023).
       rcv.ts                  — RCV Framingham (Wilson 1998 / SBC 2022).
       index.ts                — exporta todos os cálculos.
+
     output-generators/
-      resumido.ts             — output para eSUS PEC (cópia rápida).
+      resumido.ts             — output para eSUS PEC.
       detalhado.ts            — prontuário completo.
       index.ts                — exporta ambos.
+
+    receituario/              — data layer do módulo de receituário.
+      types.ts                — tipos: Drug, PrescribedDrug, Interaction, DoctorProfile, etc.
+      drug-db.ts              — banco de 27 medicamentos com classificação e posologia padrão.
+      interactions.ts         — 10 pares de interação com severidade + checkInteractions().
+      protocols.ts            — 8 protocolos clínicos pré-configurados.
+
     supabase/
-      client.ts               — Supabase client-side.
-      server.ts               — Supabase server-side (RSC/Server Actions).
-  hooks/
-    useDraftAutosave.ts       — auto-save com debounce (300ms).
-    useHotkeys.ts             — atalhos de teclado globais.
+      client.ts               — Supabase client-side (Client Components).
+      server.ts               — Supabase server-side (RSC / Server Actions).
+      admin.ts                — Supabase admin (webhooks, operações privilegiadas).
+      middleware.ts           — proteção de rotas.
+      consultations.ts        — queries de consultas.
+      patients.ts             — queries de pacientes.
+      patient-problems.ts     — problemas longitudinais do paciente.
+      patient-medications.ts  — medicações contínuas do paciente.
+      followup.ts             — pendências entre consultas.
+      alerts.ts               — alertas clínicos.
+      snippets.ts             — snippets de texto do usuário.
+
   types/
     index.ts                  — tipos compartilhados. Consulte antes de criar tipos novos.
 ```
 
 ---
 
+## Design System — "Aura Clínica"
+
+**Light mode.** Tokens definidos em `src/app/globals.css`. Sempre use variáveis CSS — nunca valores hardcoded.
+
+```css
+/* Superfícies (do mais claro para mais escuro) */
+--surface-lowest: #ffffff
+--surface-low:    #eff4f8
+--surface:        #f5fafe
+--surface-container: #e9eff2
+--surface-high:   #e3e9ec
+--surface-highest:#dee3e7
+--surface-dim:    #d5dbde
+
+/* Texto */
+--on-surface:         #171c1f   /* texto principal */
+--on-surface-variant: #414844   /* texto secundário */
+--on-surface-muted:   #6d7a6e   /* texto terciário */
+
+/* Primária (verde escuro) */
+--primary:              #012d1d
+--primary-container:    #1b4332
+--on-primary:           #ffffff
+--on-primary-container: #86af99
+
+/* Secundária */
+--secondary:            #3b6756
+--secondary-container:  #bdedd7
+
+/* Bordas */
+--outline:         #717973
+--outline-variant: #c1c8c2
+
+/* Erro */
+--error:           #ba1a1a
+--error-container: #ffdad6
+
+/* Status clínico (cor comunica dado, não é decorativa) */
+--status-ok:   #1b7a4a   /* valor normal */
+--status-warn: #c77a20   /* valor limítrofe */
+--status-crit: #ba1a1a   /* valor crítico */
+--status-info: #1565c0   /* informação neutra */
+--status-calc: #00838f   /* campos calculados */
+--status-misc: #6a4fc5   /* dados complementares */
+```
+
+**Tipografia:** `Inter` — corpo, labels, navegação. `JetBrains Mono` — valores numéricos, outputs de texto.
+
+**Tamanhos de fonte:** 10px (micro-labels) · 11px (campos/tags) · 12px (nav/botões) · 13px (corpo) · 14px (títulos de seção).
+
+**Princípios inegociáveis:**
+- Animações 100-150ms em hover/focus. Nada que distraia durante consulta.
+- Zero ruído visual: sem bordas desnecessárias, sem gradientes decorativos.
+- Cor como dado clínico: `--status-ok/warn/crit` comunicam estado, não decoração.
+- Densidade com clareza: muita informação por tela, hierarquia visual impecável.
+
+---
+
+## Banco de Dados
+
+**Migrations em `supabase/migrations/`** (001–006):
+- `001` — tabelas base: `users`, `patients`, `consultations`
+- `002` — snapshot do paciente em consultas
+- `003` — snippets de texto do usuário
+- `004` — itens de follow-up entre consultas
+- `005` — problemas longitudinais do paciente
+- `006` — medicações contínuas do paciente
+
+**RLS ativo em todas as tabelas.** Use `server.ts` em RSC e `client.ts` em Client Components.
+
+**Para criar nova migration:** arquivo `007_descricao.sql` em `supabase/migrations/`. Nunca pule números.
+
+**Datas:** ISO 8601 no banco (`YYYY-MM-DD`). `DD/MM/AAAA` na UI e outputs.
+
+---
+
 ## Estado Global (Zustand)
 
-Toda a tela de consulta usa **um único store**: `useConsultationStore` em `src/stores/consultation-store.ts`.
-
-**Estrutura do estado:**
+### `consultation-store.ts` — tela de consulta
 ```ts
-patient: PatientInfo          // nome, idade, gênero, raça, data consulta
-vitals: Vitals                // PAS, PAD, peso, altura, IMC (calculado), CA, FC, SpO2, temp
-problems: string[]            // lista de problemas ativos (toggle)
-problemsOther: string         // campo livre de problemas
-preventions: string[]         // prevenções em dia (toggle)
-labs: Record<string, string>  // exames: chave = nome do campo, valor = string do input
-labsDate: string              // data dos exames (ISO)
-imaging: ImagingData          // data + texto livre de imagens/outros
-calculations: Calculations    // { imc, tfg, fib4, rcv } — gerados automaticamente
+patient: PatientInfo          // nome, idade, gênero, raça, data
+vitals: Vitals                // PAS, PAD, peso, altura, IMC, CA, FC, SpO2, temp
+problems: string[]            // toggle de problemas ativos
+problemsOther: string         // campo livre
+preventions: string[]         // toggle de prevenções
+labs: Record<string, string>  // chave = campo, valor = string
+labsDate: string
+imaging: ImagingData
+calculations: Calculations    // { imc, tfg, fib4, rcv } — calculados automaticamente
 soap: SoapNotes               // S, O, A, P
 history: History              // pessoais, familiares, hábitos, medicamentos, alergias, comorbidades
 prescription: string
@@ -143,72 +281,25 @@ patientId: string | null
 patientName: string | null
 ```
 
-**Regra**: não crie estado local para dados da consulta. Se falta um campo, adicione ao store.
+**Regra:** não crie `useState` para dados da consulta. Se falta campo, adicione ao store.
 
----
-
-## Design System — "Clinical Linear"
-
-Referência visual: Linear.app adaptado para contexto médico. Dark mode único (v1).
-
-**Tokens CSS** definidos em `src/app/globals.css`. Sempre use as variáveis CSS — nunca valores hardcoded.
-
-```css
-/* Backgrounds */
---bg-0: #0c0f1a      /* fundo base */
---bg-1: #131720      /* cards, topbar */
---bg-2: #1a1f2e      /* inputs, hover */
---bg-3: #20263a      /* hover ativo */
-
-/* Texto */
---text-primary: #dde1eb
---text-secondary: #7a8499
---text-tertiary: #424d62
-
-/* Accent */
---accent: #00d084    /* verde — ação primária */
-
-/* Status clínico (cor comunica dado, não é decorativa) */
---status-ok: #00d084    /* valor normal */
---status-warn: #f5a623  /* valor limítrofe */
---status-crit: #ff5252  /* valor crítico */
---status-info: #4b9eff  /* informação neutra */
---status-calc: #22d3ee  /* campos calculados automaticamente */
---status-misc: #9b8af8  /* dados complementares */
+### `receituario-store.ts` — receituário
+```ts
+screen: 'create' | 'send'
+meds: PrescribedDrug[]
+patient: RxPatient            // nome, CPF, endereço, data
+doctor: DoctorProfile         // nome, CRM, especialidade, endereço, tel, cidade
+customization: RxCustomization // fontes, cores, alinhamento
+useDigitalSignature: boolean
+protocolsPanelOpen: boolean
+customizePanelOpen: boolean
 ```
 
-**Tipografia:**
-- `'Inter'` — corpo, labels, navegação
-- `'JetBrains Mono'` — valores numéricos, campos calculados, output de texto
-
-**Tamanhos de fonte**: 10px (micro-labels), 11px (campos/tags), 12px (nav/botões), 13px (corpo), 14px (títulos de seção).
-
-**Princípios inegociáveis do design:**
-- Animações: 100-150ms em hover/focus. Nada que distraia.
-- Zero ruído: sem bordas desnecessárias, sem sombras dramáticas, sem gradientes.
-- Cor como dado: nunca use cor para decoração.
-- Densidade com clareza: muito dado por tela, mas hierarquia visual impecável.
-
 ---
 
-## Banco de Dados (Supabase)
+## Cálculos Médicos Implementados
 
-**Tabelas existentes** (via migrations em `migrations/`):
-- `users` — médico/usuário, status de assinatura, Stripe customer ID
-- `patients` — pacientes vinculados ao médico
-- `consultations` — consultas com vitals, labs, SOAP, histórico, cálculos (JSONB)
-
-**RLS ativo em todas as tabelas.** Nunca faça query sem passar pelo client correto (`server.ts` em RSC, `client.ts` em Client Components).
-
-**Nunca altere o schema diretamente.** Crie uma nova migration em `migrations/` com o próximo número sequencial.
-
-**Formato de datas no banco**: ISO 8601 (`YYYY-MM-DD`). Na UI: `DD/MM/AAAA`.
-
----
-
-## Cálculos Médicos (já implementados)
-
-Todos em `src/lib/calculations/`. Cada arquivo tem a referência bibliográfica no comentário do código.
+Todos em `src/lib/calculations/`. Cada arquivo tem referência bibliográfica no comentário.
 
 | Cálculo | Arquivo | Referência |
 |---|---|---|
@@ -217,59 +308,67 @@ Todos em `src/lib/calculations/`. Cada arquivo tem a referência bibliográfica 
 | FIB-4 | `fib4.ts` | EASL 2023 |
 | RCV | `rcv.ts` | Framingham / Wilson 1998 / SBC 2022 |
 
-**Regra**: se precisar adicionar um cálculo, crie um arquivo novo em `calculations/` com a referência no comentário e exporte em `index.ts`. Nunca calcule inline em componentes.
+**Regra:** novo cálculo = novo arquivo em `calculations/` com referência + export em `index.ts`. Nunca inline em componente.
 
 ---
 
-## Padrões de Código Estabelecidos
+## Padrões de Código
 
 - **Server Components por padrão.** `'use client'` só quando há interatividade, hooks de estado, ou browser APIs.
-- **Naming**: PascalCase para componentes, camelCase para funções/variáveis, kebab-case para arquivos/rotas.
-- **Imports**: use `@/` para imports absolutos. Nunca `../../`.
-- **Formulários**: React Hook Form + Zod resolver.
-- **Validação de dados**: Zod em schemas de formulário e API routes.
-- **Erro handling**: error boundaries + toast notifications via `useToast` hook.
-- **Clipboard**: sempre use `src/lib/clipboard.ts` — tem fallback para `execCommand`.
-- **Datas na UI**: sempre `DD/MM/AAAA`. Nunca ISO na interface.
-- **Listas de constantes**: sempre importar de `src/lib/constants.ts`.
+- **Naming:** PascalCase para componentes, camelCase para funções/variáveis, kebab-case para arquivos/rotas.
+- **Imports:** sempre `@/` para imports absolutos. Nunca `../../`.
+- **Clipboard:** sempre `src/lib/clipboard.ts` — tem fallback para `execCommand`.
+- **Listas de constantes:** sempre `src/lib/constants.ts`. Nunca hardcode em componente.
+- **Hotkeys:** registrar via `src/hooks/useHotkeys.ts`.
+- **Toasts:** via `src/components/ui/toast.tsx` (`showToast`).
+
+---
+
+## Protocolo Antes de Qualquer Tarefa
+
+1. **Leia os arquivos relevantes.** Nunca assuma que sabe o que está implementado. Use Read ou Grep.
+2. **Verifique o store** antes de criar estado novo — provavelmente já existe.
+3. **Verifique `constants.ts`** antes de hardcodar qualquer lista.
+4. **Verifique `reference-values.ts`** antes de criar lógica de flag de valor.
+5. **Verifique `calculations/index.ts`** antes de implementar cálculo médico.
+6. **Grep antes de criar.** `Não reimplemente o que existe.`
 
 ---
 
 ## Comandos
 
 ```bash
-npm run dev      # desenvolvimento local
+npm run dev      # desenvolvimento — porta 3000
 npm run build    # build de produção
 npm run start    # rodar build localmente
 ```
-
-O app roda na porta 3000 por padrão.
 
 ---
 
 ## Regras Inegociáveis
 
-1. **Datas sempre DD/MM/AAAA em toda UI e output.** No banco, ISO 8601.
+1. **Datas DD/MM/AAAA em toda UI e output.** ISO 8601 no banco.
 2. **Nenhum dado médico sem autenticação.** RLS em tudo. Nunca bypasse middleware.
 3. **Cálculos médicos com referência bibliográfica no código.** Sem referência = não implementa.
 4. **Prevenções alinhadas com MS/INCA 2024.** Papanicolau (não colposcopia). PSA como decisão compartilhada.
 5. **Zero dependência de internet para cálculos.** Toda lógica médica roda no frontend.
 6. **Performance na tela de consulta.** Debounce na geração de resumo (300ms). Sem lag ao digitar.
-7. **Branding centralizado.** Nome do produto sempre via `branding.ts`, nunca hardcoded.
-8. **Schema só via migrations.** Nunca edite o banco diretamente ou via Supabase dashboard sem migration correspondente.
-9. **TypeScript estrito.** Sem `any`. Se não souber o tipo, pergunte ou derive.
-10. **Não reimplemente o que existe.** Leia os arquivos antes de criar.
+7. **Branding centralizado.** Nome do produto sempre via `branding.ts`.
+8. **Schema só via migrations numeradas.** Nunca edite banco direto sem migration correspondente.
+9. **TypeScript estrito.** Sem `any`. Se não souber o tipo, derive ou pergunte.
+10. **Grep antes de criar.** Não reimplemente o que existe.
 
 ---
 
 ## O que NÃO Fazer
 
-- Não crie estado local (`useState`) para dados que pertencem ao `consultation-store`.
+- Não use `useState` para dados que pertencem ao `consultation-store` ou `receituario-store`.
 - Não hardcode listas de problemas, prevenções ou exames — use `constants.ts`.
 - Não implemente lógica de cálculo dentro de componentes — use `lib/calculations/`.
 - Não altere `api/webhooks/stripe/route.ts` sem confirmar — lógica de billing crítica.
-- Não crie nova migration sem verificar o número sequencial correto em `migrations/`.
+- Não crie migration sem verificar o número sequencial correto em `supabase/migrations/`.
 - Não use cores hardcoded no CSS — use as variáveis CSS do design system.
-- Não adicione dependências novas sem verificar se já existe algo equivalente no projeto.
-- Não use `console.log` em produção — use o sistema de toast para feedback ao usuário.
-- Não assuma que uma feature não existe. Grep antes.
+- Não adicione dependências novas sem verificar se já existe algo equivalente.
+- Não use `console.log` em produção — use `showToast` para feedback ao usuário.
+- Não use `any` no TypeScript.
+- Não crie componentes `'use client'` sem necessidade real.

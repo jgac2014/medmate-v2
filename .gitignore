@@ -39,6 +39,9 @@ yarn-error.log*
 # worktrees
 .worktrees/
 
+# IDE brainstorm artifacts
+.superpowers/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

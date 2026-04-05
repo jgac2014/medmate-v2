@@ -314,6 +314,16 @@ export function Topbar() {
             >
               Histórico
             </button>
+            <button
+              onClick={() => router.push("/receituario")}
+              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
+                pathname === "/receituario"
+                  ? "bg-primary/8 text-primary font-semibold"
+                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+              }`}
+            >
+              Receituário
+            </button>
           </nav>
 
           {/* Ações — direita */}
