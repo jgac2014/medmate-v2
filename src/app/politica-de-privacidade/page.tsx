@@ -8,17 +8,17 @@ export const metadata = {
 
 export default function PoliticaDePrivacidadePage() {
   return (
-    <div className="min-h-screen bg-bg-0 text-text-primary">
+    <div className="min-h-screen bg-surface-lowest text-on-surface">
       {/* Nav */}
-      <header className="border-b border-border-subtle">
+      <header className="border-b border-outline-variant">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center text-black text-[11px] font-extrabold font-mono">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-black text-[11px] font-extrabold font-mono">
               {BRAND.shortName}
             </div>
             <span className="font-bold text-[14px]">{BRAND.name}</span>
           </Link>
-          <Link href="/" className="text-[13px] text-text-secondary hover:text-text-primary transition-colors">
+          <Link href="/" className="text-[13px] text-on-surface-variant hover:text-on-surface transition-colors">
             ← Voltar
           </Link>
         </div>
@@ -29,11 +29,11 @@ export default function PoliticaDePrivacidadePage() {
         <h1 className="text-[28px] font-bold tracking-[-0.02em] mb-2">
           Política de Privacidade
         </h1>
-        <p className="text-[13px] text-text-tertiary mb-10">
+        <p className="text-[13px] text-on-surface-muted mb-10">
           Última atualização: 27 de março de 2026
         </p>
 
-        <div className="space-y-8 text-[14px] leading-relaxed text-text-secondary">
+        <div className="space-y-8 text-[14px] leading-relaxed text-on-surface-variant">
 
           <Section title="1. Sobre esta política">
             <p>
@@ -47,10 +47,10 @@ export default function PoliticaDePrivacidadePage() {
           <Section title="2. Dados coletados">
             <p className="mb-3">Coletamos apenas os dados necessários para operar o serviço:</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
-              <li><strong className="text-text-primary">Dados de conta:</strong> nome, endereço de email e senha (armazenada de forma criptografada).</li>
-              <li><strong className="text-text-primary">Dados de assinatura:</strong> informações de pagamento processadas pelo Stripe (não armazenamos dados de cartão).</li>
-              <li><strong className="text-text-primary">Dados clínicos:</strong> informações inseridas durante o uso da ferramenta (consultas, pacientes). Esses dados ficam associados à sua conta e não são acessados pela nossa equipe.</li>
-              <li><strong className="text-text-primary">Dados de uso:</strong> logs técnicos de acesso para diagnóstico de problemas.</li>
+              <li><strong className="text-on-surface">Dados de conta:</strong> nome, endereço de email e senha (armazenada de forma criptografada).</li>
+              <li><strong className="text-on-surface">Dados de assinatura:</strong> informações de pagamento processadas pelo Stripe (não armazenamos dados de cartão).</li>
+              <li><strong className="text-on-surface">Dados clínicos:</strong> informações inseridas durante o uso da ferramenta (consultas, pacientes). Esses dados ficam associados à sua conta e não são acessados pela nossa equipe.</li>
+              <li><strong className="text-on-surface">Dados de uso:</strong> logs técnicos de acesso para diagnóstico de problemas.</li>
             </ul>
           </Section>
 
@@ -110,7 +110,7 @@ export default function PoliticaDePrivacidadePage() {
             </ul>
             <p className="mt-3">
               Para exercer esses direitos, entre em contato pelo email{" "}
-              <a href="mailto:privacidade@medmate.com.br" className="text-accent hover:underline">
+              <a href="mailto:privacidade@medmate.com.br" className="text-primary hover:underline">
                 privacidade@medmate.com.br
               </a>.
             </p>
@@ -134,7 +134,7 @@ export default function PoliticaDePrivacidadePage() {
           <Section title="10. Contato">
             <p>
               Dúvidas sobre privacidade:{" "}
-              <a href="mailto:privacidade@medmate.com.br" className="text-accent hover:underline">
+              <a href="mailto:privacidade@medmate.com.br" className="text-primary hover:underline">
                 privacidade@medmate.com.br
               </a>
             </p>
@@ -143,8 +143,8 @@ export default function PoliticaDePrivacidadePage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border-subtle mt-16">
-        <div className="max-w-3xl mx-auto px-6 py-6 text-[12px] text-text-tertiary">
+      <footer className="border-t border-outline-variant mt-16">
+        <div className="max-w-3xl mx-auto px-6 py-6 text-[12px] text-on-surface-muted">
           &copy; {new Date().getFullYear()} {BRAND.name}. Todos os direitos reservados.
         </div>
       </footer>
@@ -155,7 +155,7 @@ export default function PoliticaDePrivacidadePage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-[16px] font-semibold text-text-primary mb-3">{title}</h2>
+      <h2 className="text-[16px] font-semibold text-on-surface mb-3">{title}</h2>
       {children}
     </section>
   );

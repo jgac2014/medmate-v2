@@ -32,8 +32,8 @@ export function PreventionList() {
         ))}
       </div>
       {suggestions.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-border-subtle/60">
-          <p className="text-[10px] text-text-tertiary uppercase tracking-wide mb-2">
+        <div className="mt-3 pt-3 border-t border-outline-variant/60">
+          <p className="text-[10px] text-on-surface-muted uppercase tracking-wide mb-2">
             Sugestões por perfil
           </p>
           <div className="flex flex-col gap-1">
@@ -43,12 +43,12 @@ export function PreventionList() {
                 onClick={() => togglePrevention(rule.preventionLabel)}
                 className="flex items-start gap-2 text-left group cursor-pointer"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-status-warn mt-1.5 shrink-0 group-hover:bg-accent transition-colors" />
+                <span className="w-1.5 h-1.5 rounded-full bg-status-warn mt-1.5 shrink-0 group-hover:bg-primary transition-colors" />
                 <div>
-                  <p className="text-[12px] text-text-secondary group-hover:text-text-primary transition-colors">
+                  <p className="text-[12px] text-on-surface-variant group-hover:text-on-surface transition-colors">
                     {rule.preventionLabel}
                   </p>
-                  <p className="text-[10px] text-text-tertiary">{rule.description}</p>
+                  <p className="text-[10px] text-on-surface-muted">{rule.description}</p>
                 </div>
               </button>
             ))}

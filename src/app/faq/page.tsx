@@ -92,19 +92,19 @@ export default async function FAQPage() {
   } catch { /* not logged in */ }
 
   return (
-    <div className="min-h-screen bg-white text-text-primary">
+    <div className="min-h-screen bg-white text-on-surface">
       <LandingNavbar isLoggedIn={isLoggedIn} />
 
       {/* Hero */}
-      <section className="bg-bg-1 border-b border-border-subtle">
+      <section className="bg-surface-low border-b border-outline-variant">
         <div className="max-w-3xl mx-auto px-6 py-16 md:py-20 text-center">
-          <div className="inline-block px-3 py-1.5 mb-5 rounded-full border border-accent/15 bg-accent/5 text-[12px] font-medium text-accent tracking-wide uppercase">
+          <div className="inline-block px-3 py-1.5 mb-5 rounded-full border border-primary/15 bg-primary/5 text-[12px] font-medium text-primary tracking-wide uppercase">
             FAQ
           </div>
           <h1 className="text-[36px] sm:text-[44px] font-bold leading-[1.08] tracking-[-0.03em] mb-4">
             Tudo o que você precisa saber sobre o {BRAND.name}.
           </h1>
-          <p className="text-[17px] text-text-secondary leading-relaxed">
+          <p className="text-[17px] text-on-surface-variant leading-relaxed">
             Perguntas frequentes sobre o produto, assinatura, segurança e suporte.
           </p>
         </div>
@@ -115,19 +115,19 @@ export default async function FAQPage() {
         <div className="space-y-14">
           {FAQ_GROUPS.map((group) => (
             <div key={group.category}>
-              <h2 className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider mb-5 pb-3 border-b border-border-subtle">
+              <h2 className="text-[11px] font-semibold text-on-surface-muted uppercase tracking-wider mb-5 pb-3 border-b border-outline-variant">
                 {group.category}
               </h2>
               <div className="space-y-3">
                 {group.items.map((faq) => (
-                  <details key={faq.q} className="group bg-bg-1 border border-border-subtle rounded-xl">
+                  <details key={faq.q} className="group bg-surface-low border border-outline-variant rounded-xl">
                     <summary className="flex items-center justify-between px-6 py-5 cursor-pointer text-[15px] font-medium list-none [&::-webkit-details-marker]:hidden">
                       {faq.q}
-                      <svg className="w-5 h-5 text-text-tertiary shrink-0 ml-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="w-5 h-5 text-on-surface-muted shrink-0 ml-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                       </svg>
                     </summary>
-                    <div className="px-6 pb-5 text-[14px] text-text-secondary leading-relaxed">{faq.a}</div>
+                    <div className="px-6 pb-5 text-[14px] text-on-surface-variant leading-relaxed">{faq.a}</div>
                   </details>
                 ))}
               </div>
@@ -136,14 +136,14 @@ export default async function FAQPage() {
         </div>
 
         {/* Still have questions? */}
-        <div className="mt-16 bg-bg-1 border border-border-subtle rounded-2xl p-8 text-center">
+        <div className="mt-16 bg-surface-low border border-outline-variant rounded-2xl p-8 text-center">
           <h3 className="text-[20px] font-bold mb-2">Ainda tem dúvidas?</h3>
-          <p className="text-[14px] text-text-secondary mb-6">
+          <p className="text-[14px] text-on-surface-variant mb-6">
             Fale com a gente pelo WhatsApp ou e-mail. Respondemos em até 24 horas.
           </p>
           <a
             href="mailto:contato@medmate.com.br"
-            className="inline-block px-6 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg text-[14px] shadow-sm transition-all"
+            className="inline-block px-6 py-3 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg text-[14px] shadow-sm transition-all"
           >
             Falar com suporte
           </a>
@@ -152,7 +152,7 @@ export default async function FAQPage() {
 
       {/* CTA */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-accent pointer-events-none" />
+        <div className="absolute inset-0 bg-primary pointer-events-none" />
         <div className="relative max-w-4xl mx-auto px-6 py-20 text-center">
           <h2 className="text-[30px] sm:text-[38px] font-bold text-white tracking-[-0.02em] mb-4">
             Pronto para experimentar?
@@ -162,7 +162,7 @@ export default async function FAQPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link href={isLoggedIn ? "/consulta" : "/signup"}
-              className="px-7 py-3.5 bg-white hover:bg-bg-1 text-accent font-bold rounded-lg text-[15px] shadow-sm transition-all">
+              className="px-7 py-3.5 bg-white hover:bg-surface-low text-primary font-bold rounded-lg text-[15px] shadow-sm transition-all">
               {isLoggedIn ? "Ir para o consultório" : "Começar teste grátis"}
             </Link>
             <Link href="/planos"

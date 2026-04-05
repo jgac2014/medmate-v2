@@ -41,11 +41,11 @@ export function DocumentationChecklist() {
         <span className="text-[10px] font-semibold text-[var(--on-surface-muted)] uppercase tracking-wide">
           Documentação
         </span>
-        <span className="text-[11px] font-bold text-[var(--accent)]">{pct}%</span>
+        <span className="text-[11px] font-bold text-[var(--primary)]">{pct}%</span>
       </div>
       <div className="w-full bg-[var(--outline-variant)] h-1 rounded-full overflow-hidden">
         <div
-          className="bg-[var(--accent)] h-full rounded-full transition-all duration-500"
+          className="bg-[var(--primary)] h-full rounded-full transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>

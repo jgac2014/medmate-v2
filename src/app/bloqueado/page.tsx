@@ -36,14 +36,14 @@ export default function BloqueadoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-0 flex items-center justify-center">
-      <div className="bg-bg-1 border border-border-subtle rounded-xl px-10 py-12 max-w-[460px] w-full text-center">
+    <div className="min-h-screen bg-surface-lowest flex items-center justify-center">
+      <div className="bg-surface-low border border-outline-variant rounded-xl px-10 py-12 max-w-[460px] w-full text-center">
         {/* Logo */}
         <div className="flex items-center gap-2 mb-8 justify-center">
-          <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-black text-[12px] font-extrabold font-mono">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-black text-[12px] font-extrabold font-mono">
             {BRAND.shortName}
           </div>
-          <span className="font-bold text-[14px] text-text-primary">{BRAND.name}</span>
+          <span className="font-bold text-[14px] text-on-surface">{BRAND.name}</span>
         </div>
 
         {/* Icon */}
@@ -53,11 +53,11 @@ export default function BloqueadoPage() {
           </svg>
         </div>
 
-        <h1 className="text-[20px] font-semibold text-text-primary tracking-[-0.02em] mb-2">
+        <h1 className="text-[20px] font-semibold text-on-surface tracking-[-0.02em] mb-2">
           Acesso bloqueado
         </h1>
 
-        <p className="text-text-secondary text-[13px] leading-relaxed mb-8 max-w-[340px] mx-auto">
+        <p className="text-on-surface-variant text-[13px] leading-relaxed mb-8 max-w-[340px] mx-auto">
           Seu período de teste expirou ou sua assinatura está inativa. Assine o plano Pro para continuar usando o MedMate.
         </p>
 
@@ -65,14 +65,14 @@ export default function BloqueadoPage() {
           <button
             onClick={handleCheckout}
             disabled={checkoutLoading}
-            className="w-full px-6 py-2.5 bg-accent hover:bg-accent-hover text-bg-0 font-semibold rounded-lg transition-all duration-200 text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full px-6 py-2.5 bg-primary hover:bg-primary-hover text-bg-0 font-semibold rounded-lg transition-all duration-200 text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {checkoutLoading ? "Redirecionando..." : "Assinar plano Pro"}
           </button>
 
           <Link
             href="/conta"
-            className="w-full px-6 py-2.5 bg-bg-2 hover:bg-bg-3 text-text-primary font-medium rounded-lg transition-all duration-200 text-[13px] border border-border-subtle inline-block"
+            className="w-full px-6 py-2.5 bg-surface-container hover:bg-surface-high text-on-surface font-medium rounded-lg transition-all duration-200 text-[13px] border border-outline-variant inline-block"
           >
             Ver detalhes da conta
           </Link>
@@ -80,7 +80,7 @@ export default function BloqueadoPage() {
           <button
             onClick={handleLogout}
             disabled={logoutLoading}
-            className="text-text-tertiary hover:text-text-secondary text-[12px] mt-2 cursor-pointer transition-colors"
+            className="text-on-surface-muted hover:text-on-surface-variant text-[12px] mt-2 cursor-pointer transition-colors"
           >
             {logoutLoading ? "Saindo..." : "Sair da conta"}
           </button>

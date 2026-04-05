@@ -6,7 +6,7 @@ export default function SucessoPage() {
   const visible = true;
 
   return (
-    <div className="min-h-screen bg-bg-0 flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-surface-lowest flex items-center justify-center relative overflow-hidden">
       {/* Ambient glow */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
@@ -16,7 +16,7 @@ export default function SucessoPage() {
       />
 
       <div
-        className="relative bg-bg-1 border border-border-subtle rounded-xl px-10 py-12 max-w-[420px] w-full text-center transition-all duration-700 ease-out"
+        className="relative bg-surface-low border border-outline-variant rounded-xl px-10 py-12 max-w-[420px] w-full text-center transition-all duration-700 ease-out"
         style={{
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(12px)",
@@ -59,7 +59,7 @@ export default function SucessoPage() {
         </div>
 
         <h1
-          className="text-[22px] font-semibold text-text-primary tracking-[-0.02em] mb-2 transition-all duration-500"
+          className="text-[22px] font-semibold text-on-surface tracking-[-0.02em] mb-2 transition-all duration-500"
           style={{
             opacity: visible ? 1 : 0,
             transitionDelay: "500ms",
@@ -69,7 +69,7 @@ export default function SucessoPage() {
         </h1>
 
         <p
-          className="text-text-secondary text-[13px] leading-relaxed mb-8 max-w-[300px] mx-auto transition-all duration-500"
+          className="text-on-surface-variant text-[13px] leading-relaxed mb-8 max-w-[300px] mx-auto transition-all duration-500"
           style={{
             opacity: visible ? 1 : 0,
             transitionDelay: "650ms",
@@ -80,7 +80,7 @@ export default function SucessoPage() {
 
         <Link
           href="/consulta"
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent hover:bg-accent-hover text-bg-0 font-semibold rounded-lg transition-all duration-200 text-[13px] hover:shadow-[0_0_20px_rgba(0,208,132,0.2)]"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-hover text-bg-0 font-semibold rounded-lg transition-all duration-200 text-[13px] hover:shadow-[0_0_20px_rgba(0,208,132,0.2)]"
           style={{
             opacity: visible ? 1 : 0,
             transitionDelay: "800ms",

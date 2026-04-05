@@ -31,13 +31,13 @@ export function PatientInfo() {
           onChange={(e) => setPatient({ age: e.target.value })}
         />
         <div className="mb-2">
-          <label className="block text-[10.5px] text-text-tertiary mb-0.5 font-medium">
+          <label className="block text-[10.5px] text-on-surface-muted mb-0.5 font-medium">
             Raça
           </label>
           <select
             value={patient.race}
             onChange={(e) => setPatient({ race: e.target.value as typeof patient.race })}
-            className="w-full h-[29px] px-2 border border-border-subtle rounded-[5px] bg-bg-2 text-text-primary font-sans text-xs cursor-pointer focus:outline-none focus:border-accent"
+            className="w-full h-[29px] px-2 border border-outline-variant rounded-[5px] bg-surface-container text-on-surface font-sans text-xs cursor-pointer focus:outline-none focus:border-primary"
           >
             <option value="">--</option>
             {RACE_OPTIONS.map((r) => (
@@ -47,12 +47,12 @@ export function PatientInfo() {
         </div>
       </div>
       <div className="mb-2">
-        <label className="block text-[10.5px] text-text-tertiary mb-0.5 font-medium">
+        <label className="block text-[10.5px] text-on-surface-muted mb-0.5 font-medium">
           Gênero
         </label>
         <div className="flex gap-3 mt-0.5">
           {GENDER_OPTIONS.map((g) => (
-            <label key={g} className="flex items-center gap-1 text-xs cursor-pointer text-text-secondary">
+            <label key={g} className="flex items-center gap-1 text-xs cursor-pointer text-on-surface-variant">
               <input
                 type="radio"
                 name="gender"

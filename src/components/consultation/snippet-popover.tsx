@@ -98,22 +98,22 @@ export function SnippetPopover({ category, onInsert }: SnippetPopoverProps) {
       <button
         onClick={handleToggle}
         title="Favoritos"
-        className="w-[22px] h-[22px] rounded-md border border-border-subtle flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-bg-2 hover:border-text-tertiary transition-colors cursor-pointer text-[11px]"
+        className="w-[22px] h-[22px] rounded-md border border-outline-variant flex items-center justify-center text-on-surface-muted hover:text-on-surface hover:bg-surface-container hover:border-text-tertiary transition-colors cursor-pointer text-[11px]"
       >
         ★
       </button>
 
       {/* Popover panel */}
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-[80] w-[280px] bg-bg-1 border border-border-subtle rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 z-[80] w-[280px] bg-surface-low border border-outline-variant rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-border-subtle">
-            <p className="text-[11.5px] font-semibold text-text-primary">Favoritos</p>
+          <div className="flex items-center justify-between px-3 py-2 border-b border-outline-variant">
+            <p className="text-[11.5px] font-semibold text-on-surface">Favoritos</p>
             <div className="flex gap-1">
               {view === "list" && (
                 <button
                   onClick={() => setView("create")}
-                  className="text-[10px] text-text-tertiary hover:text-accent transition-colors cursor-pointer px-1.5 py-0.5 rounded border border-border-subtle hover:border-accent"
+                  className="text-[10px] text-on-surface-muted hover:text-primary transition-colors cursor-pointer px-1.5 py-0.5 rounded border border-outline-variant hover:border-primary"
                 >
                   + Novo
                 </button>
@@ -121,7 +121,7 @@ export function SnippetPopover({ category, onInsert }: SnippetPopoverProps) {
               {view === "create" && (
                 <button
                   onClick={() => setView("list")}
-                  className="text-[10px] text-text-tertiary hover:text-text-primary transition-colors cursor-pointer"
+                  className="text-[10px] text-on-surface-muted hover:text-on-surface transition-colors cursor-pointer"
                 >
                   ← Voltar
                 </button>
@@ -133,33 +133,33 @@ export function SnippetPopover({ category, onInsert }: SnippetPopoverProps) {
           {view === "list" && (
             <div className="overflow-y-auto max-h-[240px]">
               {loading ? (
-                <p className="text-[11px] text-text-tertiary text-center py-6">Carregando…</p>
+                <p className="text-[11px] text-on-surface-muted text-center py-6">Carregando…</p>
               ) : snippets.length === 0 ? (
                 <div className="px-3 py-6 text-center">
-                  <p className="text-[11px] text-text-secondary mb-1">Nenhum favorito ainda.</p>
-                  <p className="text-[10.5px] text-text-tertiary">Clique em "+ Novo" para criar.</p>
+                  <p className="text-[11px] text-on-surface-variant mb-1">Nenhum favorito ainda.</p>
+                  <p className="text-[10.5px] text-on-surface-muted">Clique em "+ Novo" para criar.</p>
                 </div>
               ) : (
                 snippets.map((s) => (
                   <div
                     key={s.id}
-                    className="group flex items-start gap-2 px-3 py-2.5 hover:bg-bg-2/60 transition-colors border-b border-border-subtle/50 last:border-b-0"
+                    className="group flex items-start gap-2 px-3 py-2.5 hover:bg-surface-container/60 transition-colors border-b border-outline-variant/50 last:border-b-0"
                   >
                     <button
                       onClick={() => handleInsert(s)}
                       className="flex-1 text-left min-w-0 cursor-pointer"
                     >
-                      <p className="text-[11.5px] font-medium text-text-primary leading-snug truncate">
+                      <p className="text-[11.5px] font-medium text-on-surface leading-snug truncate">
                         {s.title}
                       </p>
-                      <p className="text-[10.5px] text-text-tertiary mt-0.5 leading-snug line-clamp-2">
+                      <p className="text-[10.5px] text-on-surface-muted mt-0.5 leading-snug line-clamp-2">
                         {s.body}
                       </p>
                     </button>
                     <button
                       onClick={() => handleDelete(s.id)}
                       title="Excluir"
-                      className="shrink-0 w-5 h-5 flex items-center justify-center text-text-tertiary hover:text-status-crit transition-colors cursor-pointer opacity-0 group-hover:opacity-100 text-[13px] mt-0.5"
+                      className="shrink-0 w-5 h-5 flex items-center justify-center text-on-surface-muted hover:text-status-crit transition-colors cursor-pointer opacity-0 group-hover:opacity-100 text-[13px] mt-0.5"
                     >
                       ×
                     </button>
@@ -176,19 +176,19 @@ export function SnippetPopover({ category, onInsert }: SnippetPopoverProps) {
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Título (ex: Metformina padrão)"
-                className="w-full px-2 py-1.5 text-[11.5px] border border-border-subtle rounded-md bg-bg-2 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent"
+                className="w-full px-2 py-1.5 text-[11.5px] border border-outline-variant rounded-md bg-surface-container text-on-surface placeholder:text-on-surface-muted focus:outline-none focus:border-primary"
               />
               <textarea
                 value={newBody}
                 onChange={(e) => setNewBody(e.target.value)}
                 placeholder="Texto do favorito…"
                 rows={4}
-                className="w-full px-2 py-1.5 text-[11.5px] border border-border-subtle rounded-md bg-bg-2 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent resize-none leading-relaxed"
+                className="w-full px-2 py-1.5 text-[11.5px] border border-outline-variant rounded-md bg-surface-container text-on-surface placeholder:text-on-surface-muted focus:outline-none focus:border-primary resize-none leading-relaxed"
               />
               <button
                 onClick={handleCreate}
                 disabled={saving || !newTitle.trim() || !newBody.trim()}
-                className="w-full py-1.5 rounded-md bg-accent text-black text-[11.5px] font-semibold hover:bg-accent/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-1.5 rounded-md bg-primary text-black text-[11.5px] font-semibold hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? "Salvando…" : "Salvar favorito"}
               </button>

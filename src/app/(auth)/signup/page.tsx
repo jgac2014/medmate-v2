@@ -50,26 +50,26 @@ export default function SignupPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <span className="text-[26px] font-bold tracking-[-0.03em] text-text-primary">{BRAND.name}</span>
+            <span className="text-[26px] font-bold tracking-[-0.03em] text-on-surface">{BRAND.name}</span>
           </Link>
         </div>
-        <div className="bg-white border border-border-subtle rounded-2xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent mx-auto">
+        <div className="bg-white border border-outline-variant rounded-2xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
             </svg>
           </div>
           <div>
-            <p className="text-[16px] font-semibold text-text-primary">Verifique seu email</p>
-            <p className="text-[14px] text-text-secondary mt-1">
+            <p className="text-[16px] font-semibold text-on-surface">Verifique seu email</p>
+            <p className="text-[14px] text-on-surface-variant mt-1">
               Enviamos um link de confirmação para{" "}
-              <span className="font-medium text-text-primary">{email}</span>.
+              <span className="font-medium text-on-surface">{email}</span>.
               Clique no link para ativar sua conta e começar o trial de 14 dias.
             </p>
           </div>
           <button
             onClick={() => setEmailConfirmRequired(false)}
-            className="text-[13px] text-text-tertiary hover:text-accent transition-colors bg-transparent border-none cursor-pointer"
+            className="text-[13px] text-on-surface-muted hover:text-primary transition-colors bg-transparent border-none cursor-pointer"
           >
             Não recebeu? Tentar novamente
           </button>
@@ -82,12 +82,12 @@ export default function SignupPage() {
     <div className="w-full max-w-sm">
       <div className="text-center mb-8">
         <Link href="/" className="inline-block">
-          <span className="text-[26px] font-bold tracking-[-0.03em] text-text-primary">{BRAND.name}</span>
+          <span className="text-[26px] font-bold tracking-[-0.03em] text-on-surface">{BRAND.name}</span>
         </Link>
-        <p className="text-[14px] text-text-secondary mt-1">14 dias grátis, sem cartão</p>
+        <p className="text-[14px] text-on-surface-variant mt-1">14 dias grátis, sem cartão</p>
       </div>
 
-      <div className="bg-white border border-border-subtle rounded-2xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+      <div className="bg-white border border-outline-variant rounded-2xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
         <form onSubmit={handleSignup} className="space-y-4">
           <Input
             label="Nome completo"
@@ -128,15 +128,15 @@ export default function SignupPage() {
           </Button>
         </form>
 
-        <p className="text-[12px] text-text-tertiary text-center mt-4 leading-relaxed">
+        <p className="text-[12px] text-on-surface-muted text-center mt-4 leading-relaxed">
           Ao criar a conta, você concorda com nossos{" "}
-          <Link href="/politica-de-privacidade" className="text-accent hover:underline">Termos e Privacidade</Link>.
+          <Link href="/politica-de-privacidade" className="text-primary hover:underline">Termos e Privacidade</Link>.
         </p>
       </div>
 
-      <p className="text-[13px] text-text-tertiary text-center mt-5">
+      <p className="text-[13px] text-on-surface-muted text-center mt-5">
         Já tem conta?{" "}
-        <Link href="/login" className="text-accent font-medium hover:underline">
+        <Link href="/login" className="text-primary font-medium hover:underline">
           Entrar
         </Link>
       </p>

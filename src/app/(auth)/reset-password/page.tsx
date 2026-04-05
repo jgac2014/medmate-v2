@@ -64,20 +64,20 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="w-full max-w-sm bg-bg-1 border border-border-subtle rounded-lg p-8">
+    <div className="w-full max-w-sm bg-surface-low border border-outline-variant rounded-lg p-8">
       <div className="flex items-center gap-2 mb-6 justify-center">
-        <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-black text-[12px] font-extrabold font-mono">
+        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-black text-[12px] font-extrabold font-mono">
           {BRAND.shortName}
         </div>
-        <span className="font-bold text-[14px] text-text-primary">{BRAND.name}</span>
+        <span className="font-bold text-[14px] text-on-surface">{BRAND.name}</span>
       </div>
 
       {success ? (
         <div className="text-center space-y-3">
-          <p className="text-sm text-text-primary font-medium">
+          <p className="text-sm text-on-surface font-medium">
             Senha atualizada!
           </p>
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-on-surface-variant">
             Redirecionando para o consultório...
           </p>
         </div>
@@ -86,14 +86,14 @@ export default function ResetPasswordPage() {
           <p className="text-xs text-status-crit">{error}</p>
           <a
             href="/forgot-password"
-            className="block text-xs text-accent hover:underline"
+            className="block text-xs text-primary hover:underline"
           >
             Solicitar novo link
           </a>
         </div>
       ) : (
         <>
-          <p className="text-xs text-text-secondary text-center mb-4">
+          <p className="text-xs text-on-surface-variant text-center mb-4">
             Defina sua nova senha.
           </p>
 

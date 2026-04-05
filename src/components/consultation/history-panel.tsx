@@ -210,7 +210,7 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
                     disabled={loadingId === item.id}
                     className={`w-full text-left px-4 py-3 border-b border-[var(--outline-variant)] transition-colors cursor-pointer disabled:opacity-50 ${
                       isActive
-                        ? "bg-accent/8 border-l-2 border-l-accent pl-[14px]"
+                        ? "bg-primary/8 border-l-2 border-l-accent pl-[14px]"
                         : "hover:bg-[var(--surface-container)]"
                     }`}
                   >
@@ -239,11 +239,11 @@ export function HistoryPanel({ open, onClose }: HistoryPanelProps) {
                     )}
 
                     {loadingId === item.id && (
-                      <p className="text-[10px] text-accent mt-1">Abrindo...</p>
+                      <p className="text-[10px] text-primary mt-1">Abrindo...</p>
                     )}
 
                     {isActive && (
-                      <span className="inline-block mt-1 text-[10px] text-accent font-medium">
+                      <span className="inline-block mt-1 text-[10px] text-primary font-medium">
                         em edição
                       </span>
                     )}

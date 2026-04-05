@@ -59,12 +59,12 @@ export default function LoginForm({ initialError }: { initialError: string }) {
       {/* Logo */}
       <div className="text-center mb-8">
         <Link href="/" className="inline-block">
-          <span className="text-[26px] font-bold tracking-[-0.03em] text-text-primary">{BRAND.name}</span>
+          <span className="text-[26px] font-bold tracking-[-0.03em] text-on-surface">{BRAND.name}</span>
         </Link>
-        <p className="text-[14px] text-text-secondary mt-1">Bem-vindo de volta</p>
+        <p className="text-[14px] text-on-surface-variant mt-1">Bem-vindo de volta</p>
       </div>
 
-      <div className="bg-white border border-border-subtle rounded-2xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+      <div className="bg-white border border-outline-variant rounded-2xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
         <form onSubmit={handleLogin} className="space-y-4">
           <Input
             label="Email"
@@ -86,7 +86,7 @@ export default function LoginForm({ initialError }: { initialError: string }) {
               required
             />
             <div className="flex justify-end mt-1">
-              <a href="/forgot-password" className="text-[12px] text-text-tertiary hover:text-accent transition-colors">
+              <a href="/forgot-password" className="text-[12px] text-on-surface-muted hover:text-primary transition-colors">
                 Esqueceu a senha?
               </a>
             </div>
@@ -110,16 +110,16 @@ export default function LoginForm({ initialError }: { initialError: string }) {
 
         <button
           onClick={handleMagicLink}
-          className="w-full mt-3 text-[13px] text-text-tertiary hover:text-text-primary transition-colors bg-transparent border-none cursor-pointer disabled:opacity-40"
+          className="w-full mt-3 text-[13px] text-on-surface-muted hover:text-on-surface transition-colors bg-transparent border-none cursor-pointer disabled:opacity-40"
           disabled={loading || !email}
         >
           Entrar com link mágico
         </button>
       </div>
 
-      <p className="text-[13px] text-text-tertiary text-center mt-5">
+      <p className="text-[13px] text-on-surface-muted text-center mt-5">
         Não tem conta?{" "}
-        <Link href="/signup" className="text-accent font-medium hover:underline">
+        <Link href="/signup" className="text-primary font-medium hover:underline">
           Criar conta grátis
         </Link>
       </p>

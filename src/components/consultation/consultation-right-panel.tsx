@@ -72,7 +72,7 @@ export function ConsultationRightPanel() {
               onClick={() => setOutputMode(mode)}
               className={`px-2.5 py-1.5 text-[10px] font-semibold transition-colors ${
                 outputMode === mode
-                  ? "text-[var(--accent)] border-b-2 border-[var(--accent)]"
+                  ? "text-[var(--primary)] border-b-2 border-[var(--primary)]"
                   : "text-[var(--on-surface-muted)] hover:text-[var(--on-surface)]"
               }`}
             >
@@ -102,7 +102,7 @@ export function ConsultationRightPanel() {
           className={`mt-3 w-full py-2 rounded-lg text-[12px] font-bold transition-all ${
             copied
               ? "bg-[var(--status-ok)] text-white"
-              : "bg-[var(--accent)] text-white hover:opacity-90 active:scale-[0.98]"
+              : "bg-[var(--primary)] text-white hover:opacity-90 active:scale-[0.98]"
           }`}
         >
           {copied ? "✓ Copiado!" : "Copiar para eSUS"}

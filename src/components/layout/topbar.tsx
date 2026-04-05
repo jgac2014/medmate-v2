@@ -241,7 +241,7 @@ export function Topbar() {
   const subscriptionMeta =
     SUBSCRIPTION_META[subscriptionStatus as keyof typeof SUBSCRIPTION_META] ?? {
       label: subscriptionStatus || "Conta",
-      className: "border-border-default bg-bg-2 text-text-secondary",
+      className: "border-outline bg-surface-container text-on-surface-variant",
     };
 
   return (

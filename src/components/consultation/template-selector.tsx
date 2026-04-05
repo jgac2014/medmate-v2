@@ -93,25 +93,25 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
       <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="fixed left-1/2 top-1/2 z-[60] w-[640px] max-w-[96vw] max-h-[88vh] -translate-x-1/2 -translate-y-1/2 bg-bg-1 border border-border-subtle rounded-2xl shadow-[0_24px_64px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
+      <div className="fixed left-1/2 top-1/2 z-[60] w-[640px] max-w-[96vw] max-h-[88vh] -translate-x-1/2 -translate-y-1/2 bg-surface-low border border-outline-variant rounded-2xl shadow-[0_24px_64px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant shrink-0">
           <div>
-            <p className="text-[13px] font-semibold text-text-primary">Templates clínicos</p>
-            <p className="text-[11px] text-text-tertiary mt-0.5">
+            <p className="text-[13px] font-semibold text-on-surface">Templates clínicos</p>
+            <p className="text-[11px] text-on-surface-muted mt-0.5">
               Preenche SOAP, exames e orientações com base em diretrizes oficiais brasileiras
             </p>
           </div>
           <button
             onClick={handleClose}
-            className="w-7 h-7 rounded-md border border-border-subtle flex items-center justify-center text-text-tertiary hover:text-text-primary hover:bg-bg-2 transition-colors cursor-pointer text-lg leading-none"
+            className="w-7 h-7 rounded-md border border-outline-variant flex items-center justify-center text-on-surface-muted hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer text-lg leading-none"
           >
             ×
           </button>
         </div>
 
         {/* Category tabs */}
-        <div className="flex border-b border-border-subtle shrink-0">
+        <div className="flex border-b border-outline-variant shrink-0">
           {(["all", "cronico", "agudo", "preventivo"] as const).map((cat) => (
             <button
               key={cat}
@@ -121,8 +121,8 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
               }}
               className={`px-4 py-2.5 text-[11.5px] font-medium transition-colors cursor-pointer ${
                 category === cat
-                  ? "text-text-primary border-b-2 border-accent"
-                  : "text-text-tertiary hover:text-text-secondary"
+                  ? "text-on-surface border-b-2 border-primary"
+                  : "text-on-surface-muted hover:text-on-surface-variant"
               }`}
             >
               {CATEGORY_LABELS[cat]}
@@ -133,9 +133,9 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
         {/* Body: template list + preview */}
         <div className="flex flex-1 min-h-0 overflow-hidden">
           {/* Template list */}
-          <div className="w-[220px] shrink-0 border-r border-border-subtle overflow-y-auto py-2">
+          <div className="w-[220px] shrink-0 border-r border-outline-variant overflow-y-auto py-2">
             {filtered.length === 0 ? (
-              <p className="text-[11px] text-text-tertiary text-center py-8">Nenhum template nesta categoria</p>
+              <p className="text-[11px] text-on-surface-muted text-center py-8">Nenhum template nesta categoria</p>
             ) : (
               filtered.map((t) => (
                 <button
@@ -143,12 +143,12 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                   onClick={() => setSelected(t)}
                   className={`w-full text-left px-3 py-2.5 transition-colors cursor-pointer border-l-2 ${
                     selected?.id === t.id
-                      ? "border-l-accent bg-bg-2 text-text-primary"
-                      : "border-l-transparent text-text-secondary hover:bg-bg-2/60 hover:text-text-primary"
+                      ? "border-l-accent bg-surface-container text-on-surface"
+                      : "border-l-transparent text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface"
                   }`}
                 >
                   <p className="text-[12px] font-medium leading-snug">{t.name}</p>
-                  <p className="text-[10.5px] text-text-tertiary mt-0.5 leading-snug">{t.description}</p>
+                  <p className="text-[10.5px] text-on-surface-muted mt-0.5 leading-snug">{t.description}</p>
                 </button>
               ))
             )}
@@ -158,18 +158,18 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
           <div className="flex-1 overflow-y-auto p-5">
             {!selected ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[200px]">
-                <p className="text-[12px] text-text-secondary">Selecione um template para visualizar</p>
+                <p className="text-[12px] text-on-surface-variant">Selecione um template para visualizar</p>
               </div>
             ) : (
               <div className="space-y-4">
                 <div>
-                  <p className="text-[13px] font-semibold text-text-primary">{selected.name}</p>
-                  <p className="text-[11px] text-text-tertiary mt-0.5">{selected.description}</p>
+                  <p className="text-[13px] font-semibold text-on-surface">{selected.name}</p>
+                  <p className="text-[11px] text-on-surface-muted mt-0.5">{selected.description}</p>
                   <a
                     href={selected.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 mt-1.5 text-[10px] text-text-tertiary hover:text-accent transition-colors"
+                    className="inline-flex items-center gap-1 mt-1.5 text-[10px] text-on-surface-muted hover:text-primary transition-colors"
                   >
                     <span className="h-[3px] w-[3px] rounded-full bg-text-tertiary" />
                     {selected.source}
@@ -197,10 +197,10 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                     <PreviewSection label="SOAP" color="blue">
                       {Object.entries(selected.fill.soap).map(([key, val]) => (
                         <div key={key} className="mb-2 last:mb-0">
-                          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-tertiary mb-0.5">
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-on-surface-muted mb-0.5">
                             {SOAP_LABELS[key as keyof SoapNotes] ?? key}
                           </p>
-                          <pre className="text-[10.5px] text-text-secondary whitespace-pre-wrap leading-relaxed font-sans">
+                          <pre className="text-[10.5px] text-on-surface-variant whitespace-pre-wrap leading-relaxed font-sans">
                             {val}
                           </pre>
                         </div>
@@ -210,7 +210,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
 
                   {selected.fill.requestedExams && (
                     <PreviewSection label="Exames a Solicitar" color="cyan">
-                      <pre className="text-[10.5px] text-text-secondary whitespace-pre-wrap leading-relaxed font-sans">
+                      <pre className="text-[10.5px] text-on-surface-variant whitespace-pre-wrap leading-relaxed font-sans">
                         {selected.fill.requestedExams}
                       </pre>
                     </PreviewSection>
@@ -218,20 +218,20 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
 
                   {selected.fill.patientInstructions && (
                     <PreviewSection label="Orientações ao Paciente" color="amber">
-                      <pre className="text-[10.5px] text-text-secondary whitespace-pre-wrap leading-relaxed font-sans">
+                      <pre className="text-[10.5px] text-on-surface-variant whitespace-pre-wrap leading-relaxed font-sans">
                         {selected.fill.patientInstructions}
                       </pre>
                     </PreviewSection>
                   )}
                 </div>
 
-                <p className="text-[10px] text-text-tertiary leading-relaxed border-t border-border-subtle pt-3">
+                <p className="text-[10px] text-on-surface-muted leading-relaxed border-t border-outline-variant pt-3">
                   O template será mesclado com o conteúdo atual — campos vazios serão preenchidos; campos preenchidos receberão o conteúdo adicional com separador.
                 </p>
 
                 <button
                   onClick={() => applyTemplate(selected)}
-                  className="w-full py-2.5 rounded-lg bg-accent text-black text-[12px] font-semibold hover:bg-accent/90 transition-colors cursor-pointer"
+                  className="w-full py-2.5 rounded-lg bg-primary text-black text-[12px] font-semibold hover:bg-primary/90 transition-colors cursor-pointer"
                 >
                   Aplicar template — {selected.name}
                 </button>
@@ -271,8 +271,8 @@ function PreviewSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`border border-border-subtle border-l-[3px] ${COLOR_MAP[color] ?? "border-l-border-default"} rounded-lg p-3`}>
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-text-tertiary mb-2">{label}</p>
+    <div className={`border border-outline-variant border-l-[3px] ${COLOR_MAP[color] ?? "border-l-border-default"} rounded-lg p-3`}>
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-on-surface-muted mb-2">{label}</p>
       {children}
     </div>
   );

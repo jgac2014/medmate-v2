@@ -51,7 +51,7 @@ export default function ConsultaPage() {
   }
 
   return (
-    <div className="theme-light flex h-[calc(100vh-56px)] overflow-hidden bg-[var(--bg-0)]">
+    <div className="theme-light flex h-[calc(100vh-56px)] overflow-hidden bg-[var(--surface-lowest)]">
       {/* Coluna esquerda: contexto do paciente */}
       <ConsultationSidebar />
 
@@ -129,7 +129,7 @@ export default function ConsultaPage() {
                   value={labsExtras}
                   onChange={(e) => setLabsExtras(e.target.value)}
                   rows={Math.min(6, labsExtras.split("\n").length + 1)}
-                  className="w-full text-[13px] text-[var(--on-surface)] bg-transparent border border-[var(--outline-variant)] rounded-lg px-3 py-2 resize-y font-mono focus:outline-none focus:border-[var(--accent)] transition-colors"
+                  className="w-full text-[13px] text-[var(--on-surface)] bg-transparent border border-[var(--outline-variant)] rounded-lg px-3 py-2 resize-y font-mono focus:outline-none focus:border-[var(--primary)] transition-colors"
                 />
               </div>
             )}
