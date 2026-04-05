@@ -1,3 +1,5 @@
+'use client'
+
 "use client";
 
 import type { PrescribedDrug, RxPatient, DoctorProfile } from "@/lib/receituario/types";
