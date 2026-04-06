@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { showToast } from "@/components/ui/toast";
 
 export function LandingCheckoutButton({ className = "" }: { className?: string }) {
   const [loading, setLoading] = useState(false);
@@ -12,9 +13,11 @@ export function LandingCheckoutButton({ className = "" }: { className?: string }
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
+      } else {
+        showToast(data.error || "Erro ao iniciar checkout", "error");
       }
     } catch {
-      // Silently fail — user can retry
+      showToast("Erro de conexão ao tentar assinar", "error");
     } finally {
       setLoading(false);
     }

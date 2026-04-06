@@ -16,11 +16,10 @@ interface SendScreenProps {
 export function SendScreen({
   meds,
   patient,
-  doctor,
   useDigitalSignature,
   onBack,
   onNewPrescription,
-}: SendScreenProps) {
+}: Omit<SendScreenProps, "doctor">) {
   const simpleMeds = meds.filter((m) => m.type !== "ctrl");
   const ctrlMeds = meds.filter((m) => m.type === "ctrl");
   const hasSimples = simpleMeds.length > 0;

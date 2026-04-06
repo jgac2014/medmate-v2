@@ -91,7 +91,7 @@ export function MonitoringPanel({
   // Last consultation date for "no recent visit" warning
   const lastDate = consultations[0]?.date;
   const daysSinceLastVisit = lastDate
-    ? Math.floor((Date.now() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24))
+    ? Math.floor((new Date().getTime() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
   return (

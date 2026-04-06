@@ -19,12 +19,10 @@ const statusStyles: Record<StatusLevel, string> = {
 
 export const ExamInput = forwardRef<HTMLInputElement, ExamInputProps>(
   ({ label, unit, status = "none", auto = false, className = "", ...props }, ref) => {
-    void unit;
-
     return (
       <div className="flex items-center gap-[3px] mb-1">
         <span className="text-[10px] text-on-surface-variant flex-1 whitespace-nowrap">
-          {label}
+          {label}{unit && <span className="text-[9px] text-on-surface-muted ml-0.5">({unit})</span>}
         </span>
         <input
           ref={ref}

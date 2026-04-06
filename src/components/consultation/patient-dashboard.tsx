@@ -9,6 +9,7 @@ import { useConsultationStore } from "@/stores/consultation-store";
 import { formatDateBR } from "@/lib/utils";
 import { Sparkline } from "@/components/ui/sparkline";
 import { buildTrendSeries } from "@/lib/trend-data";
+import { showToast } from "@/components/ui/toast";
 import type { PatientMedication } from "@/types";
 
 interface PatientDashboardProps {
@@ -56,7 +57,7 @@ export function PatientDashboard({ open, onClose }: PatientDashboardProps) {
       setActiveProblems(problems);
       setMedications(meds);
     } catch {
-      // silencioso
+      showToast("Erro ao carregar dados do paciente", "error");
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,7 @@ export function PatientDashboard({ open, onClose }: PatientDashboardProps) {
       setNewMedName("");
       setNewMedDosage("");
     } catch {
-      // silencioso
+      showToast("Erro ao adicionar medicamento", "error");
     }
   }
 
@@ -85,7 +86,7 @@ export function PatientDashboard({ open, onClose }: PatientDashboardProps) {
       await discontinuePatientMedication(medId);
       setMedications((prev) => prev.filter((m) => m.id !== medId));
     } catch {
-      // silencioso
+      showToast("Erro ao descontinuar medicamento", "error");
     }
   }
 

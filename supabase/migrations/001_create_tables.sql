@@ -17,6 +17,8 @@ CREATE TABLE public.users (
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "users_read_own" ON public.users FOR SELECT USING (id = auth.uid());
 CREATE POLICY "users_update_own" ON public.users FOR UPDATE USING (id = auth.uid());
+CREATE POLICY "users_insert_own" ON public.users FOR INSERT WITH CHECK (id = auth.uid());
+CREATE POLICY "users_insert_own" ON public.users FOR INSERT WITH CHECK (id = auth.uid());
 
 -- Auto-create user profile on signup with 14-day trial
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -53,7 +55,9 @@ CREATE TABLE public.patients (
 );
 
 ALTER TABLE public.patients ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "patients_own_data" ON public.patients FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "patients_own_data" ON public.patients FOR ALL
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
 
 -- Consultations
 CREATE TABLE public.consultations (
@@ -83,7 +87,9 @@ CREATE TABLE public.consultations (
 );
 
 ALTER TABLE public.consultations ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "consultations_own_data" ON public.consultations FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "consultations_own_data" ON public.consultations FOR ALL
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
 
 -- Indexes
 CREATE INDEX idx_patients_user_id ON public.patients(user_id);

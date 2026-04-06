@@ -1,8 +1,8 @@
 -- supabase/migrations/005_add_patient_problems.sql
 CREATE TABLE IF NOT EXISTS patient_problems (
   id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id  UUID        NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  user_id     UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  patient_id  UUID        NOT NULL REFERENCES public.patients(id) ON DELETE CASCADE,
+  user_id     UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   problem_text TEXT       NOT NULL,
   active      BOOLEAN     NOT NULL DEFAULT true,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),

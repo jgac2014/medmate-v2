@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Button } from "@/components/ui/button";

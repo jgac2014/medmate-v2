@@ -21,7 +21,7 @@ const FOOTER_SECTIONS = [
   {
     title: "Jurídico",
     links: [
-      { label: "Termos de Uso", href: "/politica-de-privacidade" },
+      { label: "Termos de Uso", href: "#" },
       { label: "Privacidade", href: "/politica-de-privacidade" },
     ],
   },

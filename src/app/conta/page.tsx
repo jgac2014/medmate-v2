@@ -211,7 +211,7 @@ export default function ContaPage() {
 
           {isActive && (
             <p className="text-[13px] text-on-surface-variant mt-2">
-              Todas as funcionalidades do MedMate estao liberadas.
+              Todas as funcionalidades do MedMate estão liberadas.
             </p>
           )}
         </div>

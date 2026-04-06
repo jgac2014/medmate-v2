@@ -5,8 +5,7 @@
 import { useCallback } from "react";
 import { useReceituarioStore } from "@/stores/receituario-store";
 import { checkInteractions } from "@/lib/receituario/interactions";
-import type { Drug } from "@/lib/receituario/types";
-import type { PrescribedDrug } from "@/lib/receituario/types";
+import type { Drug, PrescribedDrug } from "@/lib/receituario/types";
 
 import { DrugSearch } from "./drug-search";
 import { DrugList } from "./drug-list";
@@ -14,13 +13,6 @@ import { PreviewPanel } from "./preview-panel";
 import { ProtocolsPanel } from "./protocols-panel";
 import { CustomizePanel } from "./customize-panel";
 import { SendScreen } from "./send-screen";
-
-const RX_TYPE_LABEL: Record<string, string> = {
-  "Receita Simples": "Simples",
-  "Notificação Branca": "Ctrl. Esp.",
-  "Notificação Especial Amarela": "Ntf. Amarela",
-  "Receita Azul": "Receita Azul",
-};
 
 export function PrescricaoShell() {
   const {
@@ -87,7 +79,6 @@ export function PrescricaoShell() {
         <SendScreen
           meds={meds}
           patient={patient}
-          doctor={doctor}
           useDigitalSignature={useDigitalSignature}
           onBack={() => setScreen("create")}
           onNewPrescription={reset}

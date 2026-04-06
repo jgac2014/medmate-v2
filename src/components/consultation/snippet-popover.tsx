@@ -137,7 +137,7 @@ export function SnippetPopover({ category, onInsert }: SnippetPopoverProps) {
               ) : snippets.length === 0 ? (
                 <div className="px-3 py-6 text-center">
                   <p className="text-[11px] text-on-surface-variant mb-1">Nenhum favorito ainda.</p>
-                  <p className="text-[10.5px] text-on-surface-muted">Clique em "+ Novo" para criar.</p>
+                  <p className="text-[10.5px] text-on-surface-muted">Clique em &quot;+ Novo&quot; para criar.</p>
                 </div>
               ) : (
                 snippets.map((s) => (

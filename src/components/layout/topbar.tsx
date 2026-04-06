@@ -39,7 +39,9 @@ const SUBSCRIPTION_META = {
 } as const;
 
 export function Topbar() {
-  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient, setPatientName, patientName, setFollowupItems, toggleProblem, setProblemsOther } = useConsultationStore();
+  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient, setPatientName, patientName, setFollowupItems, setProblemsOther } = useConsultationStore();
+  // Note: toggleProblem is intentionally not destructured here — it's used via getState() in handlePatientSelected
+  // Note: toggleProblem is intentionally not destructured here — it's used via getState() in handlePatientSelected
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -98,7 +100,7 @@ export function Topbar() {
       "mod+p": () => { if (patientName) setDashboardOpen((v) => !v); },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userId, patientName]
+    [userId, patientName, handleSave]
   );
 
   useHotkeys(hotkeyMap);
@@ -231,11 +233,14 @@ export function Topbar() {
   }
 
   const initials = userName
-    .split(" ")
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
+    ? userName
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : "?";
 
   const isPro = subscriptionStatus === "active";
   const subscriptionMeta =
@@ -323,6 +328,16 @@ export function Topbar() {
               }`}
             >
               Receituário
+            </button>
+            <button
+              onClick={() => router.push("/pedidos")}
+              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
+                pathname === "/pedidos"
+                  ? "bg-primary/8 text-primary font-semibold"
+                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+              }`}
+            >
+              Pedidos
             </button>
           </nav>
 

@@ -332,15 +332,6 @@ export function PreviewPanel({ meds, patient, doctor, customization, onCustomize
               />
             </div>
           )}
-
-          {hasOnly && (
-            <EspecialPreview
-              meds={meds}
-              patient={patient}
-              doctor={doctor}
-              customization={customization}
-            />
-          )}
         </div>
       </div>
     </div>

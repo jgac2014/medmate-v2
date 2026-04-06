@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -55,12 +56,23 @@ export default function NovaConsultaPage() {
   } = useConsultationStore();
 
   useEffect(() => {
-    setMounted(true);
     createClient()
       .auth.getUser()
       .then(({ data: { user } }) => {
         if (user) setUserId(user.id);
       });
+  }, []);
+
+  useEffect(() => {
+    createClient()
+      .auth.getUser()
+      .then(({ data: { user } }) => {
+        if (user) setUserId(user.id);
+      });
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
   function handleGerar() {

@@ -119,7 +119,7 @@ export function HistoryTimeline({
 
                 {/* Date label */}
                 <div className="absolute -left-[5.5rem] top-2 text-[10px] font-bold text-on-surface-muted text-right leading-none w-14 uppercase tracking-tighter">
-                  {formatDateBR(consult.date).replace(/\//g, " ").slice(0, 6)}
+                  {formatDateBR(consult.date)}
                   <br />
                   <span className="font-normal opacity-60">
                     {consult.date.slice(0, 4)}

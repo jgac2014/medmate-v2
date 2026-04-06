@@ -38,7 +38,7 @@ export function buildTrendSeries(consultations: ConsultationForTrend[]): TrendSe
   const hba1c = extractNumbers(consultations, (c) => c.labs?.hba1c);
   if (hba1c.length >= 2) series.push({ label: "HbA1c", unit: "%", data: hba1c, color: "var(--color-status-info)" });
 
-  const creatinina = extractNumbers(consultations, (c) => c.labs?.creatinina);
+  const creatinina = extractNumbers(consultations, (c) => c.labs?.cr);
   if (creatinina.length >= 2) series.push({ label: "Creatinina", unit: "mg/dL", data: creatinina, color: "var(--color-status-warn)" });
 
   return series;
