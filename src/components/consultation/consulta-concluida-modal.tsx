@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { copyToClipboard } from "@/lib/clipboard";
 import { showToast } from "@/components/ui/toast";
+import { createClient } from "@/lib/supabase/client";
+import { useConsultationStore } from "@/stores/consultation-store";
+import { logAuditEvent } from "@/lib/supabase/audit";
 
 interface ConsultaConcluidaModalProps {
   open: boolean;
@@ -20,14 +23,36 @@ export function ConsultaConcluidaModal({
   onHistory,
 }: ConsultaConcluidaModalProps) {
   const [copied, setCopied] = useState(false);
+  // Pre-resolved on mount so the copy handler never blocks on an async auth round-trip.
+  // fire-and-forget pattern: if actorId is unavailable the audit event is silently skipped.
+  const [actorId, setActorId] = useState<string | null>(null);
+
+  useEffect(() => {
+    createClient()
+      .auth.getUser()
+      .then(({ data: { user } }) => setActorId(user?.id ?? null));
+  }, []);
 
   if (!open) return null;
 
   async function handleCopy() {
     const ok = await copyToClipboard(esusText);
     if (ok) {
+      const state = useConsultationStore.getState();
       setCopied(true);
       showToast("Copiado para a área de transferência!", "success");
+      // fire-and-forget: actorId already resolved — no async auth call in this handler
+      logAuditEvent({
+        actorId,
+        eventType: "summary.copied",
+        entityType: "consultation",
+        entityId: state.currentConsultationId,
+        metadata: {
+          outputMode: "esus",
+          patientId: state.patientId,
+          source: "completion_modal",
+        },
+      });
       setTimeout(() => setCopied(false), 3000);
     } else {
       showToast("Erro ao copiar", "error");

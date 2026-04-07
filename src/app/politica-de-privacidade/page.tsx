@@ -110,8 +110,8 @@ export default function PoliticaDePrivacidadePage() {
             </ul>
             <p className="mt-3">
               Para exercer esses direitos, entre em contato pelo email{" "}
-              <a href="mailto:privacidade@medmate.com.br" className="text-primary hover:underline">
-                privacidade@medmate.com.br
+              <a href={`mailto:${BRAND.privacyEmail}`} className="text-primary hover:underline">
+                {BRAND.privacyEmail}
               </a>.
             </p>
           </Section>
@@ -134,8 +134,8 @@ export default function PoliticaDePrivacidadePage() {
           <Section title="10. Contato">
             <p>
               Dúvidas sobre privacidade:{" "}
-              <a href="mailto:privacidade@medmate.com.br" className="text-primary hover:underline">
-                privacidade@medmate.com.br
+              <a href={`mailto:${BRAND.privacyEmail}`} className="text-primary hover:underline">
+                {BRAND.privacyEmail}
               </a>
             </p>
           </Section>

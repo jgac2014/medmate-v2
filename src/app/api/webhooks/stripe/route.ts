@@ -24,6 +24,23 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminSupabaseClient();
 
+  async function logSubscriptionAudit(
+    actorId: string | null,
+    eventType: string,
+    entityId: string | null,
+    metadata: Record<string, unknown>
+  ) {
+    if (!actorId) return;
+
+    await supabase.from("audit_logs").insert({
+      actor_id: actorId,
+      event_type: eventType,
+      entity_type: "subscription",
+      entity_id: entityId,
+      metadata,
+    });
+  }
+
   switch (event.type) {
     // User completed checkout → activate subscription
     case "checkout.session.completed": {
@@ -41,14 +58,23 @@ export async function POST(req: NextRequest) {
             stripe_customer_id: customerId,
           })
           .eq("id", userId);
+        await logSubscriptionAudit(userId, "subscription.checkout_completed", customerId, {
+          stripeCustomerId: customerId,
+        });
       } else if (email) {
-        await supabase
+        const { data: updatedUser } = await supabase
           .from("users")
           .update({
             subscription_status: "active",
             stripe_customer_id: customerId,
           })
-          .eq("email", email);
+          .eq("email", email)
+          .select("id");
+        const actorId = Array.isArray(updatedUser) ? updatedUser[0]?.id : null;
+        await logSubscriptionAudit(actorId, "subscription.checkout_completed", customerId, {
+          stripeCustomerId: customerId,
+          matchedBy: "email",
+        });
       }
       break;
     }
@@ -78,10 +104,16 @@ export async function POST(req: NextRequest) {
           mappedStatus = "expired";
       }
 
-      await supabase
+      const { data: users } = await supabase
         .from("users")
         .update({ subscription_status: mappedStatus })
+        .select("id")
         .eq("stripe_customer_id", customerId);
+      const actorId = Array.isArray(users) ? users[0]?.id : null;
+      await logSubscriptionAudit(actorId, "subscription.updated", customerId, {
+        stripeStatus: status,
+        mappedStatus,
+      });
       break;
     }
 
@@ -90,10 +122,15 @@ export async function POST(req: NextRequest) {
       const subscription = event.data.object;
       const customerId = subscription.customer as string;
 
-      await supabase
+      const { data: users } = await supabase
         .from("users")
         .update({ subscription_status: "cancelled" })
+        .select("id")
         .eq("stripe_customer_id", customerId);
+      const actorId = Array.isArray(users) ? users[0]?.id : null;
+      await logSubscriptionAudit(actorId, "subscription.deleted", customerId, {
+        mappedStatus: "cancelled",
+      });
       break;
     }
 
@@ -102,10 +139,15 @@ export async function POST(req: NextRequest) {
       const invoice = event.data.object;
       const customerId = invoice.customer as string;
 
-      await supabase
+      const { data: users } = await supabase
         .from("users")
         .update({ subscription_status: "expired" })
+        .select("id")
         .eq("stripe_customer_id", customerId);
+      const actorId = Array.isArray(users) ? users[0]?.id : null;
+      await logSubscriptionAudit(actorId, "subscription.payment_failed", customerId, {
+        mappedStatus: "expired",
+      });
       break;
     }
   }

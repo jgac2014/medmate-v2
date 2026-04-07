@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Newsreader, Public_Sans, JetBrains_Mono } from "next/font/google";
+import { BRAND } from "@/lib/branding";
 import "./globals.css";
 
 const publicSans = Public_Sans({
@@ -24,11 +25,11 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MedMate — Documente consultas no eSUS mais rápido",
+  title: `${BRAND.name} — Documente consultas no eSUS mais rápido`,
   description:
     "Prontuário eletrônico para médicos de família. Consulta estruturada, cálculos automáticos e texto pronto para colar no eSUS PEC.",
   openGraph: {
-    title: "MedMate — Documente consultas no eSUS mais rápido",
+    title: `${BRAND.name} — Documente consultas no eSUS mais rápido`,
     description:
       "Estrutura clínica, cálculos automáticos e texto pronto para colar no eSUS PEC. Menos digitação, mais tempo com o paciente.",
     type: "website",

@@ -21,6 +21,8 @@ import { ConsultaConcluidaModal } from "@/components/consultation/consulta-concl
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useDraftAutosave } from "@/hooks/useDraftAutosave";
 import { useSaveConsultation } from "@/hooks/useSaveConsultation";
+import { BRAND } from "@/lib/branding";
+import { markOnboardingStep } from "@/hooks/useOnboarding";
 
 export default function ConsultaPage() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -32,6 +34,12 @@ export default function ConsultaPage() {
       if (user) setUserId(user.id);
     });
   }, []);
+
+  useEffect(() => {
+    if (patientName || patient.name) {
+      markOnboardingStep("consultationStarted", userId);
+    }
+  }, [patientName, patient.name, userId]);
 
   useDraftAutosave(userId);
 
@@ -61,7 +69,7 @@ export default function ConsultaPage() {
         <header className="sticky top-0 z-10 flex items-center justify-between px-6 h-12 bg-white border-b border-primary/10">
           <div className="flex items-center gap-4">
             <h1 className="font-headline font-bold text-primary flex items-center gap-2 text-[17px]">
-              AjudaMed
+              {BRAND.name}
               <span className="px-1.5 py-0.5 bg-primary/5 text-[9px] font-sans font-bold tracking-tighter text-primary/60 rounded border border-primary/10 uppercase">
                 Clinical v4
               </span>
@@ -89,6 +97,20 @@ export default function ConsultaPage() {
         </header>
 
         <DraftRecoveryBanner />
+
+        {/* Empty state: nenhum paciente selecionado */}
+        {!(patientName ?? patient.name) && (
+          <div className="mx-4 mt-4 flex items-start gap-4 rounded-xl border border-dashed border-primary/20 bg-primary/[0.025] p-5">
+            <span className="material-symbols-outlined text-2xl text-primary/40 shrink-0 mt-0.5">person_search</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[14px] font-semibold text-primary">Nenhum paciente selecionado</p>
+              <p className="text-[12px] text-on-surface-muted mt-0.5 leading-relaxed">
+                Vá para <a href="/pacientes" className="text-primary font-medium hover:underline">Pacientes</a> e clique em &quot;Nova consulta&quot; para carregar o contexto clínico aqui.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="max-w-3xl mx-auto p-4 space-y-4">
 
           {/* Bloco 1: Identificação + Problemas */}
@@ -170,7 +192,8 @@ export default function ConsultaPage() {
         }}
         onHistory={() => {
           closeModal();
-          router.push("/consulta");
+          const patientId = useConsultationStore.getState().patientId;
+          router.push(patientId ? `/historico?patientId=${patientId}` : "/historico");
         }}
       />
     </div>

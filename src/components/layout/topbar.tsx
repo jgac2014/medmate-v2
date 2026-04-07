@@ -1,32 +1,27 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { BRAND } from "@/lib/branding";
-import { Button } from "@/components/ui/button";
-import { useConsultationStore } from "@/stores/consultation-store";
-import { showToast } from "@/components/ui/toast";
-import { createClient } from "@/lib/supabase/client";
-import { saveConsultation } from "@/lib/supabase/consultations";
-import { getFollowupFromLastConsultation } from "@/lib/supabase/followup";
-import { getPatientProblems, upsertPatientProblems } from "@/lib/supabase/patient-problems";
-import { getPatientMedications } from "@/lib/supabase/patient-medications";
-import { PROBLEMS } from "@/lib/constants";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { HistoryPanel } from "@/components/consultation/history-panel";
+import { PatientDashboard } from "@/components/consultation/patient-dashboard";
 import { PatientSelector } from "@/components/consultation/patient-selector";
 import { TemplateSelector } from "@/components/consultation/template-selector";
-import { PatientDashboard } from "@/components/consultation/patient-dashboard";
+import { Button } from "@/components/ui/button";
+import { showToast } from "@/components/ui/toast";
 import { useHotkeys } from "@/hooks/useHotkeys";
+import { prepareConsultationForPatient } from "@/lib/consultation/patient-context";
+import { BRAND } from "@/lib/branding";
+import { redirectToCheckout } from "@/lib/billing";
+import { createClient } from "@/lib/supabase/client";
+import { saveConsultation } from "@/lib/supabase/consultations";
+import { upsertPatientProblems } from "@/lib/supabase/patient-problems";
+import { useConsultationStore } from "@/stores/consultation-store";
 import type { Patient } from "@/types";
 
 const SUBSCRIPTION_META = {
   active: {
     label: "Pro ativo",
     className: "border-status-ok/25 bg-status-ok-bg text-status-ok",
-  },
-  trial: {
-    label: "Trial",
-    className: "border-status-info/25 bg-status-info-bg text-status-info",
   },
   expired: {
     label: "Acesso pendente",
@@ -39,9 +34,8 @@ const SUBSCRIPTION_META = {
 } as const;
 
 export function Topbar() {
-  const { reset, currentConsultationId, setCurrentConsultationId, setPatientId, setPatient, setPatientName, patientName, setFollowupItems, setProblemsOther } = useConsultationStore();
-  // Note: toggleProblem is intentionally not destructured here — it's used via getState() in handlePatientSelected
-  // Note: toggleProblem is intentionally not destructured here — it's used via getState() in handlePatientSelected
+  const { reset, currentConsultationId, setCurrentConsultationId, patientName } =
+    useConsultationStore();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -51,10 +45,11 @@ export function Topbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
-  const pathname = usePathname();
   const [subscriptionStatus, setSubscriptionStatus] = useState("");
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
+  const pathname = usePathname();
   const router = useRouter();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -67,13 +62,14 @@ export function Topbar() {
         setUserId(user.id);
         const { data } = await supabase
           .from("users")
-          .select("name, subscription_status")
+          .select("name, subscription_status, trial_ends_at")
           .eq("id", user.id)
           .single();
 
         if (data) {
           setUserName(data.name);
           setSubscriptionStatus(data.subscription_status);
+          setTrialEndsAt(data.trial_ends_at ?? null);
         }
       }
     }
@@ -82,8 +78,8 @@ export function Topbar() {
   }, []);
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+    function handleClick(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
       }
     }
@@ -92,37 +88,7 @@ export function Topbar() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [menuOpen]);
 
-  const hotkeyMap = useMemo(
-    () => ({
-      "mod+s": () => handleSave(),
-      "mod+n": () => setPatientSelectorOpen(true),
-      "mod+h": () => setHistoryOpen((v) => !v),
-      "mod+p": () => { if (patientName) setDashboardOpen((v) => !v); },
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userId, patientName, handleSave]
-  );
-
-  useHotkeys(hotkeyMap);
-
-  async function handleCheckout() {
-    setCheckoutLoading(true);
-    try {
-      const res = await fetch("/api/create-checkout-session", { method: "POST" });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        showToast(data.error || "Erro ao iniciar checkout", "error");
-      }
-    } catch {
-      showToast("Erro de conexão", "error");
-    } finally {
-      setCheckoutLoading(false);
-    }
-  }
-
-  async function handleSave() {
+  const handleSave = useCallback(async () => {
     if (!userId) {
       showToast("Sessão expirada, faça login novamente", "error");
       return;
@@ -144,86 +110,54 @@ export function Topbar() {
         setCurrentConsultationId(data.id);
       }
 
-      showToast("Consulta salva!", "success");
-      // Persistir problemas longitudinais no nível do paciente
-      const currentState = useConsultationStore.getState();
-      if (currentState.patientId) {
-        const allProblems = [
-          ...currentState.problems,
-          ...(currentState.problemsOther
-            ? currentState.problemsOther.split(",").map((s) => s.trim()).filter(Boolean)
-            : []),
-        ];
-        upsertPatientProblems(userId, currentState.patientId, allProblems).catch(() => {
-          // silencioso — não bloqueia o fluxo principal
-        });
+      const allProblems = [
+        ...state.problems,
+        ...(state.problemsOther
+          ? state.problemsOther
+              .split(",")
+              .map((value) => value.trim())
+              .filter(Boolean)
+          : []),
+      ];
+
+      if (state.patientId) {
+        upsertPatientProblems(userId, state.patientId, allProblems).catch(() => {});
       }
+
+      showToast("Consulta salva!", "success");
     } catch {
       showToast("Erro ao salvar consulta", "error");
     } finally {
       setSaveLoading(false);
     }
+  }, [currentConsultationId, setCurrentConsultationId, userId]);
+
+  const hotkeyMap = useMemo(
+    () => ({
+      "mod+s": () => handleSave(),
+      "mod+n": () => setPatientSelectorOpen(true),
+      "mod+h": () => setHistoryOpen((value) => !value),
+      "mod+p": () => {
+        if (patientName) setDashboardOpen((value) => !value);
+      },
+    }),
+    [handleSave, patientName]
+  );
+
+  useHotkeys(hotkeyMap);
+
+  async function handleCheckout() {
+    setCheckoutLoading(true);
+    await redirectToCheckout();
+    setCheckoutLoading(false);
   }
 
-  function handlePatientSelected(patient: Patient) {
+  async function handlePatientSelected(patient: Patient) {
     reset();
-    setPatientId(patient.id);
-    setPatientName(patient.name);
-    // Carregar pendências da última consulta deste paciente
-    // Usa getState() após reset() para obter currentConsultationId pós-reset (null em nova consulta)
-    if (userId) {
-      const selectedPatientId = patient.id;
-      const excludeId = useConsultationStore.getState().currentConsultationId ?? undefined;
-      getFollowupFromLastConsultation(userId, patient.id, excludeId).then((items) => {
-        if (useConsultationStore.getState().patientId === selectedPatientId && items.length > 0) {
-          setFollowupItems(items);
-        }
-      });
-      // Pré-carregar medicamentos contínuos no campo prescrição
-      getPatientMedications(patient.id).then((meds) => {
-        if (meds.length > 0 && useConsultationStore.getState().patientId === selectedPatientId) {
-          const medLines = meds.map((m) =>
-            m.dosage ? `${m.medication_name} - ${m.dosage}` : m.medication_name
-          );
-          useConsultationStore.getState().setPrescription(medLines.join("\n"));
-        }
-      });
-      // Pré-marcar problemas ativos do paciente
-      getPatientProblems(patient.id).then((activeProblems) => {
-        const knownSet = new Set<string>(PROBLEMS);
-        const freeProblems: string[] = [];
-
-        activeProblems.forEach((p) => {
-          if (knownSet.has(p)) {
-            useConsultationStore.getState().toggleProblem(p);
-          } else {
-            freeProblems.push(p);
-          }
-        });
-
-        if (freeProblems.length > 0) {
-          setProblemsOther(freeProblems.join(", "));
-        }
-      });
-    }
-    const age = patient.birth_date
-      ? (() => {
-          const today = new Date();
-          const birth = new Date(patient.birth_date!);
-          let a = today.getFullYear() - birth.getFullYear();
-          const m = today.getMonth() - birth.getMonth();
-          if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) a--;
-          return `${a} anos`;
-        })()
-      : "";
-    setPatient({
-      name: patient.name,
-      age,
-      gender: (patient.gender as "Masculino" | "Feminino" | "Outro" | "") ?? "",
-      race: (patient.race as "Branco" | "Pardo" | "Preto" | "Amarelo" | "Indígena" | "") ?? "",
-    });
+    await prepareConsultationForPatient({ userId, patient });
     setPatientSelectorOpen(false);
     showToast(`Nova consulta — ${patient.name}`, "info");
+    router.push("/consulta");
   }
 
   async function handleLogout() {
@@ -237,17 +171,35 @@ export function Topbar() {
         .split(" ")
         .filter(Boolean)
         .slice(0, 2)
-        .map((n) => n[0])
+        .map((part) => part[0])
         .join("")
         .toUpperCase()
     : "?";
 
   const isPro = subscriptionStatus === "active";
+
+  const trialDaysLeft =
+    subscriptionStatus === "trial" && trialEndsAt
+      ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
+      : null;
+
+  const trialLabel =
+    trialDaysLeft === null
+      ? "Trial"
+      : trialDaysLeft === 1
+        ? "Trial · expira hoje"
+        : `Trial · ${trialDaysLeft}d`;
+
   const subscriptionMeta =
-    SUBSCRIPTION_META[subscriptionStatus as keyof typeof SUBSCRIPTION_META] ?? {
-      label: subscriptionStatus || "Conta",
-      className: "border-outline bg-surface-container text-on-surface-variant",
-    };
+    subscriptionStatus === "trial"
+      ? {
+          label: trialLabel,
+          className: "border-status-info/25 bg-status-info-bg text-status-info",
+        }
+      : SUBSCRIPTION_META[subscriptionStatus as keyof typeof SUBSCRIPTION_META] ?? {
+          label: subscriptionStatus || "Conta",
+          className: "border-outline bg-surface-container text-on-surface-variant",
+        };
 
   return (
     <>
@@ -257,94 +209,65 @@ export function Topbar() {
         onSelect={handlePatientSelected}
         onClose={() => setPatientSelectorOpen(false)}
       />
-      <TemplateSelector
-        open={templateSelectorOpen}
-        onClose={() => setTemplateSelectorOpen(false)}
-      />
-      <PatientDashboard
-        open={dashboardOpen}
-        onClose={() => setDashboardOpen(false)}
-      />
+      <TemplateSelector open={templateSelectorOpen} onClose={() => setTemplateSelectorOpen(false)} />
+      <PatientDashboard open={dashboardOpen} onClose={() => setDashboardOpen(false)} />
+
       <div className="sticky top-0 z-30 bg-surface-low">
-        <div className="flex items-center justify-between px-6 h-14">
-          {/* Logo */}
-          <div className="flex items-center gap-5 min-w-0 shrink-0">
+        <div className="flex h-14 items-center justify-between px-6">
+          <div className="flex min-w-0 shrink-0 items-center gap-5">
             <button
               onClick={() => router.push("/")}
-              className="font-headline text-xl font-bold text-primary hover:opacity-75 transition-opacity cursor-pointer"
+              className="font-headline text-xl font-bold text-primary transition-opacity hover:opacity-75"
             >
               {BRAND.name}
             </button>
           </div>
 
-          {/* Patient name — centro */}
           {patientName && (
-            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-status-ok shrink-0" />
-              <span className="font-headline italic text-[15px] text-on-surface truncate max-w-[280px]">
+            <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-status-ok" />
+              <span className="max-w-[280px] truncate font-headline text-[15px] italic text-on-surface">
                 {patientName}
               </span>
             </div>
           )}
 
-          {/* Nav — centro-esquerda */}
-          <nav className="hidden lg:flex items-center gap-1 ml-4">
-            <button
+          <nav className="ml-4 hidden items-center gap-1 lg:flex">
+            <NavButton
+              active={pathname === "/nova-consulta"}
               onClick={() => router.push("/nova-consulta")}
-              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
-                pathname === "/nova-consulta"
-                  ? "bg-primary/8 text-primary font-semibold"
-                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
-              }`}
-            >
-              Nova consulta
-            </button>
-            <button
+              label="Nova consulta"
+            />
+            <NavButton
+              active={pathname === "/consulta"}
               onClick={() => router.push("/consulta")}
-              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
-                pathname === "/consulta"
-                  ? "bg-primary/8 text-primary font-semibold"
-                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
-              }`}
-            >
-              Consulta
-            </button>
-            <button
+              label="Consulta"
+            />
+            <NavButton
+              active={pathname === "/pacientes"}
+              onClick={() => router.push("/pacientes")}
+              label="Pacientes"
+            />
+            <NavButton
+              active={pathname === "/historico"}
               onClick={() => router.push("/historico")}
-              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
-                pathname === "/historico"
-                  ? "bg-primary/8 text-primary font-semibold"
-                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
-              }`}
-            >
-              Histórico
-            </button>
-            <button
+              label="Histórico"
+            />
+            <NavButton
+              active={pathname === "/receituario"}
               onClick={() => router.push("/receituario")}
-              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
-                pathname === "/receituario"
-                  ? "bg-primary/8 text-primary font-semibold"
-                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
-              }`}
-            >
-              Receituário
-            </button>
-            <button
+              label="Receituário"
+            />
+            <NavButton
+              active={pathname === "/pedidos"}
               onClick={() => router.push("/pedidos")}
-              className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
-                pathname === "/pedidos"
-                  ? "bg-primary/8 text-primary font-semibold"
-                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
-              }`}
-            >
-              Pedidos
-            </button>
+              label="Pedidos"
+            />
           </nav>
 
-          {/* Ações — direita */}
-          <div className="flex gap-2 items-center">
+          <div className="flex items-center gap-2">
             <div
-              className={`hidden sm:inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium ${subscriptionMeta.className}`}
+              className={`hidden rounded-full border px-2.5 py-1 text-[11px] font-medium sm:inline-flex ${subscriptionMeta.className}`}
             >
               {subscriptionMeta.label}
             </div>
@@ -353,7 +276,7 @@ export function Topbar() {
               <button
                 onClick={handleCheckout}
                 disabled={checkoutLoading}
-                className="px-3 py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-on-primary hover:bg-primary-container"
+                className="rounded-lg bg-primary px-3 py-1.5 text-[12px] font-semibold text-on-primary transition-all duration-200 hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {checkoutLoading ? "Redirecionando..." : "Ativar Pro"}
               </button>
@@ -361,14 +284,14 @@ export function Topbar() {
 
             <button
               onClick={() => setHistoryOpen(true)}
-              className="h-[34px] px-3 rounded-lg text-[13px] font-medium border border-outline-variant/50 text-on-surface-variant bg-surface-lowest hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+              className="h-[34px] rounded-lg border border-outline-variant/50 bg-surface-lowest px-3 text-[13px] font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
             >
               SOAP anterior
             </button>
 
             <button
               onClick={() => setTemplateSelectorOpen(true)}
-              className="h-[34px] px-3 rounded-lg text-[13px] font-medium border border-outline-variant/50 text-on-surface-variant bg-surface-lowest hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+              className="h-[34px] rounded-lg border border-outline-variant/50 bg-surface-lowest px-3 text-[13px] font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
             >
               Template
             </button>
@@ -376,7 +299,7 @@ export function Topbar() {
             {patientName && (
               <button
                 onClick={() => setDashboardOpen(true)}
-                className="h-[34px] px-3 rounded-lg text-[13px] font-medium border border-secondary/30 text-secondary bg-secondary-container/20 hover:bg-secondary-container/40 transition-colors cursor-pointer"
+                className="h-[34px] rounded-lg border border-secondary/30 bg-secondary-container/20 px-3 text-[13px] font-medium text-secondary transition-colors hover:bg-secondary-container/40"
               >
                 Prontuário
               </button>
@@ -402,39 +325,40 @@ export function Topbar() {
             <div className="relative ml-1" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="h-9 rounded-full border border-outline-variant/50 bg-surface-lowest pl-1.5 pr-2.5 flex items-center gap-2 text-left hover:bg-surface-container transition-colors cursor-pointer"
+                className="flex h-9 items-center gap-2 rounded-full border border-outline-variant/50 bg-surface-lowest pl-1.5 pr-2.5 text-left transition-colors hover:bg-surface-container"
               >
-                <span className="w-7 h-7 rounded-full bg-surface-container border border-outline-variant/30 flex items-center justify-center text-[11px] font-semibold text-on-surface-variant">
-                  {initials || "?"}
+                <span className="flex h-7 w-7 items-center justify-center rounded-full border border-outline-variant/30 bg-surface-container text-[11px] font-semibold text-on-surface-variant">
+                  {initials}
                 </span>
-                <span className="hidden lg:flex flex-col leading-none min-w-0">
-                  <span className="text-[12px] font-medium text-on-surface truncate max-w-[140px]">
+                <span className="hidden min-w-0 flex-col leading-none lg:flex">
+                  <span className="max-w-[140px] truncate text-[12px] font-medium text-on-surface">
                     {userName || "Minha conta"}
                   </span>
                 </span>
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-11 w-56 bg-surface-lowest border border-outline-variant/30 rounded-xl shadow-[0_8px_30px_rgba(23,28,31,0.10)] py-1.5 z-[60]">
+                <div className="absolute right-0 top-11 z-[60] w-56 rounded-xl border border-outline-variant/30 bg-surface-lowest py-1.5 shadow-[0_8px_30px_rgba(23,28,31,0.10)]">
                   {userName && (
-                    <div className="px-4 py-3 border-b border-outline-variant/30">
-                      <p className="text-[13px] font-medium text-on-surface truncate">
-                        {userName}
-                      </p>
-                      <p className="text-[12px] text-on-surface-muted mt-0.5">
+                    <div className="border-b border-outline-variant/30 px-4 py-3">
+                      <p className="truncate text-[13px] font-medium text-on-surface">{userName}</p>
+                      <p className="mt-0.5 text-[12px] text-on-surface-muted">
                         {subscriptionMeta.label}
                       </p>
                     </div>
                   )}
                   <button
-                    onClick={() => { setMenuOpen(false); router.push("/conta"); }}
-                    className="w-full text-left px-4 py-2.5 text-[13px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      router.push("/conta");
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-[13px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
                   >
                     Minha conta
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2.5 text-[13px] text-on-surface-variant hover:text-error hover:bg-surface-container transition-colors cursor-pointer"
+                    className="w-full px-4 py-2.5 text-left text-[13px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-error"
                   >
                     Sair
                   </button>
@@ -445,5 +369,28 @@ export function Topbar() {
         </div>
       </div>
     </>
+  );
+}
+
+function NavButton({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors ${
+        active
+          ? "bg-primary/8 font-semibold text-primary"
+          : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+      }`}
+    >
+      {label}
+    </button>
   );
 }

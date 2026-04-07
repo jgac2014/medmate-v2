@@ -77,7 +77,7 @@ const FAQ_GROUPS = [
       },
       {
         q: "Como funciona o suporte?",
-        a: "Oferecemos suporte por WhatsApp para todos os assinantes. Você pode também entrar em contato pelo e-mail contato@medmate.com.br.",
+        a: `Oferecemos suporte por WhatsApp para todos os assinantes. Você pode também entrar em contato pelo e-mail ${BRAND.contactEmail}.`,
       },
     ],
   },
@@ -142,7 +142,7 @@ export default async function FAQPage() {
             Fale com a gente pelo WhatsApp ou e-mail. Respondemos em até 24 horas.
           </p>
           <a
-            href="mailto:contato@medmate.com.br"
+            href={`mailto:${BRAND.contactEmail}`}
             className="inline-block px-6 py-3 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg text-[14px] shadow-sm transition-all"
           >
             Falar com suporte

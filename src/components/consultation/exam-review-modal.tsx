@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Check } from "lucide-react";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { EXAM_CARDS } from "@/lib/constants";
+import { showToast } from "@/components/ui/toast";
 
 interface ExamReviewModalProps {
   open: boolean;
@@ -24,11 +25,19 @@ function ExamReviewContent({ matched, extras, onClose }: { matched: Record<strin
   const hasExtras = extras.trim().length > 0;
 
   function handleApply() {
+    const today = new Date().toISOString().split("T")[0];
     matchedKeys.forEach((key) => {
       const val = editableValues[key]?.trim();
       if (val) setLab(key, val);
     });
-    if (hasExtras) setLabsExtras(extras);
+    if (hasExtras) {
+      const existing = useConsultationStore.getState().labsExtras;
+      const merged = existing ? `${existing}\n${extras}` : extras;
+      setLabsExtras(merged);
+    }
+    useConsultationStore.getState().setLabsDate(today);
+    const count = matchedKeys.length + (hasExtras ? 1 : 0);
+    showToast(`${count} valor${count !== 1 ? "es" : ""} de exame aplicado${count !== 1 ? "s" : ""}`, "success");
     onClose();
   }
 

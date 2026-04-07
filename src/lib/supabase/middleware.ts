@@ -1,35 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-
-// Pages that don't require authentication
-const PUBLIC_PAGES = ["/", "/login", "/signup", "/forgot-password", "/reset-password", "/auth", "/politica-de-privacidade"];
-
-// Pages that require auth but NOT an active subscription
-const AUTH_ONLY_PAGES = ["/bloqueado", "/conta", "/sucesso", "/cancelado"];
-
-function isPublicPage(pathname: string) {
-  return PUBLIC_PAGES.some((page) =>
-    page === "/" ? pathname === "/" : pathname === page || pathname.startsWith(`${page}/`)
-  );
-}
-
-function isAuthOnlyPage(pathname: string) {
-  return AUTH_ONLY_PAGES.some(
-    (page) => pathname === page || pathname.startsWith(`${page}/`)
-  );
-}
-
-function hasActiveSubscription(
-  status: string | null,
-  trialEndsAt: string | null
-): boolean {
-  if (status === "active") return true;
-  if (status === "trial") {
-    if (!trialEndsAt) return false;
-    return new Date(trialEndsAt) > new Date();
-  }
-  return false;
-}
+import { consentVersionsMatch } from "@/lib/legal";
+import { isPublicPage, isAuthOnlyPage, hasActiveSubscription } from "./middleware-helpers";
 
 export async function updateSession(request: NextRequest) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -69,25 +41,52 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 2. Logged in on login/signup → redirect to /consulta (landing stays public for all)
+  // 2. Logged in on login/signup → redirect to /consulta
   if (user && (pathname.startsWith("/login") || pathname.startsWith("/signup"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/consulta";
     return NextResponse.redirect(url);
   }
 
-  // 3. Logged in, on auth-only pages (bloqueado, conta, etc.) → allow through
+  // 3. Logged in on auth-only pages (bloqueado, conta, etc.) → allow through
   if (user && isAuthOnlyPage(pathname)) {
+    if (pathname === "/consentimento") {
+      const { data: consents } = await supabase
+        .from("user_consents")
+        .select("document_type, version")
+        .eq("user_id", user.id)
+        .in("document_type", ["terms", "privacy"]);
+
+      if (consentVersionsMatch(consents)) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/consulta";
+        return NextResponse.redirect(url);
+      }
+    }
+
     return supabaseResponse;
   }
 
-  // 4. Logged in, on protected pages → check subscription
+  // 4. Logged in on protected pages → run consent + subscription checks concurrently
   if (user && !isPublicPage(pathname) && !isAuthOnlyPage(pathname)) {
-    const { data: profile } = await supabase
-      .from("users")
-      .select("subscription_status, trial_ends_at")
-      .eq("id", user.id)
-      .single();
+    const [{ data: consents }, { data: profile }] = await Promise.all([
+      supabase
+        .from("user_consents")
+        .select("document_type, version")
+        .eq("user_id", user.id)
+        .in("document_type", ["terms", "privacy"]),
+      supabase
+        .from("users")
+        .select("subscription_status, trial_ends_at")
+        .eq("id", user.id)
+        .single(),
+    ]);
+
+    if (!consentVersionsMatch(consents)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/consentimento";
+      return NextResponse.redirect(url);
+    }
 
     const status = profile?.subscription_status ?? null;
     const trialEndsAt = profile?.trial_ends_at ?? null;

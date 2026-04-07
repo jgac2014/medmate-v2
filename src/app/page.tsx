@@ -4,48 +4,21 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { LandingNavbar } from "@/components/landing/navbar";
 import { LandingFooter } from "@/components/landing/footer";
 
-const PAIN_POINTS = [
+const BENEFITS = [
   {
-    icon: "description",
-    title: "Informação Dispersa",
-    desc: "Dados espalhados entre anotações soltas e planilhas. Tempo que deveria ser gasto com o paciente vai para a burocracia digital na APS.",
+    icon: "bolt",
+    title: "Consulta 40% mais rápida",
+    desc: "SOAP estruturado, templates reutilizáveis e cálculos automáticos de IMC, TFG e RCV enquanto você digita. Menos cliques, mais atenção ao paciente.",
   },
   {
-    icon: "warning",
-    title: "Atrito no eSUS PEC",
-    desc: "A interface oficial do eSUS PEC é essencial para o registro médico, mas não foi pensada para agilizar o fluxo clínico do MFC.",
+    icon: "content_paste_go",
+    title: "Zero digitação dupla no eSUS PEC",
+    desc: "Um clique gera o texto de evolução formatado e pronto para colar no prontuário oficial. Documentação completa em segundos, sem retrabalho.",
   },
   {
-    icon: "psychology",
-    title: "Fadiga Cognitiva",
-    desc: "Dezenas de telas e formulários demandam energia e reduzem a atenção ao paciente. O MedMate resolve isso de forma diferente.",
-  },
-];
-
-const FEATURES = [
-  {
-    title: "Identificação e sinais vitais",
-    desc: "Cadastro rápido com IMC, TFG e RCV calculados automaticamente enquanto você digita.",
-  },
-  {
-    title: "SOAP estruturado",
-    desc: "Nota SOAP com suporte a templates e snippets reutilizáveis para agilizar o registro clínico.",
-  },
-  {
-    title: "Monitoramento longitudinal",
-    desc: "Acompanhamento de métricas com sparklines e histórico de consultas por paciente.",
-  },
-  {
-    title: "Resumo pronto para o eSUS PEC",
-    desc: "Um clique gera o texto formatado. Sem retrabalho, sem digitação dupla.",
-  },
-  {
-    title: "Rastreamento preventivo",
-    desc: "Checklist de prevenção alinhado com o Ministério da Saúde e calendário vacinal.",
-  },
-  {
-    title: "Cálculos clínicos integrados",
-    desc: "IMC, TFG CKD-EPI 2021, FIB-4 e RCV Framingham — no fluxo, sem calculadoras externas.",
+    icon: "timeline",
+    title: "Longitudinalidade real",
+    desc: "Histórico de consultas, lista de problemas ativos e medicamentos contínuos por paciente — tudo carregado automaticamente no próximo atendimento.",
   },
 ];
 
@@ -75,26 +48,20 @@ export default async function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-16 items-center">
           <div className="lg:col-span-5 relative z-10">
             <span className="inline-block px-4 py-1.5 bg-secondary-container text-on-secondary-container rounded-full text-[11px] font-black tracking-[0.2em] uppercase mb-8 border border-primary/5">
-              Projetado para Médicos da APS
+              Feito para MFC e APS
             </span>
             <h1 className="font-headline text-5xl md:text-6xl xl:text-7xl font-medium text-primary leading-[1.05] mb-6">
-              Organize a consulta. Gere o resumo pronto para o eSUS PEC.
+              O workspace clínico do Médico de Família.
             </h1>
             <p className="text-lg text-secondary leading-relaxed max-w-xl mb-10 font-light">
-              {BRAND.name} é o workspace clínico definitivo para a Atenção Primária. Automatize métricas, organize o SOAP e exporte a documentação estruturada direto para o eSUS PEC em segundos.
+              Consulta organizada, cálculos automáticos e resumo pronto para colar no eSUS PEC — em segundos. Menos burocracia, mais presença com o paciente.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href={isLoggedIn ? "/consulta" : "/signup"}
                 className="px-8 py-4 bg-primary hover:bg-primary-container text-on-primary font-bold text-base rounded-lg shadow-lg shadow-primary/10 hover:shadow-primary/20 hover:-translate-y-0.5 transition-all active:scale-95 text-center"
               >
-                {isLoggedIn ? "Ir para o consultório" : "Começar teste grátis"}
-              </Link>
-              <Link
-                href="/funcionalidades"
-                className="px-8 py-4 bg-surface-lowest border border-outline-variant/30 text-primary font-bold text-base rounded-lg hover:bg-surface-container transition-all flex items-center justify-center gap-2 active:scale-95"
-              >
-                Ver demonstração
+                {isLoggedIn ? "Ir para o consultório" : "Começar trial grátis"}
               </Link>
             </div>
             {!isLoggedIn && (
@@ -178,36 +145,21 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Pain Points */}
+      {/* 3 Benefícios Concretos */}
       <section className="py-24 bg-surface-low">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="font-headline text-4xl text-primary mb-16 font-medium">
-            Por que o MFC precisa de uma ferramenta melhor?
+          <h2 className="font-headline text-4xl text-primary mb-4 font-medium">
+            Por que o {BRAND.name} faz diferença na APS
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {PAIN_POINTS.map((p) => (
-              <div key={p.title} className="bg-surface-lowest p-8 rounded-xl">
-                <span className="material-symbols-outlined text-3xl text-primary mb-4 block">{p.icon}</span>
-                <h3 className="font-headline text-xl text-primary font-semibold mb-3">{p.title}</h3>
-                <p className="text-secondary leading-relaxed text-sm">{p.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="py-24 bg-surface">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="font-headline text-4xl text-primary mb-4 font-medium">Os 6 Pilares do {BRAND.name}</h2>
           <p className="text-secondary text-lg mb-16 max-w-2xl">
-            Cada funcionalidade foi pensada para a realidade clínica da APS brasileira.
+            Cada funcionalidade nasceu dentro de uma UBS, pensada para o fluxo real do MFC.
           </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="p-6 bg-surface-lowest rounded-xl border border-outline-variant/20">
-                <h3 className="font-headline text-lg text-primary font-semibold mb-2">{f.title}</h3>
-                <p className="text-on-surface-variant text-sm leading-relaxed">{f.desc}</p>
+          <div className="grid md:grid-cols-3 gap-8">
+            {BENEFITS.map((b) => (
+              <div key={b.title} className="bg-surface-lowest p-8 rounded-xl border border-outline-variant/20">
+                <span className="material-symbols-outlined text-3xl text-primary mb-5 block">{b.icon}</span>
+                <h3 className="font-headline text-xl text-primary font-semibold mb-3">{b.title}</h3>
+                <p className="text-secondary leading-relaxed text-sm">{b.desc}</p>
               </div>
             ))}
           </div>
@@ -215,7 +167,7 @@ export default async function LandingPage() {
       </section>
 
       {/* Flow */}
-      <section className="py-24 bg-surface-low">
+      <section className="py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="font-headline text-4xl text-primary mb-16 font-medium">Como funciona</h2>
           <div className="grid md:grid-cols-4 gap-8">
@@ -243,7 +195,7 @@ export default async function LandingPage() {
             href={isLoggedIn ? "/consulta" : "/signup"}
             className="inline-block px-10 py-4 bg-surface-lowest text-primary font-bold text-base rounded-lg hover:bg-surface transition-all active:scale-95"
           >
-            {isLoggedIn ? "Ir para o consultório" : "Começar teste grátis"}
+            {isLoggedIn ? "Ir para o consultório" : "Começar trial grátis"}
           </Link>
         </div>
       </section>

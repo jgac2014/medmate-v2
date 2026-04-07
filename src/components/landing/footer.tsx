@@ -13,15 +13,15 @@ const FOOTER_SECTIONS = [
   {
     title: "Suporte",
     links: [
-      { label: "Central de Ajuda", href: "mailto:contato@medmate.com.br" },
+      { label: "Central de Ajuda", href: `mailto:${BRAND.contactEmail}` },
       { label: "FAQ", href: "/faq" },
-      { label: "Contato", href: "mailto:contato@medmate.com.br" },
+      { label: "Contato", href: `mailto:${BRAND.contactEmail}` },
     ],
   },
   {
     title: "Jurídico",
     links: [
-      { label: "Termos de Uso", href: "#" },
+      { label: "Termos de Uso", href: "/termos-de-uso" },
       { label: "Privacidade", href: "/politica-de-privacidade" },
     ],
   },

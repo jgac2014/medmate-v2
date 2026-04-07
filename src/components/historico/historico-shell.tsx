@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { searchPatients } from "@/lib/supabase/patients";
+import { getPatientById, searchPatients } from "@/lib/supabase/patients";
 import { listConsultationsByPatient } from "@/lib/supabase/consultations";
 import { getPatientProblems } from "@/lib/supabase/patient-problems";
 import { getPatientMedications } from "@/lib/supabase/patient-medications";
@@ -14,7 +14,8 @@ import { PatientSidebar } from "./patient-sidebar";
 import { HistoryTimeline } from "./history-timeline";
 import { MonitoringPanel } from "./monitoring-panel";
 import { Search, X } from "lucide-react";
-import { formatDateBR, ageFromBirthDate } from "@/lib/utils";
+import { ageFromBirthDate, formatDateBR } from "@/lib/utils";
+import { prepareConsultationForPatient } from "@/lib/consultation/patient-context";
 
 export type ConsultationItem = {
   id: string;
@@ -31,15 +32,14 @@ export type ConsultationItem = {
 
 export function HistoricoShell() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Search state
   const [inputValue, setInputValue] = useState("");
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searching, setSearching] = useState(false);
 
-  // Selected patient data
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [consultations, setConsultations] = useState<ConsultationItem[]>([]);
   const [problems, setProblems] = useState<string[]>([]);
@@ -50,7 +50,37 @@ export function HistoricoShell() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { reset, setPatientId, setPatientName, setPatient } = useConsultationStore();
+  const { reset } = useConsultationStore();
+
+  // HOISTED above all useEffect blocks that reference them to avoid Temporal Dead Zone crash
+  const loadPatientData = useCallback(async (patient: Patient) => {
+    setLoadingPatient(true);
+    try {
+      const [{ data: consults, error }, probs, meds] = await Promise.all([
+        listConsultationsByPatient(patient.id),
+        getPatientProblems(patient.id),
+        getPatientMedications(patient.id),
+      ]);
+      if (error) throw error;
+      setConsultations((consults ?? []) as ConsultationItem[]);
+      setProblems(probs);
+      setMedications(meds);
+    } catch {
+      showToast("Erro ao carregar dados do paciente", "error");
+    } finally {
+      setLoadingPatient(false);
+    }
+  }, []);
+
+  const handleSelectPatient = useCallback(
+    (patient: Patient) => {
+      setSelectedPatient(patient);
+      setInputValue(patient.name);
+      setShowDropdown(false);
+      loadPatientData(patient);
+    },
+    [loadPatientData]
+  );
 
   useEffect(() => {
     createClient()
@@ -60,7 +90,22 @@ export function HistoricoShell() {
       });
   }, []);
 
-  // Close dropdown on outside click
+  useEffect(() => {
+    const patientId = searchParams.get("patientId");
+    if (!patientId) return;
+    if (!userId) return;
+    if (selectedPatient?.id === patientId) return;
+
+    getPatientById(patientId)
+      .then((patient) => {
+        if (!patient) return;
+        handleSelectPatient(patient);
+      })
+      .catch(() => {
+        showToast("Não foi possível abrir o paciente pelo link", "error");
+      });
+  }, [handleSelectPatient, searchParams, selectedPatient, userId]);
+
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -71,7 +116,6 @@ export function HistoricoShell() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Debounced patient search
   useEffect(() => {
     clearTimeout(searchTimerRef.current);
     if (!userId || inputValue.trim().length < 1) {
@@ -93,32 +137,6 @@ export function HistoricoShell() {
     return () => clearTimeout(searchTimerRef.current);
   }, [userId, inputValue]);
 
-  const loadPatientData = useCallback(async (patient: Patient) => {
-    setLoadingPatient(true);
-    try {
-      const [{ data: consults, error }, probs, meds] = await Promise.all([
-        listConsultationsByPatient(patient.id),
-        getPatientProblems(patient.id),
-        getPatientMedications(patient.id),
-      ]);
-      if (error) throw error;
-      setConsultations((consults ?? []) as ConsultationItem[]);
-      setProblems(probs);
-      setMedications(meds);
-    } catch {
-      showToast("Erro ao carregar dados do paciente", "error");
-    } finally {
-      setLoadingPatient(false);
-    }
-  }, []);
-
-  function handleSelectPatient(patient: Patient) {
-    setSelectedPatient(patient);
-    setInputValue(patient.name);
-    setShowDropdown(false);
-    loadPatientData(patient);
-  }
-
   function handleClearPatient() {
     setSelectedPatient(null);
     setConsultations([]);
@@ -129,18 +147,10 @@ export function HistoricoShell() {
     inputRef.current?.focus();
   }
 
-  function handleNewConsultation() {
+  async function handleNewConsultation() {
     if (!selectedPatient) return;
     reset();
-    setPatientId(selectedPatient.id);
-    setPatientName(selectedPatient.name);
-    const ageYears = ageFromBirthDate(selectedPatient.birth_date);
-    setPatient({
-      name: selectedPatient.name,
-      age: ageYears !== null ? `${ageYears} anos` : "",
-      gender: (selectedPatient.gender as "Masculino" | "Feminino" | "Outro" | "") ?? "",
-      race: (selectedPatient.race as "Branco" | "Pardo" | "Preto" | "Amarelo" | "Indígena" | "") ?? "",
-    });
+    await prepareConsultationForPatient({ userId, patient: selectedPatient });
     router.push("/consulta");
   }
 
@@ -148,7 +158,6 @@ export function HistoricoShell() {
     ? selectedPatient.name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()
     : "";
 
-  // Derive last PA for sidebar
   const lastConsult = consultations[0];
   const lastPa =
     lastConsult?.vitals?.pas && lastConsult?.vitals?.pad
@@ -158,7 +167,6 @@ export function HistoricoShell() {
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)]">
-      {/* Left Sidebar */}
       <aside className="fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-64 bg-surface-low border-r border-outline-variant overflow-y-auto z-10">
         <PatientSidebar
           patient={selectedPatient}
@@ -171,9 +179,7 @@ export function HistoricoShell() {
         />
       </aside>
 
-      {/* Center Column */}
       <main className="ml-64 mr-80 flex-1 px-10 py-8">
-        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-[28px] font-headline font-semibold text-primary leading-tight">
             Histórico Longitudinal
@@ -183,7 +189,6 @@ export function HistoricoShell() {
           </p>
         </div>
 
-        {/* Sticky Patient Search */}
         <div
           ref={dropdownRef}
           className="sticky top-[3.5rem] z-40 bg-surface/95 backdrop-blur-sm py-2 mb-8"
@@ -222,7 +227,6 @@ export function HistoricoShell() {
             )}
           </div>
 
-          {/* Search Dropdown */}
           {showDropdown && inputValue.trim().length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-surface-lowest rounded-2xl shadow-[0_8px_30px_rgba(23,28,31,0.12)] border border-outline-variant overflow-hidden z-50">
               {searching ? (
@@ -241,7 +245,12 @@ export function HistoricoShell() {
                   <div className="divide-y divide-outline-variant/20 max-h-64 overflow-y-auto">
                     {searchResults.map((p) => {
                       const ageYears = ageFromBirthDate(p.birth_date);
-                      const ini = p.name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
+                      const ini = p.name
+                        .split(" ")
+                        .slice(0, 2)
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase();
                       return (
                         <button
                           key={p.id}
@@ -272,7 +281,6 @@ export function HistoricoShell() {
           )}
         </div>
 
-        {/* Timeline */}
         <HistoryTimeline
           consultations={consultations}
           loading={loadingPatient}
@@ -281,7 +289,6 @@ export function HistoricoShell() {
         />
       </main>
 
-      {/* Right Sidebar */}
       <aside className="fixed right-0 top-14 h-[calc(100vh-3.5rem)] w-80 bg-surface-lowest border-l border-outline-variant overflow-y-auto z-10">
         <MonitoringPanel
           consultations={consultations}

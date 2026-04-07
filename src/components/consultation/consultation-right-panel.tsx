@@ -5,6 +5,8 @@ import { copyToClipboard } from "@/lib/clipboard";
 import { showToast } from "@/components/ui/toast";
 import { DocumentationChecklist } from "@/components/consultation/documentation-checklist";
 import { useOutputSummary } from "@/hooks/useOutputSummary";
+import { markOnboardingStep } from "@/hooks/useOnboarding";
+import { createClient } from "@/lib/supabase/client";
 import type { OutputMode } from "@/types";
 
 const MODE_LABELS: Record<OutputMode, string> = {
@@ -16,7 +18,14 @@ const MODE_LABELS: Record<OutputMode, string> = {
 export function ConsultationRightPanel() {
   const { summary, outputMode, setOutputMode } = useOutputSummary("esus");
   const [copied, setCopied] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id);
+    });
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -32,6 +41,7 @@ export function ConsultationRightPanel() {
     const ok = await copyToClipboard(summary);
     if (ok) {
       setCopied(true);
+      markOnboardingStep("summaryCopied", userId);
       showToast("Copiado!", "success");
       copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
     } else {

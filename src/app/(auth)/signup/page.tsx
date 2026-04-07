@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BRAND } from "@/lib/branding";
+import { LEGAL_DOCUMENTS } from "@/lib/legal";
 import Link from "next/link";
 
 export default function SignupPage() {
@@ -15,6 +16,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailConfirmRequired, setEmailConfirmRequired] = useState(false);
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
   const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -26,7 +28,13 @@ export default function SignupPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: {
+        data: {
+          name,
+          terms_version: LEGAL_DOCUMENTS.terms.version,
+          privacy_version: LEGAL_DOCUMENTS.privacy.version,
+        },
+      },
     });
 
     if (error) {
@@ -117,20 +125,42 @@ export default function SignupPage() {
             minLength={6}
           />
 
+          <label className="flex items-start gap-3 rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3">
+            <input
+              type="checkbox"
+              checked={acceptedLegal}
+              onChange={(event) => setAcceptedLegal(event.target.checked)}
+              className="mt-1 h-4 w-4 accent-[var(--primary)]"
+              required
+            />
+            <span className="text-[12px] leading-relaxed text-on-surface-variant">
+              Li e aceito os{" "}
+              <Link href={LEGAL_DOCUMENTS.terms.path} className="text-primary hover:underline">
+                Termos de Uso
+              </Link>{" "}
+              e a{" "}
+              <Link href={LEGAL_DOCUMENTS.privacy.path} className="text-primary hover:underline">
+                Política de Privacidade
+              </Link>.
+            </span>
+          </label>
+
           {error && (
             <div className="px-3 py-2.5 bg-status-crit-bg border border-status-crit/20 rounded-lg">
               <p className="text-[13px] text-status-crit">{error}</p>
             </div>
           )}
 
-          <Button type="submit" className="w-full h-[44px] text-[14px]" disabled={loading}>
+          <Button type="submit" className="w-full h-[44px] text-[14px]" disabled={loading || !acceptedLegal}>
             {loading ? "Criando conta..." : "Criar conta — Trial 14 dias"}
           </Button>
         </form>
 
         <p className="text-[12px] text-on-surface-muted text-center mt-4 leading-relaxed">
           Ao criar a conta, você concorda com nossos{" "}
-          <Link href="/politica-de-privacidade" className="text-primary hover:underline">Termos e Privacidade</Link>.
+          <Link href={LEGAL_DOCUMENTS.terms.path} className="text-primary hover:underline">Termos</Link>
+          {" "}e{" "}
+          <Link href={LEGAL_DOCUMENTS.privacy.path} className="text-primary hover:underline">Privacidade</Link>.
         </p>
       </div>
 

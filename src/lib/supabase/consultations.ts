@@ -1,6 +1,7 @@
 import type { ConsultationState } from "@/types";
 import { createClient } from "./client";
 import { generateEsusSummary } from "@/lib/esus-generator";
+import { logAuditEvent } from "./audit";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function dbRecordToState(record: any): ConsultationState {
@@ -63,10 +64,36 @@ export async function saveConsultation(userId: string, state: ConsultationState,
   };
 
   if (consultationId) {
-    return supabase.from("consultations").update(data).eq("id", consultationId).select().single();
+    const result = await supabase.from("consultations").update(data).eq("id", consultationId).select().single();
+    if (!result.error && result.data) {
+      await logAuditEvent({
+        actorId: userId,
+        eventType: "consultation.updated",
+        entityType: "consultation",
+        entityId: result.data.id,
+        metadata: {
+          patientId: patientId ?? null,
+          consultationDate: data.date,
+        },
+      });
+    }
+    return result;
   }
 
-  return supabase.from("consultations").insert(data).select().single();
+  const result = await supabase.from("consultations").insert(data).select().single();
+  if (!result.error && result.data) {
+    await logAuditEvent({
+      actorId: userId,
+      eventType: "consultation.created",
+      entityType: "consultation",
+      entityId: result.data.id,
+      metadata: {
+        patientId: patientId ?? null,
+        consultationDate: data.date,
+      },
+    });
+  }
+  return result;
 }
 
 export async function loadConsultation(consultationId: string) {

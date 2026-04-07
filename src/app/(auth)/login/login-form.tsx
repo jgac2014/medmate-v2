@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BRAND } from "@/lib/branding";
 import Link from "next/link";
+import { logAuditEvent } from "@/lib/supabase/audit";
 
 export default function LoginForm({ initialError }: { initialError: string }) {
   const [email, setEmail] = useState("");
@@ -31,6 +32,11 @@ export default function LoginForm({ initialError }: { initialError: string }) {
       return;
     }
 
+    await logAuditEvent({
+      eventType: "auth.login",
+      entityType: "user",
+      metadata: { method: "password" },
+    });
     router.push("/consulta");
     router.refresh();
   };
