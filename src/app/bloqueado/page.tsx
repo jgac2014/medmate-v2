@@ -62,6 +62,7 @@ export default function BloqueadoPage() {
   // null while loading — prevents premature render of wrong copy
   const [reason, setReason] = useState<BlockReason | null>(null);
   const [hasStripe, setHasStripe] = useState(false);
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -73,6 +74,7 @@ export default function BloqueadoPage() {
           return;
         }
         const data = await res.json();
+        setTrialEndsAt(data.trialEndsAt ?? null);
         setReason(getBlockReason(data.subscriptionStatus, data.trialEndsAt));
         setHasStripe(data.hasStripe);
       } catch {
