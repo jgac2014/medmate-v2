@@ -1,19 +1,15 @@
 # MedMate — Contexto do Projeto para Claude Code
 
 > Leia este arquivo inteiro antes de escrever qualquer código. É a fonte de verdade do projeto.
-> Última atualização: 05/04/2026
+> Última atualização: 08/04/2026
+>
+> **Plano mestre e histórico de sessões:** `../PLANO.md` — leia primeiro em qualquer nova sessão.
 
 ---
 
-## O que é o MedMate
+## Visão Geral
 
-Prontuário eletrônico web para **Médicos de Família e Comunidade (MFC)** na Atenção Primária à Saúde (APS) brasileira.
-
-**Fluxo principal**: médico preenche a consulta → sistema gera texto formatado → médico copia para o **eSUS PEC** (sistema do Ministério da Saúde).
-
-**Modelo de negócio**: SaaS com assinatura paga (Stripe). Trial de 14 dias automático ao criar conta. Médicos usam isso 8h/dia — qualidade visual e performance são diferenciais competitivos, não opcionais.
-
-**Nome "MedMate" é provisório.** Branding centralizado em `src/lib/branding.ts`. Nunca hardcode o nome do produto fora desse arquivo.
+Prontuário web SaaS para MFC/APS brasileira. Plano completo, roadmap e histórico → `../PLANO.md`.
 
 ---
 
@@ -109,6 +105,8 @@ Prontuário eletrônico web para **Médicos de Família e Comunidade (MFC)** na 
 - Painel de personalização (fonte, cor, alinhamento, dados profissionais)
 - Tela de envio (impressão, WhatsApp, e-mail)
 - Toggle de assinatura digital ICP-Brasil (infra pronta para A1/A3/VIDAS)
+- Geração de PDF server-side via pdf-lib (`/api/generate-prescription-pdf`)
+- Persistência de prescrições na tabela `prescricoes` (salvo ao baixar PDF)
 
 ### Pagamentos
 - Checkout Stripe (`/api/create-checkout-session`)
@@ -158,7 +156,7 @@ src/
 
     receituario/              — data layer do módulo de receituário.
       types.ts                — tipos: Drug, PrescribedDrug, Interaction, DoctorProfile, etc.
-      drug-db.ts              — banco de 27 medicamentos com classificação e posologia padrão.
+      drug-db.ts              — banco de 382 medicamentos com classificação e posologia padrão.
       interactions.ts         — 10 pares de interação com severidade + checkInteractions().
       protocols.ts            — 8 protocolos clínicos pré-configurados.
 
@@ -241,17 +239,19 @@ src/
 
 ## Banco de Dados
 
-**Migrations em `supabase/migrations/`** (001–006):
+**Migrations em `supabase/migrations/`** (001–008):
 - `001` — tabelas base: `users`, `patients`, `consultations`
 - `002` — snapshot do paciente em consultas
 - `003` — snippets de texto do usuário
 - `004` — itens de follow-up entre consultas
 - `005` — problemas longitudinais do paciente
 - `006` — medicações contínuas do paciente
+- `007` — consentimentos e logs de auditoria
+- `008` — prescrições avulsas (Receituário Particular)
 
 **RLS ativo em todas as tabelas.** Use `server.ts` em RSC e `client.ts` em Client Components.
 
-**Para criar nova migration:** arquivo `007_descricao.sql` em `supabase/migrations/`. Nunca pule números.
+**Para criar nova migration:** arquivo `009_descricao.sql` em `supabase/migrations/`. Nunca pule números.
 
 **Datas:** ISO 8601 no banco (`YYYY-MM-DD`). `DD/MM/AAAA` na UI e outputs.
 
@@ -324,27 +324,6 @@ Todos em `src/lib/calculations/`. Cada arquivo tem referência bibliográfica no
 
 ---
 
-## Protocolo Antes de Qualquer Tarefa
-
-1. **Leia os arquivos relevantes.** Nunca assuma que sabe o que está implementado. Use Read ou Grep.
-2. **Verifique o store** antes de criar estado novo — provavelmente já existe.
-3. **Verifique `constants.ts`** antes de hardcodar qualquer lista.
-4. **Verifique `reference-values.ts`** antes de criar lógica de flag de valor.
-5. **Verifique `calculations/index.ts`** antes de implementar cálculo médico.
-6. **Grep antes de criar.** `Não reimplemente o que existe.`
-
----
-
-## Comandos
-
-```bash
-npm run dev      # desenvolvimento — porta 3000
-npm run build    # build de produção
-npm run start    # rodar build localmente
-```
-
----
-
 ## Regras Inegociáveis
 
 1. **Datas DD/MM/AAAA em toda UI e output.** ISO 8601 no banco.
@@ -357,18 +336,5 @@ npm run start    # rodar build localmente
 8. **Schema só via migrations numeradas.** Nunca edite banco direto sem migration correspondente.
 9. **TypeScript estrito.** Sem `any`. Se não souber o tipo, derive ou pergunte.
 10. **Grep antes de criar.** Não reimplemente o que existe.
-
----
-
-## O que NÃO Fazer
-
-- Não use `useState` para dados que pertencem ao `consultation-store` ou `receituario-store`.
-- Não hardcode listas de problemas, prevenções ou exames — use `constants.ts`.
-- Não implemente lógica de cálculo dentro de componentes — use `lib/calculations/`.
-- Não altere `api/webhooks/stripe/route.ts` sem confirmar — lógica de billing crítica.
-- Não crie migration sem verificar o número sequencial correto em `supabase/migrations/`.
-- Não use cores hardcoded no CSS — use as variáveis CSS do design system.
-- Não adicione dependências novas sem verificar se já existe algo equivalente.
-- Não use `console.log` em produção — use `showToast` para feedback ao usuário.
-- Não use `any` no TypeScript.
-- Não crie componentes `'use client'` sem necessidade real.
+11. **Stripe webhook handler é crítico.** Nunca modifique `api/webhooks/stripe/route.ts` sem confirmar com o usuário.
+12. **Dependências novas:** verifique se já existe equivalente antes de `npm install`.

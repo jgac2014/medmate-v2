@@ -79,6 +79,7 @@ export function PrescricaoShell() {
         <SendScreen
           meds={meds}
           patient={patient}
+          doctor={doctor}
           useDigitalSignature={useDigitalSignature}
           onBack={() => setScreen("create")}
           onNewPrescription={reset}

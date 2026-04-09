@@ -78,6 +78,26 @@ export const INTERACTIONS: Interaction[] = [
   { drugA: "Rifampicina", drugB: "Varfarina", severity: "danger", message: "Rifampicina induz metabolismo da varfarina — redução drástica do efeito anticoagulante" },
   { drugA: "Rifampicina", drugB: "Contraceptivo", severity: "danger", message: "Rifampicina reduz eficácia de contraceptivos hormonais — usar método adicional" },
 
+  // Varfarina + Metronidazol
+  { drugA: "Varfarina", drugB: "Metronidazol", severity: "danger", message: "Metronidazol inibe CYP2C9 — aumento significativo do INR, risco de sangramento grave" },
+
+  // Duplo bloqueio SRAA (IECA + BRA)
+  { drugA: "Enalapril", drugB: "Losartana", severity: "danger", message: "IECA + BRA — duplo bloqueio do SRAA: risco de hipercalemia grave, hipotensão e insuficiência renal aguda" },
+  { drugA: "Captopril", drugB: "Losartana", severity: "danger", message: "IECA + BRA — duplo bloqueio do SRAA: risco de hipercalemia grave, hipotensão e insuficiência renal aguda" },
+  { drugA: "Lisinopril", drugB: "Losartana", severity: "danger", message: "IECA + BRA — duplo bloqueio do SRAA: risco de hipercalemia grave, hipotensão e insuficiência renal aguda" },
+
+  // Opioides + Lorazepam
+  { drugA: "Codeína", drugB: "Lorazepam", severity: "danger", message: "Opioide + benzodiazepínico — risco de depressão respiratória e sedação grave" },
+  { drugA: "Tramadol", drugB: "Lorazepam", severity: "danger", message: "Opioide + benzodiazepínico — risco de depressão respiratória e sedação grave" },
+
+  // Morfina + CNS depressants
+  { drugA: "Morfina", drugB: "Clonazepam", severity: "danger", message: "Opioide + benzodiazepínico — risco de depressão respiratória potencialmente fatal" },
+  { drugA: "Morfina", drugB: "Diazepam", severity: "danger", message: "Opioide + benzodiazepínico — risco de depressão respiratória potencialmente fatal" },
+  { drugA: "Morfina", drugB: "Alprazolam", severity: "danger", message: "Opioide + benzodiazepínico — risco de depressão respiratória potencialmente fatal" },
+  { drugA: "Morfina", drugB: "Lorazepam", severity: "danger", message: "Opioide + benzodiazepínico — risco de depressão respiratória potencialmente fatal" },
+  { drugA: "Morfina", drugB: "Zolpidem", severity: "danger", message: "Opioide + hipnótico — risco de depressão respiratória" },
+  { drugA: "Morfina", drugB: "Tramadol", severity: "danger", message: "Dois opioides — risco de depressão respiratória e toxicidade por opioides" },
+
   // ═══════════════════════════════════════════════════════════
   // INTERAÇÕES MODERADAS (WARNING)
   // ═══════════════════════════════════════════════════════════
@@ -240,6 +260,24 @@ export const INTERACTIONS: Interaction[] = [
 
   // Ciprofloxacino + teofilina
   { drugA: "Ciprofloxacino", drugB: "Teofilina", severity: "warning", message: "Ciprofloxacino inibe metabolismo da teofilina — risco de toxicidade" },
+
+  // Azitromicina + Varfarina
+  { drugA: "Azitromicina", drugB: "Varfarina", severity: "warning", message: "Azitromicina pode aumentar o INR — monitorar coagulação durante e após o tratamento" },
+
+  // Ciprofloxacino + Ácido Valproico
+  { drugA: "Ciprofloxacino", drugB: "Ácido Valproico", severity: "warning", message: "Ciprofloxacino reduz absorção do ácido valproico — risco de nível subterapêutico e convulsões" },
+
+  // Carbamazepina + Varfarina
+  { drugA: "Carbamazepina", drugB: "Varfarina", severity: "warning", message: "Carbamazepina induz CYP2C9 — reduz efeito da varfarina, necessita ajuste de dose e monitoramento do INR" },
+
+  // ICS inalado + antifúngico azólico (síndrome Cushing iatrogênica)
+  { drugA: "Budesonida", drugB: "Cetoconazol", severity: "warning", message: "Antifúngico azólico inibe metabolismo do ICS inalado — risco de síndrome Cushing iatrogênica" },
+  { drugA: "Beclometasona", drugB: "Cetoconazol", severity: "warning", message: "Cetoconazol inibe CYP3A4 — acúmulo de corticoide inalado, risco de supressão adrenal" },
+  { drugA: "Fluticasona", drugB: "Cetoconazol", severity: "warning", message: "Fluticasona + cetoconazol — risco elevado de síndrome Cushing iatrogênica (fluticasona é substrato CYP3A4)" },
+
+  // Fluconazol + sulfonilureias adicionais
+  { drugA: "Fluconazol", drugB: "Gliclazida", severity: "warning", message: "Fluconazol inibe CYP2C9 — aumento dos níveis de gliclazida, risco de hipoglicemia grave" },
+  { drugA: "Fluconazol", drugB: "Glimepirida", severity: "warning", message: "Fluconazol inibe CYP2C9 — aumento dos níveis de glimepirida, risco de hipoglicemia grave" },
 ];
 
 export interface ActiveInteraction {

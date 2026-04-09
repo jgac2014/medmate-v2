@@ -356,6 +356,15 @@ export function Topbar() {
                   >
                     Minha conta
                   </button>
+                  <a
+                    href={`mailto:${BRAND.supportEmail}`}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[13px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+                  >
+                    <span className="material-symbols-outlined text-[15px] leading-none">mail</span>
+                    Suporte
+                  </a>
+                  <div className="my-1 border-t border-outline-variant/30" />
                   <button
                     onClick={handleLogout}
                     className="w-full px-4 py-2.5 text-left text-[13px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-error"

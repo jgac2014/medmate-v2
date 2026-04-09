@@ -6,7 +6,10 @@ import { showToast } from "@/components/ui/toast";
 import { DocumentationChecklist } from "@/components/consultation/documentation-checklist";
 import { useOutputSummary } from "@/hooks/useOutputSummary";
 import { markOnboardingStep } from "@/hooks/useOnboarding";
+import { trackEvent } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase/client";
+import { logAuditEvent } from "@/lib/supabase/audit";
+import { useConsultationStore } from "@/stores/consultation-store";
 import type { OutputMode } from "@/types";
 
 const MODE_LABELS: Record<OutputMode, string> = {
@@ -15,7 +18,11 @@ const MODE_LABELS: Record<OutputMode, string> = {
   detalhado: "Detalhado",
 };
 
-export function ConsultationRightPanel() {
+interface ConsultationRightPanelProps {
+  open?: boolean;
+}
+
+export function ConsultationRightPanel({ open = false }: ConsultationRightPanelProps) {
   const { summary, outputMode, setOutputMode } = useOutputSummary("esus");
   const [copied, setCopied] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -41,8 +48,20 @@ export function ConsultationRightPanel() {
     const ok = await copyToClipboard(summary);
     if (ok) {
       setCopied(true);
+      trackEvent("summary_copied", { outputMode });
       markOnboardingStep("summaryCopied", userId);
       showToast("Copiado!", "success");
+      const state = useConsultationStore.getState();
+      logAuditEvent({
+        actorId: userId,
+        eventType: "summary.copied",
+        entityType: "consultation",
+        entityId: state.currentConsultationId,
+        metadata: {
+          outputMode,
+          patientId: state.patientId,
+        },
+      });
       copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
     } else {
       showToast("Erro ao copiar", "error");
@@ -50,7 +69,7 @@ export function ConsultationRightPanel() {
   };
 
   return (
-    <aside className="w-80 shrink-0 h-full overflow-y-auto border-l border-[var(--outline-variant)] bg-[var(--surface-lowest)] flex flex-col">
+    <aside className={`w-80 shrink-0 h-full overflow-y-auto border-l border-[var(--outline-variant)] bg-[var(--surface-lowest)] flex-col ${open ? "flex" : "hidden lg:flex"}`}>
       {/* Seção: Status de documentação */}
       <div className="p-4 border-b border-[var(--outline-variant)]">
         <DocumentationChecklist />

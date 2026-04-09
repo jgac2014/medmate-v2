@@ -696,4 +696,104 @@ export const PROTOCOLS: Protocol[] = [
       { drugId: "loperamida-2", posologyOverride: "Tomar 1 cápsula inicialmente, depois 1 após cada evacuação líquida (adultos apenas)" },
     ],
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // PROTOCOLOS NOVOS — CICLO 8
+  // ═══════════════════════════════════════════════════════════
+
+  // ── Constipação ────────────────────────────────────────────
+  {
+    key: "constipacao",
+    label: "Constipação Funcional",
+    subtitle: "Abordagem escalonada — fibras → osmóticos → estimulantes",
+    icon: "🫙",
+    drugs: [
+      { drugId: "simeticona-80", posologyOverride: "Tomar 1 comprimido de 8/8h (alívio do desconforto abdominal associado)" },
+      { drugId: "domperidona-10", posologyOverride: "Tomar 1 comprimido 3x/dia antes das refeições se distensão (curto prazo)" },
+    ],
+  },
+
+  // ── Síndrome do Pânico ──────────────────────────────────────
+  {
+    key: "sindrome-panico",
+    label: "Síndrome do Pânico",
+    subtitle: "Farmacoterapia inicial — ISRS + BZD transitório",
+    icon: "💆",
+    drugs: [
+      { drugId: "sertralina-50", posologyOverride: "Tomar 1 comprimido pela manhã. Iniciar com 25mg/dia por 1 semana, depois 50mg/dia. Reavaliação em 4-6 semanas." },
+      { drugId: "clonazepam-2", posologyOverride: "Tomar ½ comprimido 2x/dia por até 4 semanas (transitório, enquanto ISRS não faz efeito)" },
+    ],
+  },
+
+  // ── Bronquite Aguda ─────────────────────────────────────────
+  {
+    key: "bronquite-aguda",
+    label: "Bronquite Aguda",
+    subtitle: "Maioria viral — antibiótico não recomendado rotineiramente",
+    icon: "🫁",
+    drugs: [
+      { drugId: "ibuprofeno-600", posologyOverride: "Tomar 1 comprimido de 8/8h por 5 dias, com alimento (anti-inflamatório + analgésico)" },
+      { drugId: "salbutamol-100", posologyOverride: "Inalar 2 jatos de 4/4h se chiado ou dispneia (broncodilatador de resgate)" },
+    ],
+  },
+
+  // ── Urticária Aguda ─────────────────────────────────────────
+  {
+    key: "urticaria-aguda",
+    label: "Urticária Aguda",
+    subtitle: "Anti-histamínico ± corticoide nas formas graves",
+    icon: "🔴",
+    drugs: [
+      { drugId: "loratadina-10", posologyOverride: "Tomar 1 comprimido 1x/dia até resolução (anti-histamínico de 2ª geração)" },
+      { drugId: "hidroxizina-25", posologyOverride: "Tomar 1 comprimido de 8/8h se prurido intenso (alternativa sedativa para noite)" },
+      { drugId: "prednisona-20", posologyOverride: "Tomar 1 comprimido pela manhã por 5-7 dias se urticária extensa ou angioedema" },
+    ],
+  },
+
+  // ── Tosse Crônica ───────────────────────────────────────────
+  {
+    key: "tosse-cronica",
+    label: "Tosse Crônica",
+    subtitle: "Tratamento por causa base — investigar DRGE, DRN, asma",
+    icon: "💨",
+    drugs: [
+      { drugId: "omeprazol-20", posologyOverride: "Tomar 1 cápsula em jejum por 8 semanas (se suspeita de DRGE como causa)" },
+      { drugId: "loratadina-10", posologyOverride: "Tomar 1 comprimido 1x/dia (se gotejamento pós-nasal como causa)" },
+      { drugId: "salbutamol-100", posologyOverride: "Inalar 2 jatos de 4/4h se componente broncoespástico (teste terapêutico para asma)" },
+    ],
+  },
+
+  // ── Otite Externa ───────────────────────────────────────────
+  {
+    key: "otite-externa",
+    label: "Otite Externa (Otite do Nadador)",
+    subtitle: "Infecção do canal auditivo externo — tratamento tópico + analgesia",
+    icon: "👂",
+    drugs: [
+      { drugId: "dipirona-500", posologyOverride: "Tomar 1 comprimido de 6/6h se dor (analgesia sistêmica)" },
+      { drugId: "ibuprofeno-600", posologyOverride: "Tomar 1 comprimido de 8/8h com alimento se dor moderada (alternativa anti-inflamatória)" },
+    ],
+  },
+
+  // ── Conjuntivite Bacteriana ─────────────────────────────────
+  {
+    key: "conjuntivite-bacteriana",
+    label: "Conjuntivite Bacteriana",
+    subtitle: "Secreção purulenta bilateral — colírio antibiótico + higiene",
+    icon: "👁️",
+    drugs: [
+      { drugId: "dipirona-500", posologyOverride: "Tomar 1 comprimido de 6/6h se dor ou desconforto ocular intenso" },
+    ],
+  },
+
+  // ── Anticoncepção de Emergência ─────────────────────────────
+  {
+    key: "anticoncepcao-emergencia",
+    label: "Anticoncepção de Emergência",
+    subtitle: "Levonorgestrel 1,5mg — até 72h após relação desprotegida",
+    icon: "💊",
+    drugs: [
+      { drugId: "etinilestradiol-levonorgestrel-30-150", posologyOverride: "ATENÇÃO: Solicitar levonorgestrel 1,5mg em dose única (disponível na farmácia popular como anticoncepção de emergência)" },
+    ],
+  },
 ];

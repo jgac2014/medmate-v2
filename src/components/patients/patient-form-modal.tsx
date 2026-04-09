@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createPatient, updatePatient } from "@/lib/supabase/patients";
+import { trackEvent } from "@/lib/analytics";
 import type { Patient } from "@/types";
 
 interface PatientFormModalProps {
@@ -64,6 +65,7 @@ export function PatientFormModal({
         ? await updatePatient(patient.id, userId, payload)
         : await createPatient(userId, payload);
 
+      if (!patient) trackEvent("patient_created");
       onSaved(savedPatient);
       onClose();
     } catch {

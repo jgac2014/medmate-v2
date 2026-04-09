@@ -32,7 +32,7 @@ const FAQS = [
     a: "Sim. O cancelamento é instantâneo via portal de assinatura. Sem taxas ou multas.",
   },
   {
-    q: "O MedMate funciona em qualquer dispositivo?",
+    q: `O ${BRAND.name} funciona em qualquer dispositivo?`,
     a: "Sim. Roda diretamente no navegador — Chrome, Edge, Safari. Sem instalação.",
   },
   {

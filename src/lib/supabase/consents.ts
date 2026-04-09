@@ -36,7 +36,7 @@ export async function acceptRequiredConsents(userId: string): Promise<void> {
 
   const { error } = await supabase
     .from("user_consents")
-    .upsert(rows, { onConflict: "user_id,document_type,version" });
+    .upsert(rows, { onConflict: "user_id,document_type,version", ignoreDuplicates: true });
 
   if (error) throw error;
 

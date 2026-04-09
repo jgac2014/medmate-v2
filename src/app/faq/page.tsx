@@ -9,16 +9,16 @@ const FAQ_GROUPS = [
     category: "Sobre o produto",
     items: [
       {
-        q: "O MedMate substitui o eSUS PEC?",
-        a: "Não. O MedMate é um workspace clínico que complementa o eSUS PEC. Você estrutura a consulta aqui, e o sistema gera o texto de evolução pronto para copiar e colar diretamente no prontuário oficial. Nenhum dado é enviado automaticamente ao eSUS.",
+        q: `O ${BRAND.name} substitui o eSUS PEC?`,
+        a: `Não. O ${BRAND.name} é um workspace clínico que complementa o eSUS PEC. Você estrutura a consulta aqui, e o sistema gera o texto de evolução pronto para copiar e colar diretamente no prontuário oficial. Nenhum dado é enviado automaticamente ao eSUS.`,
       },
       {
-        q: "Para quais médicos o MedMate foi desenvolvido?",
-        a: "O MedMate foi desenvolvido especificamente para Médicos de Família e Comunidade (MFC) que atuam na Atenção Primária à Saúde (APS) e utilizam o eSUS PEC diariamente. O sistema é otimizado para o fluxo de trabalho e os desafios específicos dessa especialidade.",
+        q: `Para quais médicos o ${BRAND.name} foi desenvolvido?`,
+        a: `O ${BRAND.name} foi desenvolvido especificamente para Médicos de Família e Comunidade (MFC) que atuam na Atenção Primária à Saúde (APS) e utilizam o eSUS PEC diariamente. O sistema é otimizado para o fluxo de trabalho e os desafios específicos dessa especialidade.`,
       },
       {
-        q: "O que o MedMate faz exatamente?",
-        a: "O MedMate organiza e estrutura a documentação clínica da consulta: registro de dados do paciente, sinais vitais com cálculos automáticos (IMC, TFG, risco cardiovascular), lista de problemas, nota SOAP, exames e geração automática do texto formatado para o eSUS PEC.",
+        q: `O que o ${BRAND.name} faz exatamente?`,
+        a: `O ${BRAND.name} organiza e estrutura a documentação clínica da consulta: registro de dados do paciente, sinais vitais com cálculos automáticos (IMC, TFG, risco cardiovascular), lista de problemas, nota SOAP, exames e geração automática do texto formatado para o eSUS PEC.`,
       },
       {
         q: "Os cálculos clínicos são automáticos?",
@@ -31,7 +31,7 @@ const FAQ_GROUPS = [
     items: [
       {
         q: "Existe teste gratuito?",
-        a: "Sim. Você tem 14 dias de acesso completo a todas as funcionalidades do MedMate, sem precisar informar cartão de crédito. Após o período, é possível assinar o plano Pro para continuar.",
+        a: `Sim. Você tem 14 dias de acesso completo a todas as funcionalidades do ${BRAND.name}, sem precisar informar cartão de crédito. Após o período, é possível assinar o plano Pro para continuar.`,
       },
       {
         q: "Preciso informar cartão de crédito no cadastro?",
@@ -43,7 +43,7 @@ const FAQ_GROUPS = [
       },
       {
         q: "Existe desconto para residentes ou estudantes?",
-        a: "No momento não temos planos diferenciados por categoria. Qualquer médico pode começar pelo trial gratuito de 14 dias para avaliar se o MedMate faz sentido para sua rotina.",
+        a: `No momento não temos planos diferenciados por categoria. Qualquer médico pode começar pelo trial gratuito de 14 dias para avaliar se o ${BRAND.name} faz sentido para sua rotina.`,
       },
     ],
   },
@@ -56,10 +56,10 @@ const FAQ_GROUPS = [
       },
       {
         q: "Os dados dos pacientes são compartilhados com terceiros?",
-        a: "Não. Os dados inseridos no MedMate são de uso exclusivo do médico titular da conta. Não compartilhamos, vendemos ou utilizamos os dados clínicos para qualquer finalidade além da prestação do serviço.",
+        a: `Não. Os dados inseridos no ${BRAND.name} são de uso exclusivo do médico titular da conta. Não compartilhamos, vendemos ou utilizamos os dados clínicos para qualquer finalidade além da prestação do serviço.`,
       },
       {
-        q: "O MedMate está em conformidade com a LGPD?",
+        q: `O ${BRAND.name} está em conformidade com a LGPD?`,
         a: "Sim. O sistema foi desenvolvido seguindo os princípios da Lei Geral de Proteção de Dados (LGPD) e as diretrizes do Conselho Federal de Medicina sobre prontuário eletrônico e sigilo médico.",
       },
     ],
@@ -69,11 +69,11 @@ const FAQ_GROUPS = [
     items: [
       {
         q: "Preciso instalar algum software?",
-        a: "Não. O MedMate roda 100% no navegador. Basta acessar pelo Chrome ou Edge em qualquer computador da unidade de saúde. Sem instalação, sem configuração.",
+        a: `Não. O ${BRAND.name} roda 100% no navegador. Basta acessar pelo Chrome ou Edge em qualquer computador da unidade de saúde. Sem instalação, sem configuração.`,
       },
       {
         q: "Funciona no celular?",
-        a: "O MedMate é otimizado para uso em desktop e notebook, que é como a maioria dos médicos trabalha com o eSUS PEC. O acesso mobile existe mas a experiência é mais limitada.",
+        a: `O ${BRAND.name} é otimizado para uso em desktop e notebook, que é como a maioria dos médicos trabalha com o eSUS PEC. O acesso mobile existe mas a experiência é mais limitada.`,
       },
       {
         q: "Como funciona o suporte?",

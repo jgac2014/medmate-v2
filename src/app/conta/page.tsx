@@ -211,15 +211,26 @@ export default function ContaPage() {
 
           {isActive && (
             <p className="text-[13px] text-on-surface-variant mt-2">
-              Todas as funcionalidades do MedMate estão liberadas.
+              Todas as funcionalidades do {BRAND.name} estão liberadas.
             </p>
           )}
         </div>
 
         {/* Actions */}
         <div className="flex flex-col gap-3">
-          {/* Show checkout button for users without active subscription */}
-          {!isActive && (
+          {/* Trial ativo: CTA contextual sem urgência falsa */}
+          {trialActive && (
+            <button
+              onClick={handleCheckout}
+              disabled={checkoutLoading}
+              className="w-full px-6 py-2.5 bg-surface-container hover:bg-surface-high text-on-surface font-medium rounded-lg transition-all duration-200 text-[13px] border border-outline-variant disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {checkoutLoading ? "Redirecionando..." : `Assinar Pro — ${daysLeft} dia${daysLeft !== 1 ? "s" : ""} restante${daysLeft !== 1 ? "s" : ""} no trial`}
+            </button>
+          )}
+
+          {/* Bloqueado (sem trial ativo): CTA primário */}
+          {!isActive && !trialActive && (
             <button
               onClick={handleCheckout}
               disabled={checkoutLoading}

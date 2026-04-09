@@ -1,7 +1,7 @@
-'use client'
-
 "use client";
 
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import type { PrescribedDrug, RxPatient, DoctorProfile } from "@/lib/receituario/types";
 
 interface SendScreenProps {
@@ -13,23 +13,97 @@ interface SendScreenProps {
   onNewPrescription: () => void;
 }
 
+function buildRxType(meds: PrescribedDrug[]): "simples" | "controle_especial" | "misto" {
+  const hasCtrl    = meds.some((m) => m.type === "ctrl");
+  const hasSimples = meds.some((m) => m.type !== "ctrl");
+  if (hasCtrl && hasSimples) return "misto";
+  if (hasCtrl) return "controle_especial";
+  return "simples";
+}
+
+function buildWhatsAppText(meds: PrescribedDrug[], patient: RxPatient): string {
+  const lines = [
+    `Receita Médica — ${patient.name || "Paciente"}`,
+    `Data: ${patient.date}`,
+    "",
+    ...meds.map((m, i) => `${i + 1}. ${m.name} — ${m.posology}${m.qty ? ` (${m.qty})` : ""}`),
+  ];
+  return lines.join("\n");
+}
+
+// Salva metadados da prescrição no banco (fire-and-forget)
+async function savePrescricao(meds: PrescribedDrug[], patient: RxPatient): Promise<void> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  // Converte data BR (DD/MM/AAAA) para ISO para o banco
+  const [day, month, year] = (patient.date || "").split("/");
+  const rxDate = year && month && day
+    ? `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+    : new Date().toISOString().split("T")[0];
+
+  await supabase.from("prescricoes").insert({
+    user_id: user.id,
+    patient_name: patient.name || "Paciente",
+    patient_cpf: patient.cpf || null,
+    patient_address: patient.address || null,
+    rx_date: rxDate,
+    rx_type: buildRxType(meds),
+    meds: meds,
+    digital_signature_used: false,
+  });
+}
+
 export function SendScreen({
   meds,
   patient,
+  doctor,
   useDigitalSignature,
   onBack,
   onNewPrescription,
-}: Omit<SendScreenProps, "doctor">) {
+}: SendScreenProps) {
+  const [downloading, setDownloading] = useState(false);
+
   const simpleMeds = meds.filter((m) => m.type !== "ctrl");
-  const ctrlMeds = meds.filter((m) => m.type === "ctrl");
+  const ctrlMeds   = meds.filter((m) => m.type === "ctrl");
   const hasSimples = simpleMeds.length > 0;
-  const hasCtrl = ctrlMeds.length > 0;
+  const hasCtrl    = ctrlMeds.length > 0;
 
   const rxGroups = [
     ...(hasSimples ? [{ label: "Receita Simples", meds: simpleMeds, isCtrl: false }] : []),
-    ...(hasCtrl ? [{ label: "Receituário Controle Especial", meds: ctrlMeds, isCtrl: true }] : []),
+    ...(hasCtrl    ? [{ label: "Receituário Controle Especial", meds: ctrlMeds, isCtrl: true }] : []),
     ...(!hasSimples && !hasCtrl ? [{ label: "Receita Simples", meds, isCtrl: false }] : []),
   ];
+
+  async function handleDownloadPdf() {
+    setDownloading(true);
+    try {
+      const res = await fetch("/api/generate-prescription-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ meds, patient, doctor }),
+      });
+
+      if (!res.ok) throw new Error("Falha ao gerar PDF");
+
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href     = url;
+      a.download = `receita-${patient.name?.replace(/\s+/g, "-").toLowerCase() || "medmate"}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      // Salva metadados no banco (sem bloquear o download)
+      savePrescricao(meds, patient).catch(() => null);
+    } catch {
+      // Feedback de erro via alerta simples — toast global não disponível aqui sem refactor
+      alert("Não foi possível gerar o PDF. Tente novamente.");
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -50,6 +124,7 @@ export function SendScreen({
 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-6 py-8 space-y-8">
+
           {/* Assinatura digital */}
           <div className={`rounded-2xl p-6 ${
             useDigitalSignature
@@ -98,9 +173,7 @@ export function SendScreen({
                 isCtrl ? "bg-purple-50 border-b border-purple-200/40" : "bg-surface-container border-b border-outline-variant/20"
               }`}>
                 <div className="flex items-center gap-2">
-                  {isCtrl && (
-                    <span className="w-2 h-2 rounded-full bg-purple-500" />
-                  )}
+                  {isCtrl && <span className="w-2 h-2 rounded-full bg-purple-500" />}
                   <span className={`text-[12px] font-semibold ${isCtrl ? "text-purple-800" : "text-on-surface-variant"}`}>
                     {label}
                   </span>
@@ -108,9 +181,7 @@ export function SendScreen({
                     · {groupMeds.length} {groupMeds.length === 1 ? "item" : "itens"}
                   </span>
                 </div>
-                {isCtrl && (
-                  <span className="text-[10px] text-purple-600 font-medium">2 vias obrigatórias</span>
-                )}
+                {isCtrl && <span className="text-[10px] text-purple-600 font-medium">2 vias obrigatórias</span>}
               </div>
               <div className="divide-y divide-outline-variant/20 bg-surface-lowest">
                 {groupMeds.map((med) => (
@@ -154,8 +225,36 @@ export function SendScreen({
           </div>
 
           {/* Ações */}
-          <div className="grid grid-cols-3 gap-3">
-            <button className="flex flex-col items-center gap-2 py-4 rounded-xl border border-outline-variant/40 bg-surface-lowest hover:bg-surface-container transition-all cursor-pointer group">
+          <div className="grid grid-cols-2 gap-3">
+            {/* Baixar PDF — ação principal */}
+            <button
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+              className="col-span-2 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-primary text-on-primary text-[13px] font-semibold hover:bg-primary-container transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {downloading ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Gerando PDF...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="none">
+                    <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" fill="currentColor" />
+                  </svg>
+                  Baixar PDF
+                </>
+              )}
+            </button>
+
+            {/* Imprimir */}
+            <button
+              onClick={() => window.print()}
+              className="flex flex-col items-center gap-2 py-4 rounded-xl border border-outline-variant/40 bg-surface-lowest hover:bg-surface-container transition-all cursor-pointer group"
+            >
               <div className="w-9 h-9 rounded-xl bg-surface-container group-hover:bg-surface-high flex items-center justify-center transition-colors">
                 <svg className="w-4.5 h-4.5 text-on-surface-variant" viewBox="0 0 20 20" fill="none">
                   <path d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L13.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m7.316 0H6.34M10 15.75h.008v.008H10v-.008z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -164,22 +263,20 @@ export function SendScreen({
               <span className="text-[12px] font-medium text-on-surface-variant">Imprimir</span>
             </button>
 
-            <button className="flex flex-col items-center gap-2 py-4 rounded-xl border border-green-200/60 bg-green-50 hover:bg-green-100 transition-all cursor-pointer group">
+            {/* WhatsApp */}
+            <button
+              onClick={() => {
+                const text = buildWhatsAppText(meds, patient);
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+              }}
+              className="flex flex-col items-center gap-2 py-4 rounded-xl border border-green-200/60 bg-green-50 hover:bg-green-100 transition-all cursor-pointer group"
+            >
               <div className="w-9 h-9 rounded-xl bg-green-100 group-hover:bg-green-200 flex items-center justify-center transition-colors">
                 <svg className="w-4.5 h-4.5 text-green-700" viewBox="0 0 20 20" fill="none">
                   <path d="M2 3a1 1 0 00-1 1v1a1 1 0 001 1h16a1 1 0 001-1V4a1 1 0 00-1-1H2zm0 5v8a1 1 0 001 1h14a1 1 0 001-1V8H2z" fill="currentColor" />
                 </svg>
               </div>
               <span className="text-[12px] font-medium text-green-800">WhatsApp</span>
-            </button>
-
-            <button className="flex flex-col items-center gap-2 py-4 rounded-xl border border-outline-variant/40 bg-surface-lowest hover:bg-surface-container transition-all cursor-pointer group">
-              <div className="w-9 h-9 rounded-xl bg-surface-container group-hover:bg-surface-high flex items-center justify-center transition-colors">
-                <svg className="w-4.5 h-4.5 text-on-surface-variant" viewBox="0 0 20 20" fill="none">
-                  <path d="M3 8l7-5 7 5M5 19h14V8l-7-5-7 5v11z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <span className="text-[12px] font-medium text-on-surface-variant">E-mail</span>
             </button>
           </div>
 
@@ -195,6 +292,7 @@ export function SendScreen({
               Nova receita
             </button>
           </div>
+
         </div>
       </div>
     </div>

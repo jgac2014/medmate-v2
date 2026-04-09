@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BRAND } from "@/lib/branding";
 import { LEGAL_DOCUMENTS } from "@/lib/legal";
+import { trackEvent } from "@/lib/analytics";
 import Link from "next/link";
 
 export default function SignupPage() {
@@ -49,6 +50,7 @@ export default function SignupPage() {
       return;
     }
 
+    trackEvent("signup_completed");
     router.push("/consulta");
     router.refresh();
   };

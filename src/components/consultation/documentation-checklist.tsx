@@ -7,13 +7,13 @@ interface CheckItem {
   done: boolean;
 }
 
-export function DocumentationChecklist() {
-  const soap = useConsultationStore((s) => s.soap);
-  const vitals = useConsultationStore((s) => s.vitals);
-  const problems = useConsultationStore((s) => s.problems);
-  const followupItems = useConsultationStore((s) => s.followupItems);
-
-  const items: CheckItem[] = [
+function buildCheckItems(
+  soap: ReturnType<typeof useConsultationStore.getState>["soap"],
+  vitals: ReturnType<typeof useConsultationStore.getState>["vitals"],
+  problems: ReturnType<typeof useConsultationStore.getState>["problems"],
+  followupItems: ReturnType<typeof useConsultationStore.getState>["followupItems"],
+): CheckItem[] {
+  return [
     {
       label: "SOAP preenchido",
       done: !!(soap.subjective?.trim() && soap.assessment?.trim() && soap.plan?.trim()),
@@ -31,7 +31,32 @@ export function DocumentationChecklist() {
       done: (followupItems ?? []).length > 0,
     },
   ];
+}
 
+export function getDocumentationCompletion(): {
+  doneCount: number;
+  total: number;
+  pct: number;
+  missing: string[];
+} {
+  const { soap, vitals, problems, followupItems } = useConsultationStore.getState();
+  const items = buildCheckItems(soap, vitals, problems, followupItems);
+  const doneCount = items.filter((i) => i.done).length;
+  return {
+    doneCount,
+    total: items.length,
+    pct: Math.round((doneCount / items.length) * 100),
+    missing: items.filter((i) => !i.done).map((i) => i.label),
+  };
+}
+
+export function DocumentationChecklist() {
+  const soap = useConsultationStore((s) => s.soap);
+  const vitals = useConsultationStore((s) => s.vitals);
+  const problems = useConsultationStore((s) => s.problems);
+  const followupItems = useConsultationStore((s) => s.followupItems);
+
+  const items = buildCheckItems(soap, vitals, problems, followupItems);
   const doneCount = items.filter((i) => i.done).length;
   const pct = Math.round((doneCount / items.length) * 100);
 

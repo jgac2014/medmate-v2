@@ -41,6 +41,7 @@ yarn-error.log*
 
 # IDE brainstorm artifacts
 .superpowers/
+docs/superpowers/
 
 # typescript
 *.tsbuildinfo

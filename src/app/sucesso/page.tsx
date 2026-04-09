@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BRAND } from "@/lib/branding";
 
 export default function SucessoPage() {
   const visible = true;
@@ -75,7 +76,7 @@ export default function SucessoPage() {
             transitionDelay: "650ms",
           }}
         >
-          Seu plano Pro está ativo. Todas as funcionalidades do MedMate estão liberadas.
+          Seu plano Pro está ativo. Todas as funcionalidades do {BRAND.name} estão liberadas.
         </p>
 
         <Link

@@ -23,9 +23,15 @@ import { useDraftAutosave } from "@/hooks/useDraftAutosave";
 import { useSaveConsultation } from "@/hooks/useSaveConsultation";
 import { BRAND } from "@/lib/branding";
 import { markOnboardingStep } from "@/hooks/useOnboarding";
+import { PrescriptionExamsSection } from "@/components/consultation/prescription-exams-section";
+import { getDocumentationCompletion } from "@/components/consultation/documentation-checklist";
+import { useHotkeys } from "@/hooks/useHotkeys";
+import { showToast } from "@/components/ui/toast";
 
 export default function ConsultaPage() {
   const [userId, setUserId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const patientName = useConsultationStore((s) => s.patientName);
   const patient = useConsultationStore((s) => s.patient);
 
@@ -55,19 +61,33 @@ export default function ConsultaPage() {
   }>({ open: false, matched: {}, extras: "" });
 
   async function handleFinalize() {
+    const { missing } = getDocumentationCompletion();
+    if (missing.length > 0) {
+      showToast(`Documentação incompleta: ${missing.join(", ")}`, "info");
+    }
     await save();
   }
 
+  useHotkeys({ "mod+s": () => handleFinalize() });
+
   return (
-    <div className="theme-light flex h-[calc(100vh-56px)] overflow-hidden bg-[var(--surface-lowest)]">
+    <div className="theme-light flex h-screen overflow-hidden bg-[var(--surface-lowest)]">
       {/* Coluna esquerda: contexto do paciente */}
-      <ConsultationSidebar />
+      <ConsultationSidebar open={sidebarOpen} />
 
       {/* Coluna central: área de trabalho com scroll */}
       <main className="flex-1 overflow-y-auto min-w-0">
         {/* Topbar da consulta */}
         <header className="sticky top-0 z-10 flex items-center justify-between px-6 h-12 bg-white border-b border-primary/10">
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push("/nova-consulta")}
+              className="flex items-center gap-1 text-[11px] font-medium text-on-surface-muted hover:text-on-surface transition-colors"
+            >
+              <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+              Dashboard
+            </button>
+            <div className="h-4 w-px bg-gray-200" />
             <h1 className="font-headline font-bold text-primary flex items-center gap-2 text-[17px]">
               {BRAND.name}
               <span className="px-1.5 py-0.5 bg-primary/5 text-[9px] font-sans font-bold tracking-tighter text-primary/60 rounded border border-primary/10 uppercase">
@@ -81,6 +101,21 @@ export default function ConsultaPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {/* Mobile toggles */}
+            <button
+              onClick={() => setSidebarOpen((v) => !v)}
+              className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-container transition-colors"
+              aria-label="Alternar sidebar"
+            >
+              <span className="material-symbols-outlined text-[18px] text-on-surface-muted">menu</span>
+            </button>
+            <button
+              onClick={() => setRightPanelOpen((v) => !v)}
+              className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-container transition-colors"
+              aria-label="Alternar painel eSUS"
+            >
+              <span className="material-symbols-outlined text-[18px] text-on-surface-muted">description</span>
+            </button>
             <div className="flex items-center gap-1 px-2 py-1 bg-[#e9eff2] rounded text-[10px] font-bold text-[#717973] uppercase tracking-tight">
               <span className="w-1.5 h-1.5 rounded-full bg-secondary inline-block" />
               Rascunho Salvo
@@ -126,14 +161,19 @@ export default function ConsultaPage() {
           </details>
 
           {/* Bloco 2: SOAP */}
-          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
+          <section id="section-consulta" className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
             <ClinicalSummary />
             <div className="my-3 h-px bg-[var(--outline-variant)]" />
             <SoapForm />
           </section>
 
-          {/* Bloco 3: Dados Objetivos */}
-          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5 space-y-4">
+          {/* Bloco 3: Conduta */}
+          <div id="section-conduta">
+            <PrescriptionExamsSection />
+          </div>
+
+          {/* Bloco 4: Dados Objetivos */}
+          <section id="section-exames" className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5 space-y-4">
             <ExamUploadButton
               onResult={({ matched, extras }) =>
                 setReviewModal({ open: true, matched, extras })
@@ -157,13 +197,13 @@ export default function ConsultaPage() {
             )}
           </section>
 
-          {/* Bloco 4: Antecedentes */}
-          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
+          {/* Bloco 5: Antecedentes */}
+          <section id="section-historico" className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
             <HistoryForm />
           </section>
 
-          {/* Bloco 6: Prevenção e seguimento */}
-          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5 space-y-4">
+          {/* Bloco 6: Prevenção e Seguimento */}
+          <section id="section-prevencao" className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5 space-y-4">
             <PreventionList />
             <div className="h-px bg-[var(--outline-variant)]" />
             <FollowupPanel />
@@ -173,7 +213,7 @@ export default function ConsultaPage() {
       </main>
 
       {/* Coluna direita: prévia eSUS + status documentação */}
-      <ConsultationRightPanel />
+      <ConsultationRightPanel open={rightPanelOpen} />
 
       <ExamReviewModal
         open={reviewModal.open}

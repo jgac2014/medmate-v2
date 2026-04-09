@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BRAND } from "@/lib/branding";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { LandingNavbar } from "@/components/landing/navbar";
 import { LandingFooter } from "@/components/landing/footer";
@@ -42,11 +43,11 @@ const FAQS = [
     a: "Sim. Utilizamos criptografia em trânsito (TLS) e em repouso para todos os dados clínicos. Acesso isolado por conta médica — nenhum dado é compartilhado entre usuários.",
   },
   {
-    q: "O MedMate substitui o eSUS PEC?",
-    a: "Não. O MedMate complementa o eSUS PEC. Você estrutura a consulta aqui e cola o resumo gerado automaticamente no prontuário oficial. Nenhum dado é enviado ao eSUS sem sua ação explícita.",
+    q: `O ${BRAND.name} substitui o eSUS PEC?`,
+    a: `Não. O ${BRAND.name} complementa o eSUS PEC. Você estrutura a consulta aqui e cola o resumo gerado automaticamente no prontuário oficial. Nenhum dado é enviado ao eSUS sem sua ação explícita.`,
   },
   {
-    q: "O MedMate está em conformidade com a LGPD?",
+    q: `O ${BRAND.name} está em conformidade com a LGPD?`,
     a: "Sim. Seguimos rigorosamente a Lei Geral de Proteção de Dados. Seus dados são tratados com base legal adequada e você tem direito à portabilidade e exclusão.",
   },
   {
@@ -77,7 +78,7 @@ export default async function SegurancaPage() {
               Segurança e seriedade no registro clínico.
             </h1>
             <p className="text-lg text-secondary max-w-xl mb-10 leading-relaxed">
-              O {`MedMate`} foi desenhado para médicos da <strong>Atenção Primária</strong> que buscam conformidade ética e produtividade. Garantia de sigilo de dados e um <strong>resumo pronto para o eSUS PEC</strong> em segundos.
+              O {BRAND.name} foi desenhado para médicos da <strong>Atenção Primária</strong> que buscam conformidade ética e produtividade. Garantia de sigilo de dados e um <strong>resumo pronto para o eSUS PEC</strong> em segundos.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
@@ -152,14 +153,14 @@ export default async function SegurancaPage() {
                 Criado por médico para a realidade de outros médicos na APS.
               </h2>
               <p className="text-on-primary-container/80 text-lg leading-relaxed font-light italic mb-8">
-                &ldquo;Entendo a fricção do eSUS PEC e a pressão de uma agenda lotada. O MedMate não nasceu em um laboratório de software, mas dentro de uma Unidade Básica de Saúde, para resolver a dor de quem precisa documentar com excelência em um cenário de alta demanda.&rdquo;
+                &ldquo;Entendo a fricção do eSUS PEC e a pressão de uma agenda lotada. O {BRAND.name} não nasceu em um laboratório de software, mas dentro de uma Unidade Básica de Saúde, para resolver a dor de quem precisa documentar com excelência em um cenário de alta demanda.&rdquo;
               </p>
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-secondary-container flex items-center justify-center">
                   <span className="material-symbols-outlined text-primary">stethoscope</span>
                 </div>
                 <div>
-                  <p className="text-on-primary font-semibold">Equipe MedMate</p>
+                  <p className="text-on-primary font-semibold">Equipe {BRAND.name}</p>
                   <p className="text-on-primary-container/70 text-sm">Médicos de Família e Comunidade</p>
                 </div>
               </div>

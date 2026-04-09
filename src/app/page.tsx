@@ -7,17 +7,17 @@ import { LandingFooter } from "@/components/landing/footer";
 const BENEFITS = [
   {
     icon: "bolt",
-    title: "Consulta 40% mais rápida",
+    title: "Consulta mais rápida, agenda menos pesada",
     desc: "SOAP estruturado, templates reutilizáveis e cálculos automáticos de IMC, TFG e RCV enquanto você digita. Menos cliques, mais atenção ao paciente.",
   },
   {
     icon: "content_paste_go",
-    title: "Zero digitação dupla no eSUS PEC",
-    desc: "Um clique gera o texto de evolução formatado e pronto para colar no prontuário oficial. Documentação completa em segundos, sem retrabalho.",
+    title: "Zero retrabalho no eSUS PEC",
+    desc: "Um clique gera o texto de evolução formatado e pronto para colar no prontuário oficial. Documentação completa em segundos, sem digitar duas vezes.",
   },
   {
     icon: "timeline",
-    title: "Longitudinalidade real",
+    title: "Longitudinalidade de verdade",
     desc: "Histórico de consultas, lista de problemas ativos e medicamentos contínuos por paciente — tudo carregado automaticamente no próximo atendimento.",
   },
 ];
@@ -54,7 +54,7 @@ export default async function LandingPage() {
               O workspace clínico do Médico de Família.
             </h1>
             <p className="text-lg text-secondary leading-relaxed max-w-xl mb-10 font-light">
-              Consulta organizada, cálculos automáticos e resumo pronto para colar no eSUS PEC — em segundos. Menos burocracia, mais presença com o paciente.
+              30 pacientes por dia, eSUS PEC esperando, agenda cheia — o {BRAND.name} estrutura sua consulta em tempo real e gera o resumo formatado com um clique. Sem digitar duas vezes, sem perder o fio da anamnese.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
@@ -166,6 +166,25 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* Proof strip */}
+      <section className="py-12 bg-surface border-y border-outline-variant/10">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {[
+              { num: "< 30s", label: "para gerar o resumo eSUS" },
+              { num: "4", label: "cálculos automáticos por consulta" },
+              { num: "382", label: "medicamentos indexados no receituário" },
+              { num: "100%", label: "no navegador — sem instalar nada" },
+            ].map((item) => (
+              <div key={item.label}>
+                <p className="font-headline text-3xl font-semibold text-primary mb-1">{item.num}</p>
+                <p className="text-[12px] text-on-surface-muted leading-relaxed">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Flow */}
       <section className="py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-6">
@@ -186,10 +205,10 @@ export default async function LandingPage() {
       <section className="py-24 bg-primary-container">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="font-headline text-4xl md:text-5xl text-surface-lowest font-medium mb-6">
-            Pronto para transformar sua consulta?
+            Na próxima consulta, o resumo já estará pronto.
           </h2>
           <p className="text-on-primary-container text-lg mb-10">
-            14 dias grátis. Sem cartão de crédito. Cancele quando quiser.
+            14 dias grátis, sem cartão. Cadastre um paciente e veja o eSUS gerado em tempo real.
           </p>
           <Link
             href={isLoggedIn ? "/consulta" : "/signup"}

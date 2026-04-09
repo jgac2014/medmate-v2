@@ -34,7 +34,7 @@ function getBlockReason(
 const REASON_COPY: Record<BlockReason, { title: string; body: string }> = {
   trial_expired: {
     title: "Seu trial de 14 dias encerrou",
-    body: "Assine o plano Pro para continuar usando o MedMate e manter acesso ao histórico dos seus pacientes.",
+    body: `Assine o plano Pro para continuar usando o ${BRAND.name} e manter acesso ao histórico dos seus pacientes.`,
   },
   trial_active_wrongly_blocked: {
     title: "Acesso temporariamente indisponível",
@@ -50,7 +50,7 @@ const REASON_COPY: Record<BlockReason, { title: string; body: string }> = {
   },
   unknown: {
     title: "Acesso bloqueado",
-    body: "Sua assinatura está inativa. Assine o plano Pro para continuar usando o MedMate.",
+    body: `Sua assinatura está inativa. Assine o plano Pro para continuar usando o ${BRAND.name}.`,
   },
 };
 
@@ -187,6 +187,15 @@ export default function BloqueadoPage() {
     );
   }
 
+  const trialDaysLeft =
+    trialEndsAt && new Date(trialEndsAt) > new Date()
+      ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
+      : null;
+
+  const trialEndFormatted = trialEndsAt
+    ? new Date(trialEndsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : null;
+
   // While loading: neutral skeleton header so the user isn't alarmed by "wrong" copy
   const displayTitle = isLoading || reason === null
     ? "Verificando sua assinatura..."
@@ -227,9 +236,17 @@ export default function BloqueadoPage() {
         </h1>
 
         {/* Reserve fixed height to prevent CLS when body text appears */}
-        <p className="text-on-surface-variant text-[13px] leading-relaxed mb-8 max-w-[340px] mx-auto min-h-[3.5rem]">
+        <p className="text-on-surface-variant text-[13px] leading-relaxed mb-4 max-w-[340px] mx-auto min-h-[3.5rem]">
           {displayBody}
         </p>
+
+        {reason === "trial_active_wrongly_blocked" && trialDaysLeft !== null && trialEndFormatted && (
+          <p className="text-[12px] text-status-info bg-status-info-bg rounded-lg px-3 py-2 mb-8 max-w-[340px] mx-auto">
+            Trial ativo · {trialDaysLeft} dia{trialDaysLeft !== 1 ? "s" : ""} restante{trialDaysLeft !== 1 ? "s" : ""} (vence em {trialEndFormatted})
+          </p>
+        )}
+
+        {reason !== "trial_active_wrongly_blocked" && <div className="mb-4" />}
 
         <div className="flex flex-col gap-3">
           {renderPrimaryCTA()}

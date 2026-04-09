@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useConsultationStore } from "@/stores/consultation-store";
@@ -36,12 +36,18 @@ interface PatientData {
 
 const EMPTY_DATA: PatientData = { problems: [], medications: [], alerts: [] };
 
-export function ConsultationSidebar() {
+interface ConsultationSidebarProps {
+  open?: boolean;
+}
+
+export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) {
   const { patientId, patientName, patient, vitals } = useConsultationStore();
   const [userId, setUserId] = useState<string | null>(null);
   const [patientData, setPatientData] = useState<PatientData>(EMPTY_DATA);
   const [loading, setLoading] = useState(false);
   const [activeNav, setActiveNav] = useState<NavId>("consulta");
+  const isScrollingRef = useRef(false);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const router = useRouter();
 
   useEffect(() => {
@@ -51,6 +57,41 @@ export function ConsultationSidebar() {
         if (user) setUserId(user.id);
       });
   }, []);
+
+  useEffect(() => {
+    const mainEl = document.querySelector("main");
+    const observers: IntersectionObserver[] = [];
+
+    NAV_ITEMS.forEach((item) => {
+      const el = document.getElementById(`section-${item.id}`);
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && !isScrollingRef.current) {
+            setActiveNav(item.id);
+          }
+        },
+        { root: mainEl, threshold: 0.25 }
+      );
+      observer.observe(el);
+      observers.push(observer);
+    });
+
+    return () => {
+      observers.forEach((obs) => obs.disconnect());
+      clearTimeout(scrollTimerRef.current);
+    };
+  }, []);
+
+  function handleNavClick(id: NavId) {
+    setActiveNav(id);
+    isScrollingRef.current = true;
+    clearTimeout(scrollTimerRef.current);
+    scrollTimerRef.current = setTimeout(() => {
+      isScrollingRef.current = false;
+    }, 800);
+    document.getElementById(`section-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   const fetchPatientData = useCallback(async () => {
     if (!patientId || !userId) return;
@@ -101,7 +142,7 @@ export function ConsultationSidebar() {
     vitals.pas && vitals.pad ? `${vitals.pas}/${vitals.pad} mmHg` : null;
 
   return (
-    <aside className="w-64 shrink-0 h-full flex flex-col bg-[#F5F7F6] border-r border-primary/10">
+    <aside className={`w-64 shrink-0 h-full flex-col bg-[#F5F7F6] border-r border-primary/10 ${open ? "flex" : "hidden lg:flex"}`}>
       {/* Header: Patient */}
       <div className="p-3 border-b border-primary/5">
         <div className="flex items-center gap-3 mb-3">
@@ -203,7 +244,7 @@ export function ConsultationSidebar() {
         {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
-            onClick={() => setActiveNav(item.id)}
+            onClick={() => handleNavClick(item.id)}
             className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
               activeNav === item.id
                 ? "text-primary font-bold bg-primary/5 border-l-4 border-primary"

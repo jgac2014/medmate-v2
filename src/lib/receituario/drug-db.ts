@@ -152,6 +152,26 @@ export const DRUG_DB: Drug[] = [
     rxType: "Receita Simples",
     defaultPosology: "Tomar 1 comprimido de 12/12h",
   },
+  {
+    id: "bisoprolol-5",
+    name: "Bisoprolol 5mg",
+    form: "Comprimido",
+    manufacturer: "EMS",
+    type: "simples",
+    flag: null,
+    rxType: "Receita Simples",
+    defaultPosology: "Tomar 1 comprimido 1x/dia pela manhã",
+  },
+  {
+    id: "bisoprolol-10",
+    name: "Bisoprolol 10mg",
+    form: "Comprimido",
+    manufacturer: "EMS",
+    type: "simples",
+    flag: null,
+    rxType: "Receita Simples",
+    defaultPosology: "Tomar 1 comprimido 1x/dia pela manhã",
+  },
 
   // ── Diuréticos ─────────────────────────────────────────────
   {
@@ -560,6 +580,26 @@ export const DRUG_DB: Drug[] = [
     rxType: "Notificação Branca",
     defaultPosology: "Tomar 1 cápsula de 8/8h se dor. Máx 400mg/dia.",
   },
+  {
+    id: "morfina-10",
+    name: "Morfina 10mg",
+    form: "Comprimido",
+    manufacturer: "EMS",
+    type: "ctrl",
+    flag: "A3",
+    rxType: "Notificação Branca",
+    defaultPosology: "Tomar 1 comprimido de 4/4h (titular conforme resposta — dor oncológica)",
+  },
+  {
+    id: "morfina-30",
+    name: "Morfina 30mg",
+    form: "Comprimido",
+    manufacturer: "EMS",
+    type: "ctrl",
+    flag: "A3",
+    rxType: "Notificação Branca",
+    defaultPosology: "Tomar 1 comprimido de 4/4h (titular conforme resposta — dor oncológica)",
+  },
 
   // ═══════════════════════════════════════════════════════════
   // CORTICOIDES
@@ -821,6 +861,26 @@ export const DRUG_DB: Drug[] = [
     flag: "B1",
     rxType: "Notificação Branca",
     defaultPosology: "Tomar 1 comprimido de 8/8h. Não interromper abruptamente.",
+  },
+  {
+    id: "lorazepam-1",
+    name: "Lorazepam 1mg",
+    form: "Comprimido",
+    manufacturer: "EMS",
+    type: "ctrl",
+    flag: "B1",
+    rxType: "Notificação Branca",
+    defaultPosology: "Tomar 1 comprimido 2-3x/dia conforme necessário (uso curto prazo)",
+  },
+  {
+    id: "lorazepam-2",
+    name: "Lorazepam 2mg",
+    form: "Comprimido",
+    manufacturer: "EMS",
+    type: "ctrl",
+    flag: "B1",
+    rxType: "Notificação Branca",
+    defaultPosology: "Tomar 1 comprimido 2x/dia conforme necessário (uso curto prazo)",
   },
   {
     id: "zolpidem-10",
@@ -1944,6 +2004,36 @@ export const DRUG_DB: Drug[] = [
     rxType: "Receita Simples",
     defaultPosology: "Tomar 1 comprimido 1-2x/dia",
   },
+  {
+    id: "acido-salicilico-2",
+    name: "Ácido Salicílico 2% Creme",
+    form: "Creme",
+    manufacturer: "EMS",
+    type: "simples",
+    flag: null,
+    rxType: "Receita Simples",
+    defaultPosology: "Aplicar fina camada na área afetada 1-2x/dia após higienização",
+  },
+  {
+    id: "acido-salicilico-5",
+    name: "Ácido Salicílico 5% Creme",
+    form: "Creme",
+    manufacturer: "EMS",
+    type: "simples",
+    flag: null,
+    rxType: "Receita Simples",
+    defaultPosology: "Aplicar fina camada na área afetada 1x/dia (queratolítico)",
+  },
+  {
+    id: "miconazol-2-creme",
+    name: "Miconazol 2% Creme",
+    form: "Creme",
+    manufacturer: "EMS",
+    type: "simples",
+    flag: null,
+    rxType: "Receita Simples",
+    defaultPosology: "Aplicar na área afetada 2x/dia por 2-4 semanas",
+  },
 
   // ═══════════════════════════════════════════════════════════
   // ANTIPARKINSONIANOS
@@ -2981,6 +3071,18 @@ export const DRUG_DB: Drug[] = [
     defaultPosology: "Tomar 1 comprimido 1x/dia pela manhã",
   },
   {
+    id: "dapagliflozina-10",
+    name: "Dapagliflozina 10mg",
+    form: "Comprimido",
+    manufacturer: "AstraZeneca",
+    type: "simples",
+    flag: null,
+    rxType: "Receita Simples",
+    defaultPosology: "Tomar 1 comprimido 1x/dia pela manhã",
+  },
+
+  // ── Agonistas GLP-1 (GLP-1 RA) ──
+  {
     id: "liraglutida-6",
     name: "Liraglutida 6mg/mL",
     form: "Solução injetável",
@@ -2989,6 +3091,26 @@ export const DRUG_DB: Drug[] = [
     flag: null,
     rxType: "Receita Simples",
     defaultPosology: "Aplicar via subcutânea 1x/dia",
+  },
+  {
+    id: "semaglutida-0.5",
+    name: "Semaglutida 0,5mg/dose",
+    form: "Solução injetável",
+    manufacturer: "Novo Nordisk",
+    type: "simples",
+    flag: null,
+    rxType: "Receita Simples",
+    defaultPosology: "Aplicar 0,5mg SC 1x/semana (mesma dia da semana)",
+  },
+  {
+    id: "semaglutida-1.0",
+    name: "Semaglutida 1,0mg/dose",
+    form: "Solução injetável",
+    manufacturer: "Novo Nordisk",
+    type: "simples",
+    flag: null,
+    rxType: "Receita Simples",
+    defaultPosology: "Aplicar 1mg SC 1x/semana após ≥4 semanas de 0,5mg",
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -3043,6 +3165,16 @@ export const DRUG_DB: Drug[] = [
     flag: null,
     rxType: "Receita Simples",
     defaultPosology: "Inalar 2 jatos 1x/dia",
+  },
+  {
+    id: "roflumilaste-500",
+    name: "Roflumilaste 500mcg",
+    form: "Comprimido",
+    manufacturer: "Takeda",
+    type: "simples",
+    flag: null,
+    rxType: "Receita Simples",
+    defaultPosology: "Tomar 1 comprimido 1x/dia (DPOC moderada-grave com bronquite crônica frequente)",
   },
   {
     id: "formoterol-12",
@@ -3265,6 +3397,16 @@ export const DRUG_DB: Drug[] = [
     flag: null,
     rxType: "Receita Simples",
     defaultPosology: "Tomar 1 comprimido de 8/8h",
+  },
+  {
+    id: "propiltiouracil-100",
+    name: "Propiltiouracil 100mg",
+    form: "Comprimido",
+    manufacturer: "EMS",
+    type: "simples",
+    flag: null,
+    rxType: "Receita Simples",
+    defaultPosology: "Tomar 1 comprimido de 8/8h (dose inicial — ajustar conforme TSH/T4L)",
   },
   {
     id: "propranolol-40-tireoide",

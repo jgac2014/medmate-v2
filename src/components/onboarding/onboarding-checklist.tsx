@@ -19,9 +19,9 @@ const STEPS = [
     key: "consultationStarted" as const,
     num: "2",
     title: "Inicie uma consulta",
-    desc: "Selecione o paciente e abra o workspace clínico.",
-    href: "/consulta",
-    cta: "Abrir Consulta",
+    desc: "Vá para Pacientes, selecione o paciente e clique em 'Nova consulta'.",
+    href: "/pacientes",
+    cta: "Ir para Pacientes",
   },
   {
     key: "summaryCopied" as const,

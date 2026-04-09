@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PatientSelector } from "@/components/consultation/patient-selector";
 import { showToast } from "@/components/ui/toast";
 import { prepareConsultationForPatient } from "@/lib/consultation/patient-context";
+import { trackEvent } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase/client";
 import { useConsultationStore } from "@/stores/consultation-store";
 import type { Patient } from "@/types";
@@ -62,6 +63,7 @@ export default function NovaConsultaPage() {
       subjective: queixa.trim(),
     });
 
+    trackEvent("consultation_started");
     setPatientSelectorOpen(false);
     showToast(`Nova consulta — ${patient.name}`, "info");
     router.push("/consulta");
