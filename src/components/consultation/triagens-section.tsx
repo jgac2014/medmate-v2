@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useShallow } from "zustand/react/shallow";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { ALL_SCALES, computeScore } from "@/lib/triagens/scales";
 import type { ScaleDef, InterpretLevel } from "@/lib/triagens/types";
@@ -24,10 +23,9 @@ interface ScaleCardProps {
 }
 
 function ScaleCard({ scale, gender }: ScaleCardProps) {
-  const { triagens, setTriagemResult, clearTriagemResult } = useConsultationStore(
-    useShallow((s) => ({ triagens: s.triagens, setTriagemResult: s.setTriagemResult, clearTriagemResult: s.clearTriagemResult }))
-  );
-  const saved = triagens[scale.id];
+  const saved = useConsultationStore((s) => s.triagens[scale.id]);
+  const setTriagemResult = useConsultationStore((s) => s.setTriagemResult);
+  const clearTriagemResult = useConsultationStore((s) => s.clearTriagemResult);
 
   const [open, setOpen] = useState(false);
   const [answers, setAnswers] = useState<Record<string, number>>(saved?.answers ?? {});
@@ -177,11 +175,10 @@ function ScaleCard({ scale, gender }: ScaleCardProps) {
 }
 
 export function TriagensSection() {
-  const { triagens, patient } = useConsultationStore(
-    useShallow((s) => ({ triagens: s.triagens, patient: s.patient }))
-  );
+  const appliedCount = useConsultationStore((s) => Object.keys(s.triagens).length);
+  const gender = useConsultationStore((s) => s.patient.gender);
 
-  const applied = ALL_SCALES.filter((s) => triagens[s.id]);
+  const applied = { length: appliedCount };
 
   return (
     <div className="space-y-3">
@@ -203,7 +200,7 @@ export function TriagensSection() {
       {/* Cards das escalas */}
       <div className="space-y-2">
         {ALL_SCALES.map((scale) => (
-          <ScaleCard key={scale.id} scale={scale} gender={patient.gender} />
+          <ScaleCard key={scale.id} scale={scale} gender={gender} />
         ))}
       </div>
     </div>
