@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { ALL_SCALES, computeScore } from "@/lib/triagens/scales";
 import type { ScaleDef, InterpretLevel } from "@/lib/triagens/types";
@@ -24,7 +25,7 @@ interface ScaleCardProps {
 
 function ScaleCard({ scale, gender }: ScaleCardProps) {
   const { triagens, setTriagemResult, clearTriagemResult } = useConsultationStore(
-    (s) => ({ triagens: s.triagens, setTriagemResult: s.setTriagemResult, clearTriagemResult: s.clearTriagemResult })
+    useShallow((s) => ({ triagens: s.triagens, setTriagemResult: s.setTriagemResult, clearTriagemResult: s.clearTriagemResult }))
   );
   const saved = triagens[scale.id];
 
@@ -177,7 +178,7 @@ function ScaleCard({ scale, gender }: ScaleCardProps) {
 
 export function TriagensSection() {
   const { triagens, patient } = useConsultationStore(
-    (s) => ({ triagens: s.triagens, patient: s.patient })
+    useShallow((s) => ({ triagens: s.triagens, patient: s.patient }))
   );
 
   const applied = ALL_SCALES.filter((s) => triagens[s.id]);
