@@ -88,6 +88,10 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
+    // DEV bypass: emails em DEV_EMAILS pulam verificacao de assinatura Stripe
+    const devEmails = (process.env.DEV_EMAILS ?? "").split(",").map(e => e.trim()).filter(Boolean);
+    if (devEmails.includes(user.email ?? "")) return supabaseResponse;
+
     const status = profile?.subscription_status ?? null;
     const trialEndsAt = profile?.trial_ends_at ?? null;
 

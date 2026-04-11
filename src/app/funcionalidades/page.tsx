@@ -9,7 +9,7 @@ const PILLARS = [
     icon: "person",
     title: "Identificação e sinais vitais",
     desc: "Cadastro completo com cálculo automático de IMC, TFG e alertas clínicos por valores de referência.",
-    detail: "PA, FC, peso, altura, temperatura — tudo calculado e contextualizado em tempo real conforme você digita.",
+    detail: "PA, FC, peso, altura, temperatura: tudo calculado e contextualizado em tempo real conforme você digita.",
   },
   {
     icon: "list_alt",
@@ -21,7 +21,7 @@ const PILLARS = [
     icon: "science",
     title: "Exames e monitoramento",
     desc: "Resultados com destaque para valores fora de referência. Sparklines de tendência ao longo do tempo.",
-    detail: "Lipidograma, função renal (TFG), glicemia, hemograma — com valores por faixa etária e sexo.",
+    detail: "Lipidograma, função renal (TFG), glicemia, hemograma, com valores por faixa etária e sexo.",
   },
   {
     icon: "calculate",

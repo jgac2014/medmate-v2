@@ -4,7 +4,13 @@ export type ControlledClass =
   | "A1" | "A2" | "A3" | "B1" | "B2" | "C1" | "C2" | "C3" | "C4" | "C5"
   | "ATB" | null;
 
-export type RxType = "Receita Simples" | "Notificação Branca" | "Notificação Especial Amarela" | "Receita Azul";
+export type RxType =
+  | "Receita Simples"
+  | "Receita Antimicrobiana"          // RDC 20/2011 + RDC 471/2021 — ATB (2 vias, farmácia retém 1 via, válida 10 dias)
+  | "Notificação de Receita B"        // Lista B1/B2 — benzodiazepínicos, barbitúricos (2 vias)
+  | "Receita de Controle Especial"    // Lista C1/C3 — antidepressivos, antipsicóticos, imunossupressores (2 vias brancas)
+  | "Notificação Especial Amarela"    // Lista A1/A2/A3 — opioides fortes, metilfenidato (talonário)
+  | "Receita Azul";                   // Lista C5 — anabolizantes
 
 export interface Drug {
   id: string;

@@ -14,12 +14,13 @@ interface SendScreenProps {
 }
 
 function buildRxType(meds: PrescribedDrug[]): "simples" | "controle_especial" | "misto" {
-  const hasCtrl    = meds.some((m) => m.type === "ctrl");
-  const hasSimples = meds.some((m) => m.type !== "ctrl");
+  const hasCtrl    = meds.some((m) => m.rxType !== "Receita Simples");
+  const hasSimples = meds.some((m) => m.rxType === "Receita Simples");
   if (hasCtrl && hasSimples) return "misto";
   if (hasCtrl) return "controle_especial";
   return "simples";
 }
+// Nota: "Receita Antimicrobiana" é tratada como controle_especial para fins de registro (RDC 20/2011)
 
 function buildWhatsAppText(meds: PrescribedDrug[], patient: RxPatient): string {
   const lines = [
@@ -65,15 +66,23 @@ export function SendScreen({
 }: SendScreenProps) {
   const [downloading, setDownloading] = useState(false);
 
-  const simpleMeds = meds.filter((m) => m.type !== "ctrl");
-  const ctrlMeds   = meds.filter((m) => m.type === "ctrl");
-  const hasSimples = simpleMeds.length > 0;
-  const hasCtrl    = ctrlMeds.length > 0;
+  // Agrupa por rxType conforme ANVISA RDC 20/2011, Portaria 344/1998 + RDC 471/2021
+  const simplesMeds = meds.filter((m) => m.rxType === "Receita Simples");
+  const atbMeds     = meds.filter((m) => m.rxType === "Receita Antimicrobiana");
+  const brancaMeds  = meds.filter((m) => m.rxType === "Notificação de Receita B");
+  const ctrlMeds    = meds.filter((m) => m.rxType === "Receita de Controle Especial");
+  const amarelaMeds = meds.filter((m) => m.rxType === "Notificação Especial Amarela");
+  const azulMeds    = meds.filter((m) => m.rxType === "Receita Azul");
+  const nenhum      = simplesMeds.length === 0 && atbMeds.length === 0 && brancaMeds.length === 0 && ctrlMeds.length === 0 && amarelaMeds.length === 0 && azulMeds.length === 0;
 
   const rxGroups = [
-    ...(hasSimples ? [{ label: "Receita Simples", meds: simpleMeds, isCtrl: false }] : []),
-    ...(hasCtrl    ? [{ label: "Receituário Controle Especial", meds: ctrlMeds, isCtrl: true }] : []),
-    ...(!hasSimples && !hasCtrl ? [{ label: "Receita Simples", meds, isCtrl: false }] : []),
+    ...(simplesMeds.length > 0 ? [{ label: "Receita Simples", meds: simplesMeds, isCtrl: false, via: null as string | null }] : []),
+    ...(atbMeds.length > 0     ? [{ label: "Receita Antimicrobiana (RDC 20/2011)", meds: atbMeds, isCtrl: true, via: "2 vias — farmácia retém 1 via — válida 10 dias" }] : []),
+    ...(brancaMeds.length > 0  ? [{ label: "Notificação de Receita B (Lista B1/B2)", meds: brancaMeds, isCtrl: true, via: "2 vias obrigatórias" }] : []),
+    ...(ctrlMeds.length > 0    ? [{ label: "Receita de Controle Especial (Lista C1/C3)", meds: ctrlMeds, isCtrl: true, via: "2 vias obrigatórias" }] : []),
+    ...(amarelaMeds.length > 0 ? [{ label: "Notificação Especial Amarela (Lista A1/A2/A3)", meds: amarelaMeds, isCtrl: true, via: "Talonário" }] : []),
+    ...(azulMeds.length > 0    ? [{ label: "Receita Azul (Lista C5)", meds: azulMeds, isCtrl: true, via: "2 vias obrigatórias" }] : []),
+    ...(nenhum ? [{ label: "Receita Simples", meds, isCtrl: false, via: null as string | null }] : []),
   ];
 
   async function handleDownloadPdf() {
@@ -162,7 +171,7 @@ export function SendScreen({
           </div>
 
           {/* Resumo dos receituários */}
-          {rxGroups.map(({ label, meds: groupMeds, isCtrl }) => (
+          {rxGroups.map(({ label, meds: groupMeds, isCtrl, via }) => (
             <div
               key={label}
               className={`rounded-2xl border overflow-hidden ${
@@ -181,7 +190,7 @@ export function SendScreen({
                     · {groupMeds.length} {groupMeds.length === 1 ? "item" : "itens"}
                   </span>
                 </div>
-                {isCtrl && <span className="text-[10px] text-purple-600 font-medium">2 vias obrigatórias</span>}
+                {via && <span className="text-[10px] text-purple-600 font-medium">{via}</span>}
               </div>
               <div className="divide-y divide-outline-variant/20 bg-surface-lowest">
                 {groupMeds.map((med) => (

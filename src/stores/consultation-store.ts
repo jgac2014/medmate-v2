@@ -16,7 +16,7 @@ const initialState: ConsultationState = {
   labs: {},
   labsDate: todayISO(),
   imaging: { date: todayISO(), entries: "" },
-  calculations: { imc: null, tfg: null, fib4: null, rcv: null },
+  calculations: { imc: null, tfg: null, fib4: null, rcv: null, ldl: null, naoHdl: null },
   soap: { subjective: "", objective: "", assessment: "", plan: "" },
   history: { personal: "", family: "", habits: "", medications: "", allergies: "", comorbidities: "" },
   prescription: "",

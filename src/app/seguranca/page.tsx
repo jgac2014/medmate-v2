@@ -40,7 +40,7 @@ const PILLARS = [
 const FAQS = [
   {
     q: "Meus dados ficam protegidos?",
-    a: "Sim. Utilizamos criptografia em trânsito (TLS) e em repouso para todos os dados clínicos. Acesso isolado por conta médica — nenhum dado é compartilhado entre usuários.",
+    a: "Sim. Utilizamos criptografia em trânsito (TLS) e em repouso para todos os dados clínicos. Acesso isolado por conta médica, sem compartilhamento de dados entre usuários.",
   },
   {
     q: `O ${BRAND.name} substitui o eSUS PEC?`,
@@ -177,12 +177,17 @@ export default async function SegurancaPage() {
           <h2 className="font-headline text-4xl text-primary font-medium text-center mb-16">
             Dúvidas Frequentes
           </h2>
-          <div className="space-y-6">
+          <div className="space-y-3">
             {FAQS.map((faq) => (
-              <div key={faq.q} className="pb-6 border-b border-outline-variant/20">
-                <h3 className="font-headline text-xl text-primary font-medium mb-3">{faq.q}</h3>
-                <p className="text-secondary leading-relaxed">{faq.a}</p>
-              </div>
+              <details key={faq.q} className="group bg-surface-low border border-outline-variant rounded-xl">
+                <summary className="flex items-center justify-between px-6 py-5 cursor-pointer text-[15px] font-medium list-none [&::-webkit-details-marker]:hidden">
+                  {faq.q}
+                  <svg className="w-5 h-5 text-on-surface-muted shrink-0 ml-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </summary>
+                <div className="px-6 pb-5 text-[14px] text-on-surface-variant leading-relaxed">{faq.a}</div>
+              </details>
             ))}
           </div>
         </div>

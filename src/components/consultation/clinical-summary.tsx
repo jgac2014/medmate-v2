@@ -4,7 +4,7 @@ import { useConsultationStore } from "@/stores/consultation-store";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Tag } from "@/components/ui/tag";
 import { getStatus } from "@/lib/reference-values";
-import { EXAM_CARDS } from "@/lib/constants";
+import { PRIMARY_EXAM_CARDS, ADDITIONAL_EXAM_CARDS } from "@/lib/constants";
 import type { StatusLevel } from "@/types";
 
 function TagGroup({ label, children }: { label: string; children: React.ReactNode }) {
@@ -22,11 +22,12 @@ export function ClinicalSummary() {
   const { patient, vitals, problems, preventions, labs, calculations } = useConsultationStore();
 
   const alteredExams: { label: string; value: string; status: StatusLevel }[] = [];
-  for (const card of EXAM_CARDS) {
-    for (const field of card.fields) {
+  for (const card of [...PRIMARY_EXAM_CARDS, ...ADDITIONAL_EXAM_CARDS]) {
+    const allFields = [...card.primaryFields, ...(card.secondaryFields as readonly { key: string; label: string; unit: string; auto?: boolean }[])];
+    for (const field of allFields) {
       if ("auto" in field && field.auto) continue;
       const val = labs[field.key];
-      if (!val) continue;
+      if (!val || val.trim() === "") continue;
       const num = parseFloat(val);
       if (isNaN(num)) continue;
       const status = getStatus(field.key, num, patient.gender);
@@ -104,14 +105,26 @@ export function ClinicalSummary() {
         </TagGroup>
       )}
 
-      {(calculations.tfg || calculations.fib4 || calculations.rcv) && (
+      {(calculations.tfg || calculations.fib4 || calculations.rcv || calculations.naoHdl) && (
         <TagGroup label="Cálculos">
-          {calculations.tfg && <Tag variant="calc">TFG {calculations.tfg.value} - {calculations.tfg.stage}</Tag>}
-          {calculations.fib4 && <Tag variant="calc">FIB-4 {calculations.fib4.value} - {calculations.fib4.risk}</Tag>}
-          {calculations.rcv && (
-            <Tag variant={calculations.rcv.value >= 20 ? "crit" : calculations.rcv.value >= 10 ? "warn" : "ok"}>
-              RCV {calculations.rcv.value}% - {calculations.rcv.risk}
+          {calculations.tfg && (
+            <Tag variant="calc">TFG {calculations.tfg.value} — {calculations.tfg.stage}</Tag>
+          )}
+          {calculations.tfg?.uacrCategory && (
+            <Tag variant="calc">{calculations.tfg.uacrCategory}</Tag>
+          )}
+          {calculations.fib4 && (
+            <Tag variant={calculations.fib4.lowValidity ? "info" : calculations.fib4.risk === "Alto risco" ? "crit" : calculations.fib4.risk === "Risco indeterminado" ? "warn" : "ok"}>
+              FIB-4 {calculations.fib4.value} — {calculations.fib4.risk}
             </Tag>
+          )}
+          {calculations.rcv && !calculations.rcv.outOfRange && (
+            <Tag variant={calculations.rcv.risk === "Alto risco" ? "crit" : calculations.rcv.risk === "Risco intermediário" ? "warn" : "ok"}>
+              RCV {calculations.rcv.value}% — {calculations.rcv.risk}
+            </Tag>
+          )}
+          {calculations.naoHdl && (
+            <Tag variant="calc">Não-HDL {calculations.naoHdl.value} mg/dL</Tag>
           )}
         </TagGroup>
       )}

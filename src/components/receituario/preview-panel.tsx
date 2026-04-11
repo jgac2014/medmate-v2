@@ -24,8 +24,7 @@ function SimplesPreview({
   doctor,
   customization,
 }: Omit<PreviewPanelProps, "onCustomize">) {
-  const simpleMeds = meds.filter((m) => m.type !== "ctrl");
-  const allMeds = simpleMeds.length > 0 ? simpleMeds : meds;
+  const allMeds = meds;
 
   const align = customization.align === "center" ? "text-center" : "text-left";
   const spacing = SPACING_MAP[customization.lineSpacing];
@@ -131,8 +130,10 @@ function EspecialPreview({
   patient,
   doctor,
   customization,
-}: Omit<PreviewPanelProps, "onCustomize">) {
-  const ctrlMeds = meds.filter((m) => m.type === "ctrl");
+  title = "RECEITUÁRIO DE CONTROLE ESPECIAL",
+  subtitle = "Notificação de Receita — 2 vias",
+}: Omit<PreviewPanelProps, "onCustomize"> & { title?: string; subtitle?: string }) {
+  const ctrlMeds = meds;
   const spacing = SPACING_MAP[customization.lineSpacing];
 
   return (
@@ -173,9 +174,9 @@ function EspecialPreview({
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div>
                   <p style={{ fontWeight: 700, fontSize: "11px", textTransform: "uppercase" }}>
-                    RECEITUÁRIO DE CONTROLE ESPECIAL
+                    {title}
                   </p>
-                  <p style={{ fontSize: "9px", color: "#6b7280" }}>Notificação de Receita — 2 vias</p>
+                  <p style={{ fontSize: "9px", color: "#6b7280" }}>{subtitle}</p>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <p style={{ fontSize: "9px", color: "#6b7280" }}>DATA</p>
@@ -266,12 +267,22 @@ function EspecialPreview({
 }
 
 export function PreviewPanel({ meds, patient, doctor, customization, onCustomize }: PreviewPanelProps) {
-  const hasCtrl = meds.some((m) => m.type === "ctrl");
-  const hasSimples = meds.some((m) => m.type !== "ctrl");
-  const hasOnly = !hasSimples && hasCtrl;
+  const simplesMeds = meds.filter((m) => m.rxType === "Receita Simples");
+  const atbMeds     = meds.filter((m) => m.rxType === "Receita Antimicrobiana");
+  const brancaMeds  = meds.filter((m) => m.rxType === "Notificação de Receita B");
+  const ctrlMeds    = meds.filter((m) => m.rxType === "Receita de Controle Especial");
+  const amarelaMeds = meds.filter((m) => m.rxType === "Notificação Especial Amarela");
+  const azulMeds    = meds.filter((m) => m.rxType === "Receita Azul");
 
-  const showSimples = hasSimples || meds.length === 0;
-  const showEspecial = hasCtrl;
+  const hasCtrl = atbMeds.length > 0 || brancaMeds.length > 0 || ctrlMeds.length > 0 || amarelaMeds.length > 0 || azulMeds.length > 0;
+
+  // Fallback: nenhum rxType reconhecido → mostra tudo como simples
+  const effectiveSimples = simplesMeds.length > 0
+    ? simplesMeds
+    : !hasCtrl ? meds : [];
+
+  const totalReceitas = [effectiveSimples, atbMeds, brancaMeds, ctrlMeds, amarelaMeds, azulMeds].filter((g) => g.length > 0).length;
+  const hasMultiple = totalReceitas > 1;
 
   return (
     <div className="relative h-full flex flex-col">
@@ -281,9 +292,9 @@ export function PreviewPanel({ meds, patient, doctor, customization, onCustomize
           <span className="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wide">
             Pré-visualização
           </span>
-          {hasCtrl && hasSimples && (
+          {hasMultiple && (
             <span className="px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-800 rounded-full border border-amber-200">
-              2 receitas geradas
+              {totalReceitas} receitas geradas
             </span>
           )}
         </div>
@@ -301,34 +312,88 @@ export function PreviewPanel({ meds, patient, doctor, customization, onCustomize
       {/* Paper area */}
       <div className="flex-1 overflow-y-auto bg-surface-low px-6 py-6">
         <div className="space-y-6" style={{ maxWidth: "210mm" }}>
-          {showSimples && !hasOnly && (
+          {effectiveSimples.length > 0 || meds.length === 0 ? (
             <div>
-              {hasCtrl && hasSimples && (
+              {hasMultiple && (
                 <p className="text-[11px] font-semibold text-on-surface-muted uppercase tracking-wide mb-2">
                   Receita Simples
                 </p>
               )}
-              <SimplesPreview
-                meds={meds}
-                patient={patient}
-                doctor={doctor}
-                customization={customization}
+              <SimplesPreview meds={effectiveSimples} patient={patient} doctor={doctor} customization={customization} />
+            </div>
+          ) : null}
+
+          {atbMeds.length > 0 && (
+            <div>
+              {hasMultiple && (
+                <p className="text-[11px] font-semibold text-on-surface-muted uppercase tracking-wide mb-2">
+                  Receita Antimicrobiana
+                </p>
+              )}
+              <EspecialPreview
+                meds={atbMeds} patient={patient} doctor={doctor} customization={customization}
+                title="RECEITA ANTIMICROBIANA"
+                subtitle="Farmácia retém uma via — Válida por 10 dias (RDC 20/2011)"
               />
             </div>
           )}
 
-          {showEspecial && (
+          {brancaMeds.length > 0 && (
             <div>
-              {hasCtrl && hasSimples && (
+              {hasMultiple && (
                 <p className="text-[11px] font-semibold text-on-surface-muted uppercase tracking-wide mb-2">
-                  Receituário de Controle Especial
+                  Notificação de Receita B
                 </p>
               )}
               <EspecialPreview
-                meds={meds}
-                patient={patient}
-                doctor={doctor}
-                customization={customization}
+                meds={brancaMeds} patient={patient} doctor={doctor} customization={customization}
+                title="NOTIFICAÇÃO DE RECEITA B"
+                subtitle="Notificação de Receita B (Branca) — 2 vias"
+              />
+            </div>
+          )}
+
+          {ctrlMeds.length > 0 && (
+            <div>
+              {hasMultiple && (
+                <p className="text-[11px] font-semibold text-on-surface-muted uppercase tracking-wide mb-2">
+                  Receita de Controle Especial
+                </p>
+              )}
+              <EspecialPreview
+                meds={ctrlMeds} patient={patient} doctor={doctor} customization={customization}
+                title="RECEITA DE CONTROLE ESPECIAL"
+                subtitle="Receita de Controle Especial — 2 vias"
+              />
+            </div>
+          )}
+
+          {amarelaMeds.length > 0 && (
+            <div>
+              {hasMultiple && (
+                <p className="text-[11px] font-semibold text-on-surface-muted uppercase tracking-wide mb-2">
+                  Notificação de Receita A
+                </p>
+              )}
+              <EspecialPreview
+                meds={amarelaMeds} patient={patient} doctor={doctor} customization={customization}
+                title="NOTIFICAÇÃO DE RECEITA A"
+                subtitle="Notificação de Receita A (Especial) — Talonário"
+              />
+            </div>
+          )}
+
+          {azulMeds.length > 0 && (
+            <div>
+              {hasMultiple && (
+                <p className="text-[11px] font-semibold text-on-surface-muted uppercase tracking-wide mb-2">
+                  Receita de Controle Especial Azul
+                </p>
+              )}
+              <EspecialPreview
+                meds={azulMeds} patient={patient} doctor={doctor} customization={customization}
+                title="RECEITA DE CONTROLE ESPECIAL AZUL"
+                subtitle="Receita de Controle Especial — 2 vias"
               />
             </div>
           )}

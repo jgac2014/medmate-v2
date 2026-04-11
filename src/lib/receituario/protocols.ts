@@ -86,16 +86,6 @@ export const PROTOCOLS: Protocol[] = [
     ],
   },
   {
-    key: "candidiase-vaginal",
-    label: "Candidíase Vulvovaginal",
-    subtitle: "Tratamento tópico ou oral",
-    icon: "🍄",
-    drugs: [
-      { drugId: "fluconazol-150", posologyOverride: "Tomar 1 cápsula, dose única. Repetir em 7 dias se persistente." },
-      { drugId: "clotrimazol-10", posologyOverride: "Aplicar 1 aplicador à noite por 7 dias" },
-    ],
-  },
-  {
     key: "candidiase-oral",
     label: "Candidíase Oral (Sapinho)",
     subtitle: "Tratamento tópico",

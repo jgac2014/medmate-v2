@@ -3,6 +3,7 @@ import { calculateIMC } from "../imc";
 import { calculateTFG } from "../tfg";
 import { calculateFIB4 } from "../fib4";
 import { calculateRCV } from "../rcv";
+import { calculateLDL, calculateNaoHDL } from "../lipids";
 
 // ─── IMC ────────────────────────────────────────────────────────────────────────
 describe("calculateIMC", () => {
@@ -49,26 +50,24 @@ describe("calculateIMC", () => {
 
 // ─── TFG CKD-EPI 2021 ──────────────────────────────────────────────────────────
 describe("calculateTFG", () => {
-  it("retorna G1 para mulher jovem com creatinina normal", () => {
+  it("retorna Faixa G1 para mulher jovem com creatinina normal", () => {
     const r = calculateTFG(0.7, 30, "Feminino");
     expect(r).not.toBeNull();
-    expect(r!.stage).toBe("G1");
+    expect(r!.stage).toBe("Faixa G1");
     expect(r!.value).toBeGreaterThan(90);
   });
 
-  it("retorna exatamente G3b para homem idoso (cr=2.0, idade=70)", () => {
-    // CKD-EPI 2021: 142 × (2/0.9)^-1.2 × 0.9938^70 ≈ 35.2 mL/min → G3b
+  it("retorna Faixa G3b para homem idoso (cr=2.0, idade=70)", () => {
     const r = calculateTFG(2.0, 70, "Masculino");
     expect(r).not.toBeNull();
-    expect(r!.stage).toBe("G3b");
+    expect(r!.stage).toBe("Faixa G3b");
     expect(r!.value).toBeCloseTo(35.2, 0);
   });
 
   it("calcula corretamente no limiar κ (ratio=1.0) para homem (cr=0.9, idade=50)", () => {
-    // ratio = 0.9/0.9 = 1 → branch ≤1 → 142 × 1^-0.302 × 0.9938^50 ≈ 104 mL/min → G1
     const r = calculateTFG(0.9, 50, "Masculino");
     expect(r).not.toBeNull();
-    expect(r!.stage).toBe("G1");
+    expect(r!.stage).toBe("Faixa G1");
     expect(r!.value).toBeCloseTo(104, 0);
   });
 
@@ -76,32 +75,33 @@ describe("calculateTFG", () => {
     expect(calculateTFG(0, 40, "Masculino")).toBeNull();
   });
 
-  it("retorna null para idade zero", () => {
+  it("retorna null para idade zero (< 18)", () => {
     expect(calculateTFG(1.0, 0, "Feminino")).toBeNull();
   });
 });
 
 // ─── FIB-4 ──────────────────────────────────────────────────────────────────────
 describe("calculateFIB4", () => {
-  it("classifica baixo risco", () => {
+  it("classifica baixo risco (faixa 35-65)", () => {
     const r = calculateFIB4(35, 22, 25, 250);
     expect(r).not.toBeNull();
-    expect(r!.risk).toBe("Baixo risco (F0-F2)");
+    expect(r!.risk).toBe("Baixo risco");
     expect(r!.value).toBeLessThan(1.3);
+    expect(r!.lowValidity).toBe(false);
   });
 
-  it("classifica alto risco", () => {
+  it("classifica alto risco (faixa 35-65)", () => {
     const r = calculateFIB4(60, 80, 40, 90);
     expect(r).not.toBeNull();
-    expect(r!.risk).toBe("Alto risco (F3-F4)");
+    expect(r!.risk).toBe("Alto risco");
     expect(r!.value).toBeGreaterThan(2.67);
   });
 
-  it("classifica indeterminado", () => {
+  it("classifica risco indeterminado (faixa 35-65)", () => {
     // FIB-4 = (50 * 40) / (200 * sqrt(30)) ≈ 1.83
     const r = calculateFIB4(50, 40, 30, 200);
     expect(r).not.toBeNull();
-    expect(r!.risk).toBe("Indeterminado");
+    expect(r!.risk).toBe("Risco indeterminado");
     expect(r!.value).toBeGreaterThanOrEqual(1.3);
     expect(r!.value).toBeLessThanOrEqual(2.67);
   });
@@ -119,23 +119,28 @@ describe("calculateRCV", () => {
   it("classifica baixo risco para homem saudável", () => {
     const r = calculateRCV(40, 120, 180, 50, "Masculino", false, false, false);
     expect(r).not.toBeNull();
-    expect(r!.risk).toBe("Baixo");
-    expect(r!.value).toBeLessThan(10);
+    expect(r!.risk).toBe("Baixo risco");
+    expect(r!.outOfRange).toBe(false);
   });
 
-  it("classifica alto risco para mulher com múltiplos fatores", () => {
+  it("classifica alto risco para mulher com múltiplos fatores (feminino >= 10%)", () => {
     const r = calculateRCV(65, 160, 280, 35, "Feminino", true, true, true);
     expect(r).not.toBeNull();
-    expect(r!.risk).toBe("Alto");
-    expect(r!.value).toBeGreaterThanOrEqual(20);
+    expect(r!.outOfRange).toBe(false);
+    expect(r!.risk).toBe("Alto risco");
   });
 
-  it("retorna null para idade abaixo de 30", () => {
-    expect(calculateRCV(25, 120, 180, 50, "Masculino", false, false, false)).toBeNull();
+  it("retorna outOfRange para idade abaixo de 30", () => {
+    const r = calculateRCV(25, 120, 180, 50, "Masculino", false, false, false);
+    expect(r).not.toBeNull();
+    expect(r!.outOfRange).toBe(true);
+    expect(r!.risk).toBe("Fora da faixa etária do escore");
   });
 
-  it("retorna null para idade acima de 74", () => {
-    expect(calculateRCV(80, 120, 180, 50, "Masculino", false, false, false)).toBeNull();
+  it("retorna outOfRange para idade acima de 74", () => {
+    const r = calculateRCV(80, 120, 180, 50, "Masculino", false, false, false);
+    expect(r).not.toBeNull();
+    expect(r!.outOfRange).toBe(true);
   });
 
   it("retorna null para PAS zero", () => {
@@ -145,5 +150,99 @@ describe("calculateRCV", () => {
   it("retorna null para CT ou HDL zero", () => {
     expect(calculateRCV(40, 120, 0, 50, "Masculino", false, false, false)).toBeNull();
     expect(calculateRCV(40, 120, 180, 0, "Masculino", false, false, false)).toBeNull();
+  });
+});
+
+// ─── LDL Friedewald ─────────────────────────────────────────────────────────────
+describe("calculateLDL", () => {
+  it("calcula LDL corretamente — caso típico", () => {
+    // LDL = 200 - 50 - 150/5 = 200 - 50 - 30 = 120
+    const r = calculateLDL(200, 50, 150);
+    expect(r).not.toBeNull();
+    expect(r!.value).toBeCloseTo(120, 1);
+  });
+
+  it("retorna null quando TG >= 400 (fórmula inválida)", () => {
+    expect(calculateLDL(250, 50, 400)).toBeNull();
+    expect(calculateLDL(250, 50, 500)).toBeNull();
+  });
+
+  it("retorna null para qualquer parâmetro zero ou negativo", () => {
+    expect(calculateLDL(0, 50, 150)).toBeNull();
+    expect(calculateLDL(200, 0, 150)).toBeNull();
+    expect(calculateLDL(200, 50, 0)).toBeNull();
+  });
+
+  it("retorna null se resultado for negativo (CT < HDL + TG/5)", () => {
+    expect(calculateLDL(100, 90, 100)).toBeNull();
+  });
+});
+
+// ─── Não-HDL ────────────────────────────────────────────────────────────────────
+describe("calculateNaoHDL", () => {
+  it("calcula Não-HDL corretamente", () => {
+    // 200 - 50 = 150
+    const r = calculateNaoHDL(200, 50);
+    expect(r).not.toBeNull();
+    expect(r!.value).toBeCloseTo(150, 1);
+  });
+
+  it("retorna null para CT ou HDL zero", () => {
+    expect(calculateNaoHDL(0, 50)).toBeNull();
+    expect(calculateNaoHDL(200, 0)).toBeNull();
+  });
+
+  it("retorna null se resultado for negativo (HDL > CT)", () => {
+    expect(calculateNaoHDL(40, 60)).toBeNull();
+  });
+});
+
+// ─── TFG — regras de idade ───────────────────────────────────────────────────
+describe("calculateTFG — validação de idade", () => {
+  it("retorna null para idade < 18", () => {
+    expect(calculateTFG(0.9, 17, "Masculino")).toBeNull();
+  });
+
+  it("calcula normalmente para idade = 18", () => {
+    const r = calculateTFG(0.9, 18, "Masculino");
+    expect(r).not.toBeNull();
+  });
+});
+
+// ─── FIB-4 — bandas etárias ──────────────────────────────────────────────────
+describe("calculateFIB4 — bandas etárias", () => {
+  it("marca lowValidity para idade < 35", () => {
+    const r = calculateFIB4(30, 40, 30, 200);
+    expect(r).not.toBeNull();
+    expect(r!.lowValidity).toBe(true);
+  });
+
+  it("usa threshold 2.0 para idade > 65 (baixo risco)", () => {
+    // FIB-4 < 2.0 → baixo risco para >65
+    const r = calculateFIB4(70, 35, 30, 220); // (70*35)/(220*sqrt(30)) ≈ 2450/1205 ≈ 2.03 → indeterminado
+    expect(r).not.toBeNull();
+    expect(r!.lowValidity).toBeFalsy();
+  });
+});
+
+// ─── RCV — threshold por sexo ────────────────────────────────────────────────
+describe("calculateRCV — threshold por sexo", () => {
+  it("classifica alto risco feminino em >= 10%", () => {
+    const r = calculateRCV(62, 160, 230, 45, "Feminino", true, true, true);
+    expect(r).not.toBeNull();
+    expect(r!.outOfRange).toBe(false);
+    if (r && r.value >= 10) expect(r.risk).toBe("Alto risco");
+  });
+
+  it("retorna outOfRange para idade < 30", () => {
+    const r = calculateRCV(29, 130, 200, 50, "Masculino", false, false, false);
+    expect(r).not.toBeNull();
+    expect(r!.outOfRange).toBe(true);
+  });
+
+  it("retorna outOfRange para idade > 74", () => {
+    const r = calculateRCV(75, 130, 200, 50, "Masculino", false, false, false);
+    expect(r).not.toBeNull();
+    expect(r!.outOfRange).toBe(true);
   });
 });

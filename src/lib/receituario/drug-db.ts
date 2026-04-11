@@ -1,4 +1,4 @@
-import type { Drug } from "./types";
+﻿import type { Drug } from "./types";
 
 export const DRUG_DB: Drug[] = [
   // ═══════════════════════════════════════════════════════════
@@ -343,7 +343,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula de 8/8h por 7 dias",
   },
   {
@@ -353,7 +353,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Medley",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido de 12/12h por 7-10 dias",
   },
   {
@@ -363,7 +363,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido 1x/dia por 3-5 dias",
   },
   {
@@ -373,7 +373,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Neo Química",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula de 6/6h por 7 dias",
   },
   {
@@ -383,7 +383,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Medley",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula de 6/6h por 5-7 dias",
   },
   {
@@ -393,7 +393,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido de 12/12h por 7 dias",
   },
   {
@@ -403,7 +403,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido de 8/8h por 7 dias",
   },
   {
@@ -413,7 +413,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula de 12/12h por 7 dias",
   },
   {
@@ -423,7 +423,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido de 6/6h por 7 dias",
   },
   {
@@ -433,7 +433,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido de 12/12h por 7-14 dias",
   },
   {
@@ -443,7 +443,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Zambon",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Dissolver 1 sachê em água, dose única",
   },
   {
@@ -453,7 +453,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Abbott",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido de 12/12h por 7 dias",
   },
   {
@@ -463,7 +463,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Farmanguinhos",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Aplicar IM dose única",
   },
 
@@ -566,8 +566,8 @@ export const DRUG_DB: Drug[] = [
     form: "Comprimido",
     manufacturer: "Cristália",
     type: "ctrl",
-    flag: "A3",
-    rxType: "Notificação Branca",
+    flag: "A2",
+    rxType: "Notificação Especial Amarela",
     defaultPosology: "Tomar 1 comprimido de 6/6h se dor intensa",
   },
   {
@@ -577,7 +577,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Cristália",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula de 8/8h se dor. Máx 400mg/dia.",
   },
   {
@@ -586,8 +586,8 @@ export const DRUG_DB: Drug[] = [
     form: "Comprimido",
     manufacturer: "EMS",
     type: "ctrl",
-    flag: "A3",
-    rxType: "Notificação Branca",
+    flag: "A2",
+    rxType: "Notificação Especial Amarela",
     defaultPosology: "Tomar 1 comprimido de 4/4h (titular conforme resposta — dor oncológica)",
   },
   {
@@ -596,8 +596,8 @@ export const DRUG_DB: Drug[] = [
     form: "Comprimido",
     manufacturer: "EMS",
     type: "ctrl",
-    flag: "A3",
-    rxType: "Notificação Branca",
+    flag: "A2",
+    rxType: "Notificação Especial Amarela",
     defaultPosology: "Tomar 1 comprimido de 4/4h (titular conforme resposta — dor oncológica)",
   },
 
@@ -709,7 +709,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula pela manhã",
   },
   {
@@ -719,7 +719,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Pfizer",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido pela manhã",
   },
   {
@@ -729,7 +729,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Pfizer",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido pela manhã",
   },
   {
@@ -739,7 +739,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido à noite",
   },
   {
@@ -749,7 +749,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido à noite",
   },
   {
@@ -759,7 +759,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "GSK",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido pela manhã por 7 dias, depois 1 comprimido 2x/dia",
   },
   {
@@ -769,7 +769,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Lundbeck",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -779,7 +779,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Lundbeck",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -789,7 +789,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Wyeth",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula pela manhã",
   },
   {
@@ -799,7 +799,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Janssen",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -809,7 +809,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Janssen",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 12/12h",
   },
   {
@@ -819,7 +819,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Roche",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Tomar ½ comprimido à noite. Não interromper abruptamente.",
   },
   {
@@ -829,7 +829,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Roche",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Tomar 1 comprimido à noite. Não interromper abruptamente.",
   },
   {
@@ -839,7 +839,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Roche",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Tomar 1 comprimido à noite se necessário",
   },
   {
@@ -849,7 +849,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Roche",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Tomar 1 comprimido à noite se necessário",
   },
   {
@@ -859,7 +859,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Eurofarma",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Tomar 1 comprimido de 8/8h. Não interromper abruptamente.",
   },
   {
@@ -869,7 +869,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Tomar 1 comprimido 2-3x/dia conforme necessário (uso curto prazo)",
   },
   {
@@ -879,7 +879,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Tomar 1 comprimido 2x/dia conforme necessário (uso curto prazo)",
   },
   {
@@ -889,7 +889,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Sanofi",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Tomar 1 comprimido imediatamente antes de dormir",
   },
   {
@@ -1025,9 +1025,9 @@ export const DRUG_DB: Drug[] = [
     name: "Prometazina 25mg",
     form: "Comprimido",
     manufacturer: "EMS",
-    type: "simples",
-    flag: null,
-    rxType: "Receita Simples",
+    type: "ctrl",
+    flag: "C1",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido à noite se necessário",
   },
 
@@ -1075,7 +1075,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula de 8/8h",
   },
   {
@@ -1085,7 +1085,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Novartis",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 12/12h",
   },
   {
@@ -1095,7 +1095,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Sanofi",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 12/12h",
   },
 
@@ -1531,7 +1531,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Roche",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Aplicar IM/IV 1x/dia por 7-14 dias",
   },
   {
@@ -1541,7 +1541,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Roche",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Aplicar IM/IV de 12/12h",
   },
   {
@@ -1551,7 +1551,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Aplicar IV de 6/6h",
   },
   {
@@ -1561,7 +1561,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Aplicar IV/IM de 8/8h",
   },
   {
@@ -1571,7 +1571,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Pfizer",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula de 6/6h por 7-10 dias",
   },
   {
@@ -1581,7 +1581,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Aplicar IM/IV 1x/dia por 7-10 dias",
   },
   {
@@ -1591,7 +1591,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido de 12/12h por 7-14 dias",
   },
   {
@@ -1601,7 +1601,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "GSK",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido de 12/12h por 7 dias",
   },
   {
@@ -1611,7 +1611,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Abbott",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula de 12/12h por 7-10 dias",
   },
   {
@@ -1621,7 +1621,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula de 6/6h por 7-14 dias",
   },
   {
@@ -1631,7 +1631,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula de 6/6h, em jejum",
   },
   {
@@ -1641,7 +1641,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Aplicar IM/IV de 12/12h",
   },
 
@@ -1655,7 +1655,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula 1x/dia, em jejum",
   },
   {
@@ -1663,9 +1663,9 @@ export const DRUG_DB: Drug[] = [
     name: "Isoniazida 300mg",
     form: "Comprimido",
     manufacturer: "EMS",
-    type: "simples",
-    flag: null,
-    rxType: "Receita Simples",
+    type: "atb",
+    flag: "ATB",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido 1x/dia, em jejum",
   },
   {
@@ -1673,9 +1673,9 @@ export const DRUG_DB: Drug[] = [
     name: "Isoniazida 100mg",
     form: "Comprimido",
     manufacturer: "EMS",
-    type: "simples",
-    flag: null,
-    rxType: "Receita Simples",
+    type: "atb",
+    flag: "ATB",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -1683,9 +1683,9 @@ export const DRUG_DB: Drug[] = [
     name: "Pirazinamida 500mg",
     form: "Comprimido",
     manufacturer: "EMS",
-    type: "simples",
-    flag: null,
-    rxType: "Receita Simples",
+    type: "atb",
+    flag: "ATB",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -1693,9 +1693,9 @@ export const DRUG_DB: Drug[] = [
     name: "Etambutol 400mg",
     form: "Comprimido",
     manufacturer: "EMS",
-    type: "simples",
-    flag: null,
-    rxType: "Receita Simples",
+    type: "atb",
+    flag: "ATB",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -1703,9 +1703,9 @@ export const DRUG_DB: Drug[] = [
     name: "Dapsona 100mg",
     form: "Comprimido",
     manufacturer: "EMS",
-    type: "simples",
-    flag: null,
-    rxType: "Receita Simples",
+    type: "atb",
+    flag: "ATB",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -1713,9 +1713,9 @@ export const DRUG_DB: Drug[] = [
     name: "Clofazimina 50mg",
     form: "Cápsula",
     manufacturer: "Novartis",
-    type: "simples",
-    flag: null,
-    rxType: "Receita Simples",
+    type: "atb",
+    flag: "ATB",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula 1x/dia",
   },
   {
@@ -1725,7 +1725,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 1 cápsula 1x/dia, em jejum",
   },
   {
@@ -1735,7 +1735,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar conforme esquema posológico do PCT",
   },
 
@@ -2065,7 +2065,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Abbott",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 12/12h",
   },
 
@@ -2107,9 +2107,9 @@ export const DRUG_DB: Drug[] = [
     name: "Metotrexato 2,5mg",
     form: "Comprimido",
     manufacturer: "EMS",
-    type: "simples",
-    flag: null,
-    rxType: "Receita Simples",
+    type: "ctrl",
+    flag: "C3",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar conforme prescrição. Geralmente 1x/semana",
   },
   {
@@ -2117,9 +2117,9 @@ export const DRUG_DB: Drug[] = [
     name: "Azatioprina 50mg",
     form: "Comprimido",
     manufacturer: "GSK",
-    type: "simples",
-    flag: null,
-    rxType: "Receita Simples",
+    type: "ctrl",
+    flag: "C3",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
 
@@ -2473,9 +2473,9 @@ export const DRUG_DB: Drug[] = [
     name: "Tamoxifeno 20mg",
     form: "Comprimido",
     manufacturer: "EMS",
-    type: "simples",
-    flag: null,
-    rxType: "Receita Simples",
+    type: "ctrl",
+    flag: "C3",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
 
@@ -2489,7 +2489,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 8/8h. Monitorar litemia.",
   },
   {
@@ -2499,7 +2499,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Eli Lilly",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -2509,7 +2509,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Eli Lilly",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -2519,7 +2519,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "AstraZeneca",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido à noite",
   },
   {
@@ -2529,7 +2529,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "AstraZeneca",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 12/12h",
   },
   {
@@ -2539,7 +2539,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "AstraZeneca",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 12/12h",
   },
   {
@@ -2549,7 +2549,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "BMS",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -2559,7 +2559,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "BMS",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -2569,7 +2569,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "GSK",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia. Iniciar com dose baixa.",
   },
   {
@@ -2579,7 +2579,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "GSK",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 12/12h",
   },
   {
@@ -2589,7 +2589,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Janssen",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula à noite. Aumentar gradualmente.",
   },
   {
@@ -2599,7 +2599,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Janssen",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula de 12/12h",
   },
   {
@@ -2609,7 +2609,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Pfizer",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula de 8/8h",
   },
   {
@@ -2619,7 +2619,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Pfizer",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula de 8/8h",
   },
   {
@@ -2629,7 +2629,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Pfizer",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula de 12/12h",
   },
   {
@@ -2639,7 +2639,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Pfizer",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula de 12/12h",
   },
   {
@@ -2649,7 +2649,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Organon",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido à noite",
   },
   {
@@ -2659,7 +2659,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Organon",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido à noite",
   },
   {
@@ -2669,7 +2669,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "GSK",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia pela manhã",
   },
   {
@@ -2679,7 +2679,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Abbott",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido 1x/dia",
   },
   {
@@ -2689,7 +2689,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Eli Lilly",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula 1x/dia",
   },
   {
@@ -2699,7 +2699,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 cápsula à noite",
   },
   {
@@ -2709,7 +2709,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Novartis",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 8/8h",
   },
   {
@@ -2719,7 +2719,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Novartis",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 8/8h",
   },
   {
@@ -2728,8 +2728,8 @@ export const DRUG_DB: Drug[] = [
     form: "Comprimido",
     manufacturer: "EMS",
     type: "ctrl",
-    flag: "B1",
-    rxType: "Notificação Branca",
+    flag: "B2",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Tomar 1 comprimido de 12/12h",
   },
   {
@@ -2739,7 +2739,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 12/12h",
   },
 
@@ -2903,7 +2903,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Cristália",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1 comprimido de 12/12h se dor. Máx 400mg/dia.",
   },
   {
@@ -3511,7 +3511,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 5mL de 8/8h por 7 dias",
   },
   {
@@ -3521,7 +3521,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 5mL de 8/8h por 7 dias",
   },
   {
@@ -3531,7 +3531,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Pfizer",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 5mL 1x/dia por 3-5 dias",
   },
   {
@@ -3541,7 +3541,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "EMS",
     type: "atb",
     flag: "ATB",
-    rxType: "Receita Simples",
+    rxType: "Receita Antimicrobiana",
     defaultPosology: "Tomar 2,5mL de 6/6h por 7 dias",
   },
   {
@@ -3645,7 +3645,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Roche",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Tomar 1 gota 1-2x/dia. Não interromper abruptamente.",
   },
   {
@@ -3655,7 +3655,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Janssen",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 5-10 gotas de 12/12h",
   },
   {
@@ -3665,7 +3665,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Janssen",
     type: "ctrl",
     flag: "C1",
-    rxType: "Notificação Branca",
+    rxType: "Receita de Controle Especial",
     defaultPosology: "Tomar 1mL 1-2x/dia",
   },
 
@@ -3689,7 +3689,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Roche",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Aplicar IM/IV conforme protocolo de emergência",
   },
   {
@@ -3699,7 +3699,7 @@ export const DRUG_DB: Drug[] = [
     manufacturer: "Roche",
     type: "ctrl",
     flag: "B1",
-    rxType: "Notificação Branca",
+    rxType: "Notificação de Receita B",
     defaultPosology: "Aplicar IM/IV conforme protocolo",
   },
   {

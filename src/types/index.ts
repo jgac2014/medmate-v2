@@ -33,9 +33,11 @@ export interface ImagingData {
 
 export interface Calculations {
   imc: { value: number; classification: string } | null;
-  tfg: { value: number; stage: string } | null;
-  fib4: { value: number; risk: string } | null;
-  rcv: { value: number; risk: string } | null;
+  tfg: { value: number; stage: string; uacrCategory?: string } | null;
+  fib4: { value: number; risk: string; lowValidity?: boolean } | null;
+  rcv: { value: number; risk: string; outOfRange?: boolean } | null;
+  ldl: { value: number } | null;
+  naoHdl: { value: number } | null;
 }
 
 export interface SoapNotes {
@@ -83,7 +85,8 @@ export interface ExamFieldDef {
 export interface ExamCardDef {
   id: string;
   title: string;
-  fields: readonly ExamFieldDef[];
+  primaryFields: readonly ExamFieldDef[];
+  secondaryFields?: readonly ExamFieldDef[];
 }
 
 export interface RefRule {

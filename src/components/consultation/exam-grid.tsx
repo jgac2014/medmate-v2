@@ -1,104 +1,128 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState } from "react";
 import { useConsultationStore } from "@/stores/consultation-store";
+import { useExamCalculations } from "@/hooks/useExamCalculations";
 import { SectionHeader } from "@/components/ui/section-header";
 import { DateInput } from "@/components/ui/date-input";
 import { ExamCard } from "./exam-card";
-import { EXAM_CARDS } from "@/lib/constants";
-import { calculateTFG, calculateFIB4, calculateRCV } from "@/lib/calculations";
+import { ClinicalCalculationsCard } from "./clinical-calculations-card";
+import { AdditionalExamsSection } from "./additional-exams-section";
+import { PRIMARY_EXAM_CARDS, EXAM_FIELD_KEYS } from "@/lib/constants";
 import type { ExamCardDef } from "@/types";
 
-const CALC_CARD: ExamCardDef = {
-  id: "calculos",
-  title: "Cálculos Automáticos",
-  fields: [
-    { key: "fib4_auto", label: "FIB-4", unit: "", auto: true },
-    { key: "tfg_auto", label: "TFG CKD-EPI", unit: "mL/min", auto: true },
-    { key: "rcv_auto", label: "RCV Framingham", unit: "%", auto: true },
-  ],
-};
+const renalCard = PRIMARY_EXAM_CARDS.find((c) => c.id === "renal")!;
+const otherPrimaryCards = PRIMARY_EXAM_CARDS.filter((c) => c.id !== "renal");
 
 export function ExamGrid() {
-  const store = useConsultationStore();
-  const { labs, labsDate, setLabsDate, setLab, setCalculations, patient, vitals, problems } = store;
+  const [showAdditional, setShowAdditional] = useState(false);
 
-  // Auto-calculate TFG
-  useEffect(() => {
-    const cr = parseFloat(labs.cr ?? "");
-    const idade = parseInt(patient.age);
-    const sexo = patient.gender;
-    if (!isNaN(cr) && cr > 0 && !isNaN(idade) && (sexo === "Masculino" || sexo === "Feminino")) {
-      const result = calculateTFG(cr, idade, sexo);
-      setLab("tfg", result ? result.value.toString() : "");
-      setLab("tfg_auto", result ? `${result.value} — ${result.stage}` : "");
-      setCalculations({ tfg: result });
-    } else {
-      setLab("tfg", "");
-      setLab("tfg_auto", "");
-      setCalculations({ tfg: null });
+  const labsDate = useConsultationStore((s) => s.labsDate);
+  const setLabsDate = useConsultationStore((s) => s.setLabsDate);
+  const setLab = useConsultationStore((s) => s.setLab);
+  const setCalculations = useConsultationStore((s) => s.setCalculations);
+  const imaging = useConsultationStore((s) => s.imaging);
+  const setImaging = useConsultationStore((s) => s.setImaging);
+  const labsExtras = useConsultationStore((s) => s.labsExtras);
+
+  // Monta os efeitos de cálculo automático (TFG, FIB-4, RCV, LDL, Não-HDL)
+  useExamCalculations();
+
+  function handleClear() {
+    for (const key of EXAM_FIELD_KEYS) {
+      setLab(key, "");
     }
-  }, [labs.cr, patient.age, patient.gender, setLab, setCalculations]);
-
-  // Auto-calculate FIB-4
-  useEffect(() => {
-    const idade = parseInt(patient.age);
-    const ast = parseFloat(labs.ast ?? "");
-    const alt = parseFloat(labs.alt ?? "");
-    const plaq = parseFloat(labs.plaq ?? "");
-    if (!isNaN(idade) && !isNaN(ast) && !isNaN(alt) && !isNaN(plaq) && plaq > 0) {
-      const result = calculateFIB4(idade, ast, alt, plaq);
-      setLab("fib4_auto", result ? `${result.value} — ${result.risk}` : "");
-      setCalculations({ fib4: result });
-    } else {
-      setLab("fib4_auto", "");
-      setCalculations({ fib4: null });
-    }
-  }, [patient.age, labs.ast, labs.alt, labs.plaq, setLab, setCalculations]);
-
-  // Auto-calculate RCV
-  useEffect(() => {
-    const idade = parseInt(patient.age);
-    const pas = parseFloat(vitals.pas);
-    const ct = parseFloat(labs.ct ?? "");
-    const hdl = parseFloat(labs.hdl ?? "");
-    const sexo = patient.gender;
-    const tabagismo = problems.includes("Tabagismo");
-    const dm = problems.includes("DM2");
-    const has = problems.includes("HAS");
-
-    if (!isNaN(idade) && !isNaN(pas) && !isNaN(ct) && !isNaN(hdl) && (sexo === "Masculino" || sexo === "Feminino")) {
-      const result = calculateRCV(idade, pas, ct, hdl, sexo, tabagismo, dm, has);
-      setLab("rcv_auto", result ? `${result.value}% — ${result.risk}` : "");
-      setCalculations({ rcv: result });
-    } else {
-      setLab("rcv_auto", "");
-      setCalculations({ rcv: null });
-    }
-  }, [patient.age, vitals.pas, labs.ct, labs.hdl, patient.gender, problems, setLab, setCalculations]);
+    setCalculations({ tfg: null, fib4: null, rcv: null, ldl: null, naoHdl: null });
+  }
 
   return (
     <div>
+      {/* Cabeçalho da seção */}
       <SectionHeader label="Exames Complementares" color="cyan" />
-      <DateInput label="Data dos exames" value={labsDate} onChange={setLabsDate} />
-      <div className="grid grid-cols-3 gap-[7px] mb-2.5">
-        {EXAM_CARDS.map((card) => (
-          <ExamCard key={card.id} card={card as unknown as ExamCardDef} />
-        ))}
-        <ExamCard card={CALC_CARD} span2 />
+      <p className="text-[10.5px] text-[var(--on-surface-muted)] mb-3 leading-relaxed">
+        Preencha apenas os exames relevantes. Os cálculos clínicos são gerados automaticamente quando houver dados suficientes.
+      </p>
+
+      {/* Barra de ações */}
+      <div className="flex items-center gap-3 mb-3 flex-wrap">
+        <div className="flex-1 min-w-[140px]">
+          <DateInput
+            label="Data dos exames"
+            value={labsDate}
+            onChange={setLabsDate}
+          />
+        </div>
+
+        <div className="flex items-center gap-2 mt-3">
+          <button
+            type="button"
+            onClick={() => setShowAdditional((v) => !v)}
+            className="text-[10.5px] font-medium text-[var(--on-surface-variant)] hover:text-[var(--primary)] transition-colors duration-100 flex items-center gap-1 py-1 px-2 rounded-md hover:bg-[var(--surface-container)]"
+          >
+            <svg
+              className={`w-3 h-3 transition-transform duration-150 ${showAdditional ? "rotate-180" : ""}`}
+              viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"
+            >
+              <path d="M2 4.5L6 8L10 4.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            {showAdditional ? "Ocultar adicionais" : "Mostrar adicionais"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleClear}
+            className="text-[10.5px] font-medium text-[var(--on-surface-muted)] hover:text-[var(--error)] transition-colors duration-100 py-1 px-2 rounded-md hover:bg-[var(--error)]/5"
+          >
+            Limpar
+          </button>
+        </div>
       </div>
+
+      {/* Linha de destaque — Perfil Renal + Cálculos Clínicos lado a lado */}
+      <div className="grid grid-cols-2 gap-[7px] mb-[7px] sm:grid-cols-1">
+        <ExamCard card={renalCard as unknown as ExamCardDef} />
+        <ClinicalCalculationsCard />
+      </div>
+
+      {/* Grid secundário — demais perfis, 3 cols desktop */}
+      <div className="grid grid-cols-3 gap-[7px] mb-2.5 md:grid-cols-2 sm:grid-cols-1">
+        {otherPrimaryCards.map((card) => (
+          <ExamCard
+            key={card.id}
+            card={card as unknown as ExamCardDef}
+          />
+        ))}
+      </div>
+
+      {/* Seção adicional — recolhível */}
+      <AdditionalExamsSection open={showAdditional} />
+
       {/* Outros / Imagens */}
-      <div className="border border-[var(--outline-variant)] rounded-lg p-[10px] bg-[var(--surface-low)]">
+      <div className="border border-[var(--outline-variant)] rounded-lg p-[10px] bg-[var(--surface-low)] mt-2.5">
         <div className="text-[9px] font-bold tracking-[0.09em] uppercase text-[var(--on-surface-variant)] mb-2 pb-1.5 border-b border-[var(--outline-variant)]">
           Outros / Imagens
         </div>
-        <DateInput label="Data" value={store.imaging.date} onChange={(v) => store.setImaging({ date: v })} />
+        <DateInput
+          label="Data"
+          value={imaging.date}
+          onChange={(v) => setImaging({ date: v })}
+        />
         <textarea
           placeholder={"ECG: ritmo sinusal\nUSG abd: esteatose hepática leve"}
-          value={store.imaging.entries}
-          onChange={(e) => store.setImaging({ entries: e.target.value })}
-          className="w-full h-20 px-2 py-[7px] border border-[var(--outline-variant)] rounded-[5px] bg-[var(--surface-container)] text-[var(--on-surface)] font-sans text-xs resize-y leading-relaxed placeholder:text-[var(--on-surface-muted)] focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(1,45,29,0.1)]"
+          value={imaging.entries}
+          onChange={(e) => setImaging({ entries: e.target.value })}
+          className="w-full h-20 px-2 py-[7px] border border-[var(--outline-variant)] rounded-[5px] bg-[var(--surface-container)] text-[var(--on-surface)] font-sans text-xs resize-y leading-relaxed placeholder:text-[var(--on-surface-muted)] focus:outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_2px_rgba(1,45,29,0.1)]"
         />
+        {labsExtras && (
+          <div className="space-y-1 mt-2">
+            <label className="text-[10.5px] font-medium text-[var(--on-surface-muted)] uppercase tracking-wide block">
+              Outros exames
+            </label>
+            <pre className="text-[11px] text-[var(--on-surface)] font-mono whitespace-pre-wrap leading-relaxed">
+              {labsExtras}
+            </pre>
+          </div>
+        )}
       </div>
     </div>
   );

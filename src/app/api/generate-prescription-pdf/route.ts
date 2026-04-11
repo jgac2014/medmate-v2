@@ -257,7 +257,9 @@ async function buildControleEspecialPage(
   pdfDoc: PDFDocument,
   meds: PrescribedDrug[],
   patient: RxPatient,
-  doctor: DoctorProfile
+  doctor: DoctorProfile,
+  pageTitle = "RECEITUÁRIO DE CONTROLE ESPECIAL",
+  pageSubtitle = "Notificação de Receita — 2 vias"
 ): Promise<void> {
   const W = mmToPt(210);
   const H = mmToPt(297);
@@ -318,12 +320,12 @@ async function buildControleEspecialPage(
   // Coluna 2 — título + data + vias
   let cx2 = marginX + col1W + mmToPt(3);
   let cy2 = y - mmToPt(4);
-  page.drawText("RECEITUÁRIO DE CONTROLE ESPECIAL", {
+  page.drawText(pageTitle, {
     x: cx2, y: cy2, size: 9, font: fontBold,
     color: rgb(0.09, 0.11, 0.12),
   });
   cy2 -= 9;
-  page.drawText("Notificação de Receita — 2 vias", {
+  page.drawText(pageSubtitle, {
     x: cx2, y: cy2, size: 7, font: fontReg,
     color: rgb(0.427, 0.478, 0.431),
   });
@@ -462,22 +464,48 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "NO_MEDS" }, { status: 400 });
   }
 
-  const simpleMeds = meds.filter((m) => m.type !== "ctrl");
-  const ctrlMeds   = meds.filter((m) => m.type === "ctrl");
+  // Agrupa por rxType conforme ANVISA RDC 20/2011, Portaria 344/1998 + RDC 471/2021
+  const simplesMeds  = meds.filter((m) => m.rxType === "Receita Simples");
+  const atbMeds      = meds.filter((m) => m.rxType === "Receita Antimicrobiana");         // RDC 20/2011 — 2 vias, farmácia retém 1
+  const brancaMeds   = meds.filter((m) => m.rxType === "Notificação de Receita B");       // Lista B1/B2
+  const ctrlMeds     = meds.filter((m) => m.rxType === "Receita de Controle Especial");   // Lista C1/C3
+  const amarelaMeds  = meds.filter((m) => m.rxType === "Notificação Especial Amarela");   // Lista A1/A2/A3
+  const azulMeds     = meds.filter((m) => m.rxType === "Receita Azul");                   // Lista C5
+
+  const hasCtrl = atbMeds.length > 0 || brancaMeds.length > 0 || ctrlMeds.length > 0 || amarelaMeds.length > 0 || azulMeds.length > 0;
+
+  // Fallback: rxType nao reconhecido ou ausente → trata como Receita Simples
+  const effectiveSimples = simplesMeds.length > 0
+    ? simplesMeds
+    : !hasCtrl ? meds : [];
 
   const pdfDoc = await PDFDocument.create();
   pdfDoc.setTitle(`Receita Médica — ${BRAND.name}`);
   pdfDoc.setAuthor(doctor?.name || BRAND.name);
   pdfDoc.setCreationDate(new Date());
 
-  // Receita Simples (se houver medicamentos simples, ou se todos forem simples)
-  if (simpleMeds.length > 0 || ctrlMeds.length === 0) {
-    await buildSimplesPage(pdfDoc, simpleMeds.length > 0 ? simpleMeds : meds, patient, doctor);
+  if (effectiveSimples.length > 0) {
+    await buildSimplesPage(pdfDoc, effectiveSimples, patient, doctor);
   }
-
-  // Receita de Controle Especial (se houver medicamentos controlados)
+  if (atbMeds.length > 0) {
+    await buildControleEspecialPage(pdfDoc, atbMeds, patient, doctor,
+      "RECEITA ANTIMICROBIANA", "Farmácia retém uma via — Válida por 10 dias (RDC 20/2011)");
+  }
+  if (brancaMeds.length > 0) {
+    await buildControleEspecialPage(pdfDoc, brancaMeds, patient, doctor,
+      "NOTIFICAÇÃO DE RECEITA B", "Notificação de Receita B (Branca) — 2 vias");
+  }
   if (ctrlMeds.length > 0) {
-    await buildControleEspecialPage(pdfDoc, ctrlMeds, patient, doctor);
+    await buildControleEspecialPage(pdfDoc, ctrlMeds, patient, doctor,
+      "RECEITA DE CONTROLE ESPECIAL", "Receita de Controle Especial — 2 vias");
+  }
+  if (amarelaMeds.length > 0) {
+    await buildControleEspecialPage(pdfDoc, amarelaMeds, patient, doctor,
+      "NOTIFICAÇÃO ESPECIAL AMARELA", "Notificação de Receita A — Talonário");
+  }
+  if (azulMeds.length > 0) {
+    await buildControleEspecialPage(pdfDoc, azulMeds, patient, doctor,
+      "RECEITA DE CONTROLE ESPECIAL AZUL", "Receita de Controle Especial — 2 vias");
   }
 
   const pdfBytes = await pdfDoc.save();

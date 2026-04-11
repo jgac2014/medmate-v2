@@ -1,11 +1,12 @@
 import type { Vitals, Calculations } from "@/types";
-import { EXAM_CARDS } from "@/lib/constants";
+import { PRIMARY_EXAM_CARDS, ADDITIONAL_EXAM_CARDS } from "@/lib/constants";
 
-/** Mapa key → label construído a partir de EXAM_CARDS */
+/** Mapa key → label construído a partir de todos os cards de exames */
 const LAB_LABEL_MAP: Record<string, string> = {};
-for (const card of EXAM_CARDS) {
-  for (const field of card.fields) {
-    if (!('auto' in field)) {
+for (const card of [...PRIMARY_EXAM_CARDS, ...ADDITIONAL_EXAM_CARDS]) {
+  const allFields = [...card.primaryFields, ...(card.secondaryFields ?? [])];
+  for (const field of allFields) {
+    if (!("auto" in field) || !field.auto) {
       const unitSuffix = field.unit ? ` (${field.unit})` : "";
       LAB_LABEL_MAP[field.key] = `${field.label}${unitSuffix}`;
     }
@@ -45,7 +46,7 @@ export function formatObjectiveText(
 
   // Exames laboratoriais (apenas preenchidos, excluindo calculados)
   const filledLabs = Object.entries(labs)
-    .filter(([key, value]) => value.trim() !== "" && key !== "tfg" && key !== "homa_ir")
+    .filter(([key, value]) => value.trim() !== "" && key !== "tfg")
     .map(([key, value]) => {
       const label = LAB_LABEL_MAP[key] ?? key;
       return `${label}: ${value}`;

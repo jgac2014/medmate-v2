@@ -13,7 +13,7 @@ function makeState(overrides: Partial<ConsultationState> = {}): ConsultationStat
     labs: {},
     labsDate: "",
     imaging: { date: "", entries: "" },
-    calculations: { imc: null, tfg: null, fib4: null, rcv: null },
+    calculations: { imc: null, tfg: null, fib4: null, rcv: null, ldl: null, naoHdl: null },
     soap: { subjective: "", objective: "", assessment: "", plan: "" },
     history: { personal: "", family: "", habits: "", medications: "", allergies: "", comorbidities: "" },
     prescription: "",
@@ -67,6 +67,8 @@ describe("generateEsusSummary", () => {
         tfg: { value: 85.3, stage: "G2" },
         fib4: { value: 0.8, risk: "Baixo risco (F0-F2)" },
         rcv: { value: 12.5, risk: "Intermediário" },
+        ldl: null,
+        naoHdl: null,
       },
     });
 

@@ -12,6 +12,7 @@ export const PROBLEMS = [
   "ICC",
   "Fibrilação Atrial",
   "Gota",
+  "Osteoporose",
 ] as const;
 
 export const PREVENTIONS = [
@@ -46,118 +47,179 @@ export const RACE_OPTIONS = [
   "Indígena",
 ] as const;
 
-export const EXAM_CARDS = [
+/**
+ * Cards principais — sempre visíveis no grid 3 colunas.
+ * primaryFields: sempre visíveis no card.
+ * secondaryFields: expandidos ao clicar "Mostrar mais".
+ */
+export const PRIMARY_EXAM_CARDS = [
   {
     id: "lipidograma",
     title: "Lipidograma",
-    fields: [
-      { key: "ct", label: "CT", unit: "mg/dL" },
-      { key: "hdl", label: "HDL", unit: "mg/dL" },
-      { key: "ldl", label: "LDL", unit: "mg/dL" },
-      { key: "trig", label: "Triglicérides", unit: "mg/dL" },
-      { key: "nao_hdl", label: "Não-HDL", unit: "mg/dL" },
+    primaryFields: [
+      { key: "ct", label: "Colesterol total", unit: "mg/dL" },
+      { key: "hdl", label: "HDL-c", unit: "mg/dL" },
+      { key: "ldl", label: "LDL-c", unit: "mg/dL" },
+      { key: "trig", label: "Triglicerídeos", unit: "mg/dL" },
+      { key: "nao_hdl", label: "Não-HDL-c", unit: "mg/dL", auto: true },
     ],
-  },
-  {
-    id: "renal",
-    title: "Perfil Renal",
-    fields: [
-      { key: "cr", label: "Creatinina", unit: "mg/dL" },
-      { key: "ur", label: "Ureia", unit: "mg/dL" },
-      { key: "au", label: "Ác. Úrico", unit: "mg/dL" },
-      { key: "tfg", label: "TFG", unit: "mL/min", auto: true },
-      { key: "rac", label: "R.A/C", unit: "mg/g" },
-    ],
-  },
-  {
-    id: "hepatico",
-    title: "Perfil Hepático",
-    fields: [
-      { key: "ast", label: "AST/TGO", unit: "U/L" },
-      { key: "alt", label: "ALT/TGP", unit: "U/L" },
-      { key: "ggt", label: "GamaGT", unit: "U/L" },
-      { key: "fa", label: "Fosf. Alc.", unit: "U/L" },
-      { key: "bt", label: "Bilirrubina T.", unit: "mg/dL" },
-    ],
+    secondaryFields: [] as readonly { key: string; label: string; unit: string; auto?: boolean }[],
   },
   {
     id: "glicemico",
-    title: "Perfil Glicêmico",
-    fields: [
-      { key: "gj", label: "Glicemia J.", unit: "mg/dL" },
+    title: "Perfil glicêmico",
+    primaryFields: [
+      { key: "gj", label: "Glicemia", unit: "mg/dL" },
       { key: "hba1c", label: "HbA1c", unit: "%" },
-      { key: "insulina", label: "Insulina", unit: "µU/mL" },
-      { key: "homa_ir", label: "HOMA-IR", unit: "" },
-      { key: "peptc", label: "Pept. C", unit: "ng/mL" },
     ],
+    secondaryFields: [] as readonly { key: string; label: string; unit: string; auto?: boolean }[],
   },
   {
-    id: "eletrolitos",
-    title: "Eletrólitos",
-    fields: [
-      { key: "k", label: "K", unit: "mEq/L" },
-      { key: "na", label: "Na", unit: "mEq/L" },
-      { key: "ca", label: "Ca", unit: "mg/dL" },
-      { key: "mg_exam", label: "Mg", unit: "mg/dL" },
-      { key: "p", label: "Fósforo", unit: "mg/dL" },
+    id: "renal",
+    title: "Perfil renal",
+    primaryFields: [
+      { key: "cr", label: "Creatinina", unit: "mg/dL" },
+      { key: "rac", label: "RAC / UACR urinária", unit: "mg/g" },
     ],
+    secondaryFields: [
+      { key: "ur", label: "Ureia", unit: "mg/dL" },
+      { key: "au", label: "Ácido úrico", unit: "mg/dL" },
+    ] as const,
   },
   {
-    id: "vitaminas",
-    title: "Vitaminas",
-    fields: [
-      { key: "vitd", label: "Vit. D", unit: "ng/mL" },
-      { key: "vitb12", label: "Vit. B12", unit: "pg/mL" },
-      { key: "folato", label: "Folato", unit: "ng/mL" },
-      { key: "zinco", label: "Zinco", unit: "µg/dL" },
+    id: "hepatico",
+    title: "Perfil hepático",
+    primaryFields: [
+      { key: "ast", label: "AST / TGO", unit: "U/L" },
+      { key: "alt", label: "ALT / TGP", unit: "U/L" },
+      { key: "ggt", label: "GGT", unit: "U/L" },
+      { key: "fa", label: "Fosfatase alcalina", unit: "U/L" },
+      { key: "bt", label: "Bilirrubina total", unit: "mg/dL" },
     ],
+    secondaryFields: [
+      { key: "albumina", label: "Albumina", unit: "g/dL" },
+    ] as const,
   },
   {
     id: "hemograma",
     title: "Hemograma",
-    fields: [
-      { key: "hb", label: "Hb", unit: "g/dL" },
-      { key: "ht", label: "Ht", unit: "%" },
+    primaryFields: [
+      { key: "hb", label: "Hemoglobina", unit: "g/dL" },
+      { key: "ht", label: "Hematócrito", unit: "%" },
       { key: "vcm", label: "VCM", unit: "fL" },
       { key: "leuco", label: "Leucócitos", unit: "/mm³" },
       { key: "plaq", label: "Plaquetas", unit: "mil/mm³" },
     ],
+    secondaryFields: [] as readonly { key: string; label: string; unit: string; auto?: boolean }[],
   },
   {
     id: "tireoide",
     title: "Tireoide",
-    fields: [
+    primaryFields: [
       { key: "tsh", label: "TSH", unit: "mUI/L" },
-      { key: "t4l", label: "T4L", unit: "ng/dL" },
-      { key: "t3l", label: "T3L", unit: "pg/mL" },
+      { key: "t4l", label: "T4 livre", unit: "ng/dL" },
+    ],
+    secondaryFields: [
+      { key: "t3l", label: "T3 livre", unit: "pg/mL" },
       { key: "anti_tpo", label: "Anti-TPO", unit: "UI/mL" },
       { key: "anti_tg", label: "Anti-TG", unit: "UI/mL" },
-    ],
+    ] as const,
   },
   {
+    id: "inflamacao",
+    title: "Inflamação",
+    primaryFields: [
+      { key: "pcr", label: "PCR", unit: "mg/L" },
+    ],
+    secondaryFields: [
+      { key: "vhs", label: "VHS", unit: "mm/h" },
+    ] as const,
+  },
+] as const;
+
+/**
+ * Cards adicionais — exibidos em seção recolhível ("Mostrar adicionais").
+ */
+export const ADDITIONAL_EXAM_CARDS = [
+  {
     id: "ferro",
-    title: "Cinética do Ferro",
-    fields: [
+    title: "Cinética do ferro",
+    primaryFields: [
       { key: "ferritina", label: "Ferritina", unit: "ng/mL" },
       { key: "ferro_serico", label: "Ferro sérico", unit: "µg/dL" },
       { key: "transferrina", label: "Transferrina", unit: "mg/dL" },
-      { key: "sat_transferrina", label: "Saturação", unit: "%" },
-      { key: "ctlf", label: "CTLF", unit: "µg/dL" },
+      { key: "sat_transferrina", label: "Saturação de transferrina", unit: "%" },
+      { key: "ctlf", label: "CTLF / TIBC", unit: "µg/dL" },
     ],
+    secondaryFields: [] as readonly { key: string; label: string; unit: string; auto?: boolean }[],
   },
   {
-    id: "inflamatorios",
-    title: "Inflamatórios",
-    fields: [
-      { key: "pcr", label: "PCR", unit: "mg/L" },
-      { key: "vhs", label: "VHS", unit: "mm/h" },
+    id: "eletrolitos",
+    title: "Eletrólitos",
+    primaryFields: [
+      { key: "na", label: "Sódio", unit: "mEq/L" },
+      { key: "k", label: "Potássio", unit: "mEq/L" },
+      { key: "ca", label: "Cálcio", unit: "mg/dL" },
+      { key: "mg_exam", label: "Magnésio", unit: "mg/dL" },
+      { key: "p", label: "Fósforo", unit: "mg/dL" },
+    ],
+    secondaryFields: [] as readonly { key: string; label: string; unit: string; auto?: boolean }[],
+  },
+  {
+    id: "vitaminas",
+    title: "Vitaminas e micronutrientes",
+    primaryFields: [
+      { key: "vitd", label: "Vitamina D", unit: "ng/mL" },
+      { key: "vitb12", label: "Vitamina B12", unit: "pg/mL" },
+      { key: "folato", label: "Folato", unit: "ng/mL" },
+      { key: "zinco", label: "Zinco", unit: "µg/dL" },
+    ],
+    secondaryFields: [] as readonly { key: string; label: string; unit: string; auto?: boolean }[],
+  },
+  {
+    id: "urina-rastreios",
+    title: "Urina e rastreios",
+    primaryFields: [
       { key: "eas", label: "EAS", unit: "" },
       { key: "psof", label: "PSOF", unit: "" },
       { key: "psa", label: "PSA", unit: "ng/mL" },
     ],
+    secondaryFields: [] as readonly { key: string; label: string; unit: string; auto?: boolean }[],
+  },
+  {
+    id: "lipidios-avancados",
+    title: "Lipídios avançados",
+    primaryFields: [
+      { key: "apob", label: "ApoB", unit: "mg/dL" },
+      { key: "lpa", label: "Lp(a)", unit: "mg/dL" },
+    ],
+    secondaryFields: [] as readonly { key: string; label: string; unit: string; auto?: boolean }[],
   },
 ] as const;
 
-export const EXAM_FIELD_KEYS: string[] = EXAM_CARDS.flatMap((c) =>
-  c.fields.map((f) => f.key)
-);
+/** Todas as chaves de campos de exames (para persistência e clear) */
+export const EXAM_FIELD_KEYS: string[] = [
+  ...PRIMARY_EXAM_CARDS.flatMap((c) => [
+    ...c.primaryFields.map((f) => f.key),
+    ...(c.secondaryFields as readonly { key: string }[]).map((f) => f.key),
+  ]),
+  ...ADDITIONAL_EXAM_CARDS.flatMap((c) => [
+    ...c.primaryFields.map((f) => f.key),
+    ...(c.secondaryFields as readonly { key: string }[]).map((f) => f.key),
+  ]),
+];
+
+/**
+ * @deprecated Use PRIMARY_EXAM_CARDS e ADDITIONAL_EXAM_CARDS.
+ * Mantido para compatibilidade com esus-generator.ts e output-generators/detalhado.ts.
+ */
+export const EXAM_CARDS = [
+  ...PRIMARY_EXAM_CARDS.map((c) => ({
+    ...c,
+    fields: [...c.primaryFields, ...(c.secondaryFields as readonly { key: string; label: string; unit: string; auto?: boolean }[])],
+  })),
+  ...ADDITIONAL_EXAM_CARDS.map((c) => ({
+    ...c,
+    fields: [...c.primaryFields, ...(c.secondaryFields as readonly { key: string; label: string; unit: string; auto?: boolean }[])],
+  })),
+];

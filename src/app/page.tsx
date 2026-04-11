@@ -18,13 +18,13 @@ const BENEFITS = [
   {
     icon: "timeline",
     title: "Longitudinalidade de verdade",
-    desc: "Histórico de consultas, lista de problemas ativos e medicamentos contínuos por paciente — tudo carregado automaticamente no próximo atendimento.",
+    desc: "Histórico de consultas, lista de problemas ativos e medicamentos contínuos por paciente. Tudo carregado automaticamente no próximo atendimento.",
   },
 ];
 
 const FLOW_STEPS = [
   { num: "01", title: "Selecione o paciente", desc: "Busca por nome ou CPF. Dados da última consulta carregam automaticamente." },
-  { num: "02", title: "Preencha vitais e contexto clínico", desc: "Sinais vitais, problemas ativos e exames — cálculos automáticos em tempo real." },
+  { num: "02", title: "Preencha vitais e contexto clínico", desc: "Sinais vitais, problemas ativos e exames com cálculos automáticos em tempo real." },
   { num: "03", title: "Estruture o SOAP e a conduta", desc: "Nota SOAP com templates. Prescrição, exames e orientações em seções separadas." },
   { num: "04", title: "Copie para o eSUS PEC", desc: "Resumo formatado em um clique. Documentação completa em segundos." },
 ];
@@ -54,7 +54,7 @@ export default async function LandingPage() {
               O workspace clínico do Médico de Família.
             </h1>
             <p className="text-lg text-secondary leading-relaxed max-w-xl mb-10 font-light">
-              30 pacientes por dia, eSUS PEC esperando, agenda cheia — o {BRAND.name} estrutura sua consulta em tempo real e gera o resumo formatado com um clique. Sem digitar duas vezes, sem perder o fio da anamnese.
+              Com 30 pacientes por dia, eSUS PEC esperando e agenda cheia, o {BRAND.name} estrutura sua consulta em tempo real e gera o resumo formatado com um clique. Sem digitar duas vezes, sem perder o fio da anamnese.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
@@ -66,7 +66,7 @@ export default async function LandingPage() {
             </div>
             {!isLoggedIn && (
               <p className="text-[11px] font-bold text-on-surface-muted uppercase tracking-widest mt-4">
-                14 dias grátis — sem cartão de crédito.
+                14 dias grátis, sem cartão de crédito.
               </p>
             )}
           </div>
@@ -174,7 +174,7 @@ export default async function LandingPage() {
               { num: "< 30s", label: "para gerar o resumo eSUS" },
               { num: "4", label: "cálculos automáticos por consulta" },
               { num: "382", label: "medicamentos indexados no receituário" },
-              { num: "100%", label: "no navegador — sem instalar nada" },
+              { num: "100%", label: "no navegador, sem instalar nada" },
             ].map((item) => (
               <div key={item.label}>
                 <p className="font-headline text-3xl font-semibold text-primary mb-1">{item.num}</p>

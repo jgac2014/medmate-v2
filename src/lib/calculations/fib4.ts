@@ -1,17 +1,26 @@
 /**
  * FIB-4 — Índice de Fibrose Hepática
+ *
  * Referências:
  *   - Sterling RK et al. Hepatology 2006;43:1317-1325 (fórmula original)
  *   - EASL Clinical Practice Guidelines 2023 (pontos de corte)
  *   - Ministério da Saúde — Nota Técnica DHGNA 2022
  *
  * FIB-4 = (Idade × AST) / (Plaquetas_mil × √ALT)
- * <1.30 Baixo risco (F0-F2) | 1.30-2.67 Indeterminado | >2.67 Alto risco (F3-F4)
+ *
+ * Pontos de corte por faixa etária (EASL 2023):
+ *   Idade 35–65: Baixo risco < 1.3 | Indeterminado 1.3–2.67 | Alto risco > 2.67
+ *   Idade > 65:  Baixo risco < 2.0 | Indeterminado 2.0–2.67 | Alto risco > 2.67
+ *   Idade < 35:  Baixa validade do índice — mostrar valor sem classificar
+ *
+ * Nota: estratificação de risco de fibrose — não diagnóstico.
+ * Interpretar com cautela em doença hepática aguda.
  */
 
-interface Fib4Result {
+export interface Fib4Result {
   value: number;
   risk: string;
+  lowValidity: boolean;
 }
 
 export function calculateFIB4(
@@ -22,13 +31,18 @@ export function calculateFIB4(
 ): Fib4Result | null {
   if (idade <= 0 || ast <= 0 || alt <= 0 || plaquetasMil <= 0) return null;
 
-  const value = (idade * ast) / (plaquetasMil * Math.sqrt(alt));
-  const rounded = Math.round(value * 100) / 100;
+  const raw = (idade * ast) / (plaquetasMil * Math.sqrt(alt));
+  const value = Math.round(raw * 100) / 100;
 
+  if (idade < 35) {
+    return { value, risk: "Baixa validade nesta faixa etária", lowValidity: true };
+  }
+
+  const lowThreshold = idade > 65 ? 2.0 : 1.3;
   let risk: string;
-  if (rounded < 1.3) risk = "Baixo risco (F0-F2)";
-  else if (rounded <= 2.67) risk = "Indeterminado";
-  else risk = "Alto risco (F3-F4)";
+  if (value < lowThreshold) risk = "Baixo risco";
+  else if (value <= 2.67) risk = "Risco indeterminado";
+  else risk = "Alto risco";
 
-  return { value: rounded, risk };
+  return { value, risk, lowValidity: false };
 }

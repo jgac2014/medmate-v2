@@ -167,8 +167,10 @@ export function DrugSearch({ onSelect }: DrugSearchProps) {
                   drug.type === "atb" ? "text-amber-700" :
                   "text-on-surface-muted"
                 }`}>
-                  {drug.rxType === "Notificação Branca" ? "Ctrl Esp." :
+                  {drug.rxType === "Notificação de Receita B" ? "Ntf B" :
+                   drug.rxType === "Receita de Controle Especial" ? "Ctrl Esp." :
                    drug.rxType === "Notificação Especial Amarela" ? "Ntf Amarela" :
+                   drug.rxType === "Receita Azul" ? "Azul" :
                    "Simples"}
                 </span>
               </div>

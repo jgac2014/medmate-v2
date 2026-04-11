@@ -1,19 +1,28 @@
 /**
- * RCV — Risco Cardiovascular (Framingham)
+ * RCV — Risco Cardiovascular (ERG / Framingham Laboratorial)
+ *
  * Referências:
  *   - Wilson PW et al. Circulation 1998;97(18):1837-1847 (modelo original)
  *   - Diretriz Brasileira de Prevenção Cardiovascular — SBC 2022
  *   - Ministério da Saúde — Caderno DCNT 2022
  *
  * Modelo logarítmico com coeficientes por sexo.
- * Inputs: idade (30-74), PAS, CT, HDL, tabagismo, DM, HAS tratada
+ * Válido para idade 30–74 anos. Fora desta faixa, retornar outOfRange: true.
+ *
+ * Classificação por sexo (SBC 2022):
+ *   Masculino:  Baixo < 5% | Intermediário 5–19.9% | Alto >= 20%
+ *   Feminino:   Baixo < 5% | Intermediário 5–9.9%  | Alto >= 10%
+ *
+ * Nota: em prevenção secundária o escore não determina o risco final isoladamente.
+ * Rotular como "Risco pelo escore".
  */
 
 type Sex = "Masculino" | "Feminino";
 
-interface RcvResult {
+export interface RcvResult {
   value: number;
   risk: string;
+  outOfRange: boolean;
 }
 
 export function calculateRCV(
@@ -26,7 +35,12 @@ export function calculateRCV(
   dm: boolean,
   hasTratada: boolean
 ): RcvResult | null {
-  if (idade < 30 || idade > 74 || pas <= 0 || ct <= 0 || hdl <= 0) return null;
+  if (pas <= 0 || ct <= 0 || hdl <= 0) return null;
+
+  // Fora da faixa etária do escore
+  if (idade < 30 || idade > 74) {
+    return { value: 0, risk: "Fora da faixa etária do escore", outOfRange: true };
+  }
 
   let s: number;
   let baseline: number;
@@ -57,9 +71,15 @@ export function calculateRCV(
   const percentage = Math.round(score * 1000) / 10;
 
   let risk: string;
-  if (percentage < 10) risk = "Baixo";
-  else if (percentage < 20) risk = "Intermediário";
-  else risk = "Alto";
+  if (sexo === "Masculino") {
+    if (percentage < 5) risk = "Baixo risco";
+    else if (percentage < 20) risk = "Risco intermediário";
+    else risk = "Alto risco";
+  } else {
+    if (percentage < 5) risk = "Baixo risco";
+    else if (percentage < 10) risk = "Risco intermediário";
+    else risk = "Alto risco";
+  }
 
-  return { value: percentage, risk };
+  return { value: percentage, risk, outOfRange: false };
 }

@@ -29,8 +29,6 @@ export const REFERENCE_VALUES: RefRuleMap = {
   // Perfil Glicêmico
   gj: { type: "above", warn: 100, crit: 126 },
   hba1c: { type: "above", warn: 5.7, crit: 6.5 },
-  insulina: { type: "above", warn: 25, crit: 50 },
-  homa_ir: { type: "above", warn: 2.5, crit: 4.0 },
 
   // Eletrólitos
   k: { type: "range", warnLow: 3.5, warnHigh: 5.0, critLow: 3.0, critHigh: 5.5 },
