@@ -21,6 +21,7 @@ function makeState(overrides: Partial<ConsultationState> = {}): ConsultationStat
     patientInstructions: "",
     followupItems: [],
     labsExtras: "",
+    triagens: {},
   };
 
   return {

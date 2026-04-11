@@ -24,6 +24,7 @@ import { useSaveConsultation } from "@/hooks/useSaveConsultation";
 import { BRAND } from "@/lib/branding";
 import { markOnboardingStep } from "@/hooks/useOnboarding";
 import { PrescriptionExamsSection } from "@/components/consultation/prescription-exams-section";
+import { TriagensSection } from "@/components/consultation/triagens-section";
 import { getDocumentationCompletion } from "@/components/consultation/documentation-checklist";
 import { useHotkeys } from "@/hooks/useHotkeys";
 import { showToast } from "@/components/ui/toast";
@@ -207,6 +208,11 @@ export default function ConsultaPage() {
             <PreventionList />
             <div className="h-px bg-[var(--outline-variant)]" />
             <FollowupPanel />
+          </section>
+
+          {/* Bloco 7: Triagens Clínicas */}
+          <section id="section-triagens" className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
+            <TriagensSection />
           </section>
 
         </div>

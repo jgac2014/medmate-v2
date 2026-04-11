@@ -73,6 +73,7 @@ export interface ConsultationState {
   patientInstructions: string;
   followupItems: FollowUpItem[];
   labsExtras: string;
+  triagens: Record<string, TriagemResult>;
 }
 
 export interface ExamFieldDef {
@@ -169,6 +170,17 @@ export interface PatientMedication {
 }
 
 export type OutputMode = "esus" | "resumido" | "detalhado";
+
+export type InterpretLevel = "ok" | "warn" | "crit";
+
+export interface TriagemResult {
+  scaleId: string;
+  answers: Record<string, number>;
+  score: number;
+  interpretation: string;
+  level: InterpretLevel;
+  appliedAt: string;
+}
 
 export type AlertType = "followup" | "chronic";
 export type AlertSeverity = "warning" | "alert";

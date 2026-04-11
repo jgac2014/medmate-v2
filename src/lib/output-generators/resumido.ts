@@ -27,5 +27,13 @@ export function generateResumoOutput(state: ConsultationState): string {
   if (requestedExams) lines.push(`\nExames:\n${requestedExams}`);
   if (patientInstructions) lines.push(`\nOrientações:\n${patientInstructions}`);
 
+  const triagemEntries = Object.values(state.triagens ?? {});
+  if (triagemEntries.length > 0) {
+    const triagemLines = triagemEntries
+      .map((r) => `• ${r.scaleId.toUpperCase().replace("_", "-")}: ${r.score} pts — ${r.interpretation}`)
+      .join("\n");
+    lines.push(`\nTriagens clínicas:\n${triagemLines}`);
+  }
+
   return lines.join("\n").trimEnd();
 }

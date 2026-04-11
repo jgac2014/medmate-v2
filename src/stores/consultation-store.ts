@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { ConsultationState, PatientInfo, Vitals, SoapNotes, History, ImagingData, Calculations, FollowUpItem } from "@/types";
+import type { ConsultationState, PatientInfo, Vitals, SoapNotes, History, ImagingData, Calculations, FollowUpItem, TriagemResult } from "@/types";
 
 function todayISO(): string {
   return new Date().toISOString().split("T")[0];
@@ -24,6 +24,7 @@ const initialState: ConsultationState = {
   patientInstructions: "",
   followupItems: [],
   labsExtras: "",
+  triagens: {},
 };
 
 interface ConsultationActions {
@@ -52,6 +53,8 @@ interface ConsultationActions {
   toggleFollowupItem: (id: string) => void;
   removeFollowupItem: (id: string) => void;
   setFollowupItems: (items: FollowUpItem[]) => void;
+  setTriagemResult: (result: TriagemResult) => void;
+  clearTriagemResult: (scaleId: string) => void;
   loadState: (savedState: ConsultationState, id: string | null, patientId?: string | null) => void;
   reset: () => void;
 }
@@ -89,6 +92,15 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
     })),
 
   setFollowupItems: (items) => set({ followupItems: items }),
+
+  setTriagemResult: (result) =>
+    set((state) => ({ triagens: { ...state.triagens, [result.scaleId]: result } })),
+
+  clearTriagemResult: (scaleId) =>
+    set((state) => {
+      const { [scaleId]: _removed, ...rest } = state.triagens;
+      return { triagens: rest };
+    }),
 
   loadState: (savedState, id, patientId) =>
     set({ ...savedState, currentConsultationId: id, patientId: patientId ?? null }),

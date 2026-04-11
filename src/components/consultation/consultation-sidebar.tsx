@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { label: "Exames", icon: "biotech", id: "exames" },
   { label: "Prontuário", icon: "history", id: "historico" },
   { label: "Prevenção", icon: "vaccines", id: "prevencao" },
+  { label: "Triagens", icon: "psychology", id: "triagens" },
 ] as const;
 
 type NavId = (typeof NAV_ITEMS)[number]["id"];

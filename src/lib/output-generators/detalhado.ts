@@ -119,5 +119,14 @@ export function generateDetalhadoOutput(state: ConsultationState): string {
     lines.push(patientInstructions);
   }
 
+  const triagemEntries = Object.values(state.triagens ?? {});
+  if (triagemEntries.length > 0) {
+    lines.push("\nTRIAGENS CLÍNICAS");
+    triagemEntries.forEach((r) => {
+      const id = r.scaleId.toUpperCase().replace("_", "-");
+      lines.push(`• ${id}: ${r.score} pts — ${r.interpretation}`);
+    });
+  }
+
   return lines.join("\n").trimEnd();
 }
