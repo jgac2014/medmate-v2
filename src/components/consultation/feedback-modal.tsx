@@ -157,7 +157,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                 type="checkbox"
                 checked={contactOk}
                 onChange={(e) => setContactOk(e.target.checked)}
-                className="w-4 h-4 rounded border-outline-variant accent-primary"
+                className="w-4 h-4 rounded border-outline-variant accent-[var(--primary)]"
               />
               <span className="text-[12px] text-on-surface-variant">
                 Pode me contatar sobre isso
