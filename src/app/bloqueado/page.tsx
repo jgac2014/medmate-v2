@@ -6,6 +6,7 @@ import { BRAND } from "@/lib/branding";
 import { createClient } from "@/lib/supabase/client";
 import { showToast, ToastProvider } from "@/components/ui/toast";
 import { redirectToCheckout, redirectToPortal } from "@/lib/billing";
+import { submitFeedback } from "@/lib/feedback";
 
 type BlockReason =
   | "trial_expired"
@@ -63,6 +64,8 @@ export default function BloqueadoPage() {
   const [reason, setReason] = useState<BlockReason | null>(null);
   const [hasStripe, setHasStripe] = useState(false);
   const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
+  const [trialFeedbackSent, setTrialFeedbackSent] = useState(false);
+  const [trialFeedbackOpen, setTrialFeedbackOpen] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -77,6 +80,8 @@ export default function BloqueadoPage() {
         setTrialEndsAt(data.trialEndsAt ?? null);
         setReason(getBlockReason(data.subscriptionStatus, data.trialEndsAt));
         setHasStripe(data.hasStripe);
+        const alreadySent = localStorage.getItem("medmate_trial_feedback_sent");
+        if (alreadySent === "true") setTrialFeedbackSent(true);
       } catch {
         showToast("Não foi possível carregar dados da conta", "error");
         setReason("unknown");
@@ -252,6 +257,50 @@ export default function BloqueadoPage() {
 
         <div className="flex flex-col gap-3">
           {renderPrimaryCTA()}
+
+          {/* Microfeedback: trial expirado */}
+          {reason === "trial_expired" && !trialFeedbackSent && !trialFeedbackOpen && (
+            <button
+              onClick={() => setTrialFeedbackOpen(true)}
+              className="text-[12px] text-on-surface-muted hover:text-on-surface-variant transition-colors cursor-pointer mt-1"
+            >
+              O que te fez não ativar o plano?
+            </button>
+          )}
+
+          {reason === "trial_expired" && trialFeedbackOpen && !trialFeedbackSent && (
+            <div className="mt-1 bg-surface-container border border-outline-variant rounded-lg px-4 py-3">
+              <p className="text-[12px] font-medium text-on-surface mb-2">O que te fez não ativar o plano?</p>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  "Faltou funcionalidade",
+                  "Preço alto",
+                  "Ainda decidindo",
+                  "Dificuldade de uso",
+                  "Outro",
+                ].map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={async () => {
+                      await submitFeedback({
+                        type: "sugestao",
+                        area: "conta",
+                        message: opt,
+                        contact_ok: false,
+                        origin: "trial_expired",
+                      }).catch(() => {});
+                      setTrialFeedbackSent(true);
+                      setTrialFeedbackOpen(false);
+                      localStorage.setItem("medmate_trial_feedback_sent", "true");
+                    }}
+                    className="px-2.5 py-1 rounded-full text-[11px] font-medium border border-outline-variant text-on-surface-variant hover:bg-surface-high transition-colors cursor-pointer"
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {!isLoading && reason !== null && reason !== "trial_active_wrongly_blocked" && (
             <Link

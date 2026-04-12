@@ -22,6 +22,8 @@ function makeState(overrides: Partial<ConsultationState> = {}): ConsultationStat
     followupItems: [],
     labsExtras: "",
     triagens: {},
+    timerState: { started_at: null, finished_at: null, active_seconds: 0 },
+    copiesThisSession: 0,
   };
 
   return {

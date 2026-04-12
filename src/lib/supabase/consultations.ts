@@ -36,6 +36,7 @@ export function dbRecordToState(record: any): ConsultationState {
       finished_at: record.consultation_finished_at ?? null,
       active_seconds: record.consultation_active_seconds ?? 0,
     },
+    copiesThisSession: 0, // session-only counter, resets to 0 on load
   };
 }
 

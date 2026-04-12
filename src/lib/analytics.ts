@@ -8,7 +8,11 @@ export type ProductEvent =
   | "signup_completed"     // Cadastro concluído
   | "patient_created"      // Primeiro (ou qualquer) paciente criado
   | "consultation_started" // Consulta iniciada (paciente selecionado)
-  | "summary_copied";      // Resumo copiado para o eSUS
+  | "summary_copied"       // Resumo copiado para o eSUS
+  | "timer_started"        // Cronômetro de consulta iniciado
+  | "timer_paused"         // Cronômetro pausado
+  | "timer_resumed"        // Cronômetro retomado
+  | "timer_completed";     // Cronômetro finalizado
 
 export function trackEvent(
   event: ProductEvent,

@@ -75,6 +75,7 @@ export interface ConsultationState {
   labsExtras: string;
   triagens: Record<string, TriagemResult>;
   timerState: TimerState;
+  copiesThisSession: number;
 }
 
 export interface ExamFieldDef {
