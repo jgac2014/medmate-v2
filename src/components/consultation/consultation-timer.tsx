@@ -17,7 +17,7 @@ function formatElapsed(seconds: number): string {
 }
 
 export function ConsultationTimer({ userId }: ConsultationTimerProps) {
-  const { elapsed, isRunning, isPaused, pause, resume } = useConsultationTimer(userId);
+  const { elapsed, isRunning, pause, resume } = useConsultationTimer(userId);
 
   if (elapsed === 0) return null;
 
