@@ -6,6 +6,7 @@ import { showToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { logAuditEvent } from "@/lib/supabase/audit";
+import { submitFeedback } from "@/lib/feedback";
 
 interface ConsultaConcluidaModalProps {
   open: boolean;
@@ -23,9 +24,23 @@ export function ConsultaConcluidaModal({
   onHistory,
 }: ConsultaConcluidaModalProps) {
   const [copied, setCopied] = useState(false);
+  const [microSent, setMicroSent] = useState(false);
   // Pre-resolved on mount so the copy handler never blocks on an async auth round-trip.
   // fire-and-forget pattern: if actorId is unavailable the audit event is silently skipped.
   const [actorId, setActorId] = useState<string | null>(null);
+
+  const timerState = useConsultationStore((s) => s.timerState);
+  const copiesThisSession = useConsultationStore((s) => s.copiesThisSession);
+
+  function calcElapsed(): number {
+    if (timerState.finished_at) return timerState.active_seconds;
+    if (timerState.started_at) {
+      return timerState.active_seconds + Math.floor((Date.now() - new Date(timerState.started_at).getTime()) / 1000);
+    }
+    return timerState.active_seconds;
+  }
+
+  const shouldShowMicroFeedback = !microSent && calcElapsed() < 3 * 60 && copiesThisSession === 0;
 
   useEffect(() => {
     createClient()
@@ -112,6 +127,33 @@ export function ConsultaConcluidaModal({
             ))}
           </div>
         </div>
+
+        {/* Microfeedback */}
+        {shouldShowMicroFeedback && (
+          <div className="bg-surface-low border border-outline-variant rounded-lg px-4 py-3 mb-4">
+            <p className="text-[12px] text-on-surface-muted mb-2">Algo atrapalhou?</p>
+            <div className="flex flex-wrap gap-1.5">
+              {(["Exames", "Tela", "Prescrição", "Lentidão", "Outro"] as const).map((opt) => (
+                <button
+                  key={opt}
+                  onClick={async () => {
+                    await submitFeedback({
+                      type: "dificuldade",
+                      area: "consulta",
+                      message: opt,
+                      contact_ok: false,
+                      origin: "micro_finish",
+                    });
+                    setMicroSent(true);
+                  }}
+                  className="px-2.5 py-1 rounded-full text-[11px] font-medium border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer"
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex flex-col gap-3 pt-2">
