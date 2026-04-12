@@ -31,6 +31,11 @@ export function dbRecordToState(record: any): ConsultationState {
     followupItems: record.followup_items ?? [],
     labsExtras: record.labs_extras ?? "",
     triagens: record.triagens ?? {},
+    timerState: {
+      started_at: record.consultation_started_at ?? null,
+      finished_at: record.consultation_finished_at ?? null,
+      active_seconds: record.consultation_active_seconds ?? 0,
+    },
   };
 }
 
@@ -60,6 +65,9 @@ export async function saveConsultation(userId: string, state: ConsultationState,
     requested_exams: state.requestedExams,
     patient_instructions: state.patientInstructions,
     followup_items: state.followupItems,
+    consultation_started_at: state.timerState.started_at,
+    consultation_finished_at: state.timerState.finished_at,
+    consultation_active_seconds: state.timerState.active_seconds,
     esus_summary: esusSummary,
     updated_at: new Date().toISOString(),
   };
