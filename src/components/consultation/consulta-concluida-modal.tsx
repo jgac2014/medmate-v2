@@ -143,6 +143,7 @@ export function ConsultaConcluidaModal({
                       message: opt,
                       contact_ok: false,
                       origin: "micro_finish",
+                      timer_seconds: calcElapsed(),
                     });
                     setMicroSent(true);
                   }}
@@ -159,7 +160,8 @@ export function ConsultaConcluidaModal({
         <div className="flex flex-col gap-3 pt-2">
           <button
             onClick={handleCopy}
-            className={`w-full py-4 px-6 rounded-xl text-[15px] font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            disabled={copied}
+            className={`w-full py-4 px-6 rounded-xl text-[15px] font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${copied ? "opacity-80 cursor-default" : ""} ${
               copied
                 ? "bg-secondary-container text-on-secondary-container"
                 : "bg-primary text-on-primary hover:bg-primary-container active:scale-[0.98]"
