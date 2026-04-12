@@ -53,18 +53,17 @@ export default function ConsultaPage() {
   }, [patientName, patient.name, userId]);
 
   useEffect(() => {
-    if (patientName && !timerState.started_at && !timerState.finished_at && timerState.active_seconds === 0) {
-      const now = new Date().toISOString();
-      setTimerState({ started_at: now, finished_at: null, active_seconds: 0 });
-      trackEvent("timer_started");
-      import("@/lib/supabase/consultations").then(({ saveConsultation }) => {
-        const state = useConsultationStore.getState();
-        if (state.currentConsultationId) {
-          saveConsultation(userId!, state, state.currentConsultationId, state.patientId).catch(() => {});
-        }
-      });
-    }
-  }, [patientName, userId, timerState.started_at, timerState.finished_at, timerState.active_seconds, setTimerState]);
+    if (!patientName || !userId || timerState.started_at || timerState.finished_at) return;
+    const now = new Date().toISOString();
+    setTimerState({ started_at: now, finished_at: null, active_seconds: 0 });
+    trackEvent("timer_started");
+    import("@/lib/supabase/consultations").then(({ saveConsultation }) => {
+      const state = useConsultationStore.getState();
+      if (state.currentConsultationId) {
+        saveConsultation(userId, state, state.currentConsultationId, state.patientId).catch(() => {});
+      }
+    });
+  }, [patientName, userId]);
 
   useDraftAutosave(userId);
 
