@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { copyToClipboard } from "@/lib/clipboard";
 import { showToast } from "@/components/ui/toast";
+import { submitFeedback } from "@/lib/feedback";
 import { DocumentationChecklist } from "@/components/consultation/documentation-checklist";
 import { useOutputSummary } from "@/hooks/useOutputSummary";
 import { markOnboardingStep } from "@/hooks/useOnboarding";
@@ -27,6 +28,8 @@ export function ConsultationRightPanel({ open = false }: ConsultationRightPanelP
   const [copied, setCopied] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [microOpen, setMicroOpen] = useState(false);
+  const [microSent, setMicroSent] = useState(false);
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
@@ -40,12 +43,27 @@ export function ConsultationRightPanel({ open = false }: ConsultationRightPanelP
     };
   }, []);
 
+  const copiesThisSession = useConsultationStore((s) => s.copiesThisSession);
+  const incrementCopies = useConsultationStore((s) => s.incrementCopies);
+  const currentConsultationId = useConsultationStore((s) => s.currentConsultationId);
+  const timerState = useConsultationStore((s) => s.timerState);
+
+  function calcElapsed(): number {
+    if (timerState.finished_at) return timerState.active_seconds;
+    if (timerState.started_at) {
+      return timerState.active_seconds + Math.floor((Date.now() - new Date(timerState.started_at).getTime()) / 1000);
+    }
+    return timerState.active_seconds;
+  }
+
   const handleCopy = async () => {
     if (!summary.trim()) {
       showToast("Preencha a consulta para gerar o resumo", "info");
       return;
     }
     const ok = await copyToClipboard(summary);
+    incrementCopies();
+
     if (ok) {
       setCopied(true);
       trackEvent("summary_copied", { outputMode });
@@ -63,8 +81,17 @@ export function ConsultationRightPanel({ open = false }: ConsultationRightPanelP
         },
       });
       copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
+      // Microfeedback: only triggers if 3+ copies or already failing
+      const newCount = copiesThisSession + 1;
+      if (!microSent && newCount >= 3) {
+        setMicroOpen(true);
+      }
     } else {
+      // Copy failed → real friction
       showToast("Erro ao copiar", "error");
+      if (!microSent) {
+        setMicroOpen(true);
+      }
     }
   };
 
@@ -136,6 +163,40 @@ export function ConsultationRightPanel({ open = false }: ConsultationRightPanelP
         >
           {copied ? "✓ Copiado!" : "Copiar para eSUS"}
         </button>
+
+        {/* Microfeedback pós-cópia */}
+        {microOpen && !microSent && (
+          <div className="mt-2 bg-[var(--surface-low)] border border-[var(--outline-variant)] rounded-lg px-3 py-2">
+            <p className="text-[11px] text-[var(--on-surface-muted)] mb-1.5">Esse resumo ficou útil?</p>
+            <div className="flex gap-1.5">
+              {[
+                { label: "Sim", value: "elogio" },
+                { label: "Mais ou menos", value: "dificuldade" },
+                { label: "Não", value: "dificuldade" },
+              ].map(({ label, value }) => (
+                <button
+                  key={label}
+                  onClick={async () => {
+                    await submitFeedback({
+                      type: value as "elogio" | "dificuldade",
+                      area: "consulta",
+                      message: "",
+                      contact_ok: false,
+                      origin: "micro_copy",
+                      consultation_id: currentConsultationId ?? undefined,
+                      timer_seconds: calcElapsed(),
+                    });
+                    setMicroSent(true);
+                    setMicroOpen(false);
+                  }}
+                  className="flex-1 py-1.5 rounded-lg text-[11px] font-medium border border-[var(--outline-variant)] text-[var(--on-surface-variant)] hover:bg-[var(--surface-container)] transition-colors cursor-pointer"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );
