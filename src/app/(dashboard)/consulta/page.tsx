@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ConsultationSidebar } from "@/components/consultation/consultation-sidebar";
 import { ConsultationRightPanel } from "@/components/consultation/consultation-right-panel";
+import { ConsultationTimer } from "@/components/consultation/consultation-timer";
 import { ClinicalSummary } from "@/components/consultation/clinical-summary";
 import { SoapForm } from "@/components/consultation/soap-form";
 import { HistoryForm } from "@/components/consultation/history-form";
@@ -28,6 +29,7 @@ import { TriagensSection } from "@/components/consultation/triagens-section";
 import { getDocumentationCompletion } from "@/components/consultation/documentation-checklist";
 import { useHotkeys } from "@/hooks/useHotkeys";
 import { showToast } from "@/components/ui/toast";
+import { trackEvent } from "@/lib/analytics";
 
 export default function ConsultaPage() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -35,6 +37,8 @@ export default function ConsultaPage() {
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const patientName = useConsultationStore((s) => s.patientName);
   const patient = useConsultationStore((s) => s.patient);
+  const timerState = useConsultationStore((s) => s.timerState);
+  const setTimerState = useConsultationStore((s) => s.setTimerState);
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
@@ -47,6 +51,20 @@ export default function ConsultaPage() {
       markOnboardingStep("consultationStarted", userId);
     }
   }, [patientName, patient.name, userId]);
+
+  useEffect(() => {
+    if (patientName && !timerState.started_at && !timerState.finished_at && timerState.active_seconds === 0) {
+      const now = new Date().toISOString();
+      setTimerState({ started_at: now, finished_at: null, active_seconds: 0 });
+      trackEvent("timer_started");
+      import("@/lib/supabase/consultations").then(({ saveConsultation }) => {
+        const state = useConsultationStore.getState();
+        if (state.currentConsultationId) {
+          saveConsultation(userId!, state, state.currentConsultationId, state.patientId).catch(() => {});
+        }
+      });
+    }
+  }, [patientName, userId, timerState.started_at, timerState.finished_at, timerState.active_seconds, setTimerState]);
 
   useDraftAutosave(userId);
 
@@ -95,6 +113,12 @@ export default function ConsultaPage() {
                 Clinical v4
               </span>
             </h1>
+            {userId && patientName && (
+              <>
+                <div className="h-4 w-px bg-gray-200" />
+                <ConsultationTimer userId={userId} />
+              </>
+            )}
             <div className="h-4 w-px bg-gray-200" />
             <div className="flex items-center gap-2 text-[11px] font-medium text-secondary">
               <span className="material-symbols-outlined text-sm">person</span>
