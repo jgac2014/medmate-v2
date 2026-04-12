@@ -19,7 +19,7 @@ function formatElapsed(seconds: number): string {
 export function ConsultationTimer({ userId }: ConsultationTimerProps) {
   const { elapsed, isRunning, isPaused, pause, resume } = useConsultationTimer(userId);
 
-  if (isPaused && elapsed === 0) return null;
+  if (elapsed === 0) return null;
 
   return (
     <div className="flex items-center gap-1.5">
@@ -30,7 +30,7 @@ export function ConsultationTimer({ userId }: ConsultationTimerProps) {
         }`}
       />
       {/* Tempo */}
-      <span className="font-mono text-[13px] text-secondary tabular-nums">
+      <span className="font-mono text-[13px] text-on-surface-variant tabular-nums">
         {formatElapsed(elapsed)}
       </span>
       {/* Pause/Resume — só se já começou */}
