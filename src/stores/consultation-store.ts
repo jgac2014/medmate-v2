@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { ConsultationState, PatientInfo, Vitals, SoapNotes, History, ImagingData, Calculations, FollowUpItem, TriagemResult } from "@/types";
+import type { ConsultationState, PatientInfo, Vitals, SoapNotes, History, ImagingData, Calculations, FollowUpItem, TriagemResult, TimerState } from "@/types";
 
 function todayISO(): string {
   return new Date().toISOString().split("T")[0];
@@ -25,6 +25,12 @@ const initialState: ConsultationState = {
   followupItems: [],
   labsExtras: "",
   triagens: {},
+  timerState: {
+    started_at: null,
+    finished_at: null,
+    active_seconds: 0,
+  },
+  copiesThisSession: 0,
 };
 
 interface ConsultationActions {
@@ -57,6 +63,9 @@ interface ConsultationActions {
   clearTriagemResult: (scaleId: string) => void;
   loadState: (savedState: ConsultationState, id: string | null, patientId?: string | null) => void;
   reset: () => void;
+  setTimerState: (timer: Partial<TimerState>) => void;
+  incrementCopies: () => void;
+  resetCopiesThisSession: () => void;
 }
 
 export type ConsultationStore = ConsultationState & ConsultationActions;
@@ -105,6 +114,13 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
   loadState: (savedState, id, patientId) =>
     set({ ...savedState, currentConsultationId: id, patientId: patientId ?? null }),
 
+  setTimerState: (timer) =>
+    set((state) => ({ timerState: { ...state.timerState, ...timer } })),
+
+  incrementCopies: () =>
+    set((state) => ({ copiesThisSession: state.copiesThisSession + 1 })),
+
+  resetCopiesThisSession: () => set({ copiesThisSession: 0 }),
 
   setPatient: (patient) =>
     set((state) => ({ patient: { ...state.patient, ...patient } })),
@@ -158,5 +174,11 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
       currentConsultationId: null,
       patientId: null,
       patientName: null,
+      timerState: {
+        started_at: null,
+        finished_at: null,
+        active_seconds: 0,
+      },
+      copiesThisSession: 0,
     }),
 }));

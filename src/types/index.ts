@@ -74,6 +74,7 @@ export interface ConsultationState {
   followupItems: FollowUpItem[];
   labsExtras: string;
   triagens: Record<string, TriagemResult>;
+  timerState: TimerState;
 }
 
 export interface ExamFieldDef {
