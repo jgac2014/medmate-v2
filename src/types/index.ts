@@ -192,3 +192,49 @@ export interface Alert {
   severity: AlertSeverity;
 }
 
+// ── Feedback types ───────────────────────────────────────────────────────────
+
+export type FeedbackType = "sugestao" | "bug" | "dificuldade" | "elogio";
+export type FeedbackArea = "consulta" | "exames" | "receituario" | "pacientes" | "historico" | "conta" | "outro";
+export type FeedbackStatus = "new" | "reviewed" | "planned" | "done" | "rejected";
+
+export interface FeedbackMetadata {
+  route?: string;
+  component?: string;
+  consultation_id?: string;
+  timer_seconds?: number;
+  template?: string;
+  origin: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+export interface FeedbackSubmission {
+  id: string;
+  user_id: string;
+  type: FeedbackType;
+  area: FeedbackArea;
+  message: string;
+  status: FeedbackStatus;
+  contact_ok: boolean;
+  metadata: FeedbackMetadata;
+  created_at: string;
+}
+
+export interface FeedbackInput {
+  type: FeedbackType;
+  area: FeedbackArea;
+  message: string;
+  contact_ok: boolean;
+  origin: string;
+  consultation_id?: string;
+  timer_seconds?: number;
+}
+
+// ── Timer types ───────────────────────────────────────────────────────────────
+
+export interface TimerState {
+  started_at: string | null;
+  finished_at: string | null;
+  active_seconds: number;
+}
+
