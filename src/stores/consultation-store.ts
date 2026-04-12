@@ -120,7 +120,7 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
   incrementCopies: () =>
     set((state) => ({ copiesThisSession: state.copiesThisSession + 1 })),
 
-  resetCopiesThisSession: () => set({ copiesThisSession: 0 }),
+  resetCopiesThisSession: () => set(() => ({ copiesThisSession: 0 })),
 
   setPatient: (patient) =>
     set((state) => ({ patient: { ...state.patient, ...patient } })),
