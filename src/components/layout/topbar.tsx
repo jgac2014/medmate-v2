@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { HistoryPanel } from "@/components/consultation/history-panel";
+import { FeedbackModal } from "@/components/consultation/feedback-modal";
 import { PatientDashboard } from "@/components/consultation/patient-dashboard";
 import { PatientSelector } from "@/components/consultation/patient-selector";
 import { TemplateSelector } from "@/components/consultation/template-selector";
@@ -42,6 +43,7 @@ export function Topbar() {
   const [patientSelectorOpen, setPatientSelectorOpen] = useState(false);
   const [templateSelectorOpen, setTemplateSelectorOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -211,6 +213,7 @@ export function Topbar() {
       />
       <TemplateSelector open={templateSelectorOpen} onClose={() => setTemplateSelectorOpen(false)} />
       <PatientDashboard open={dashboardOpen} onClose={() => setDashboardOpen(false)} />
+      <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
       <div className="sticky top-0 z-30 bg-surface-low">
         <div className="flex h-14 items-center justify-between px-6">
@@ -365,6 +368,17 @@ export function Topbar() {
                     Suporte
                   </a>
                   <div className="my-1 border-t border-outline-variant/30" />
+                  <button
+                    onClick={() => { setMenuOpen(false); setFeedbackOpen(true); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-[13px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface cursor-pointer"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    Enviar feedback
+                  </button>
                   <button
                     onClick={handleLogout}
                     className="w-full px-4 py-2.5 text-left text-[13px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-error"
