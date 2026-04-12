@@ -239,7 +239,7 @@ src/
 
 ## Banco de Dados
 
-**Migrations em `supabase/migrations/`** (001–008):
+**Migrations em `supabase/migrations/`** (001–010):
 - `001` — tabelas base: `users`, `patients`, `consultations`
 - `002` — snapshot do paciente em consultas
 - `003` — snippets de texto do usuário
@@ -248,10 +248,12 @@ src/
 - `006` — medicações contínuas do paciente
 - `007` — consentimentos e logs de auditoria
 - `008` — prescrições avulsas (Receituário Particular)
+- `009` — cronômetro de consulta + tabela feedback_submissions
+- `010` — otimização RLS (select auth.uid()) + search_path em handle_new_user
 
 **RLS ativo em todas as tabelas.** Use `server.ts` em RSC e `client.ts` em Client Components.
 
-**Para criar nova migration:** arquivo `009_descricao.sql` em `supabase/migrations/`. Nunca pule números.
+**Para criar nova migration:** arquivo `011_descricao.sql` em `supabase/migrations/`. Nunca pule números.
 
 **Datas:** ISO 8601 no banco (`YYYY-MM-DD`). `DD/MM/AAAA` na UI e outputs.
 
