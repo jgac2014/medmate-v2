@@ -62,9 +62,10 @@ export function ConsultationRightPanel({ open = false }: ConsultationRightPanelP
       return;
     }
     const ok = await copyToClipboard(summary);
-    incrementCopies();
 
     if (ok) {
+      incrementCopies();
+
       setCopied(true);
       trackEvent("summary_copied", { outputMode });
       markOnboardingStep("summaryCopied", userId);
@@ -81,8 +82,8 @@ export function ConsultationRightPanel({ open = false }: ConsultationRightPanelP
         },
       });
       copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
-      // Microfeedback: only triggers if 3+ copies or already failing
-      const newCount = copiesThisSession + 1;
+      // Microfeedback: only triggers if 3+ copies
+      const newCount = useConsultationStore.getState().copiesThisSession + 1;
       if (!microSent && newCount >= 3) {
         setMicroOpen(true);
       }
@@ -185,7 +186,7 @@ export function ConsultationRightPanel({ open = false }: ConsultationRightPanelP
                       origin: "micro_copy",
                       consultation_id: currentConsultationId ?? undefined,
                       timer_seconds: calcElapsed(),
-                    });
+                    }).catch(() => {});
                     setMicroSent(true);
                     setMicroOpen(false);
                   }}
