@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -7,9 +7,9 @@ import { FeedbackModal } from "@/components/consultation/feedback-modal";
 import { PatientDashboard } from "@/components/consultation/patient-dashboard";
 import { PatientSelector } from "@/components/consultation/patient-selector";
 import { TemplateSelector } from "@/components/consultation/template-selector";
-import { Button } from "@/components/ui/button";
 import { showToast } from "@/components/ui/toast";
 import { useHotkeys } from "@/hooks/useHotkeys";
+import { useDraftAutosave } from "@/hooks/useDraftAutosave";
 import { prepareConsultationForPatient } from "@/lib/consultation/patient-context";
 import { BRAND } from "@/lib/branding";
 import { redirectToCheckout } from "@/lib/billing";
@@ -19,26 +19,10 @@ import { upsertPatientProblems } from "@/lib/supabase/patient-problems";
 import { useConsultationStore } from "@/stores/consultation-store";
 import type { Patient } from "@/types";
 
-const SUBSCRIPTION_META = {
-  active: {
-    label: "Pro ativo",
-    className: "border-status-ok/25 bg-status-ok-bg text-status-ok",
-  },
-  expired: {
-    label: "Acesso pendente",
-    className: "border-status-crit/25 bg-status-crit-bg text-status-crit",
-  },
-  cancelled: {
-    label: "Cancelado",
-    className: "border-status-warn/25 bg-status-warn-bg text-status-warn",
-  },
-} as const;
-
 export function Topbar() {
   const { reset, currentConsultationId, setCurrentConsultationId, patientName } =
     useConsultationStore();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [patientSelectorOpen, setPatientSelectorOpen] = useState(false);
   const [templateSelectorOpen, setTemplateSelectorOpen] = useState(false);
@@ -48,10 +32,12 @@ export function Topbar() {
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState("");
-  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const lastSavedRef = useRef<Date | null>(null);
 
   useEffect(() => {
     async function loadUser() {
@@ -64,20 +50,42 @@ export function Topbar() {
         setUserId(user.id);
         const { data } = await supabase
           .from("users")
-          .select("name, subscription_status, trial_ends_at")
+          .select("name, subscription_status")
           .eq("id", user.id)
           .single();
 
         if (data) {
           setUserName(data.name);
           setSubscriptionStatus(data.subscription_status);
-          setTrialEndsAt(data.trial_ends_at ?? null);
         }
       }
     }
 
     loadUser();
   }, []);
+
+  // Autosave: debounced local save + DB save indicator
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useDraftAutosave(userId);
+
+  useEffect(() => {
+    // Track changes to trigger "Salvando..." feedback
+    const unsub = useConsultationStore.subscribe(() => {
+      if (!userId) return;
+      clearTimeout(debounceRef.current);
+      setSaveStatus("saving");
+      debounceRef.current = setTimeout(() => {
+        setSaveStatus("saved");
+        lastSavedRef.current = new Date();
+        // After 3s, go back to idle
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      }, 1500);
+    });
+    return () => {
+      unsub();
+      clearTimeout(debounceRef.current);
+    };
+  }, [userId]);
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -96,7 +104,7 @@ export function Topbar() {
       return;
     }
 
-    setSaveLoading(true);
+    setSaveStatus("saving");
     try {
       const state = useConsultationStore.getState();
       const { data, error } = await saveConsultation(
@@ -126,24 +134,30 @@ export function Topbar() {
         upsertPatientProblems(userId, state.patientId, allProblems).catch(() => {});
       }
 
+      setSaveStatus("saved");
+      lastSavedRef.current = new Date();
       showToast("Consulta salva!", "success");
+      setTimeout(() => setSaveStatus("idle"), 3000);
     } catch {
+      setSaveStatus("idle");
       showToast("Erro ao salvar consulta", "error");
-    } finally {
-      setSaveLoading(false);
     }
   }, [currentConsultationId, setCurrentConsultationId, userId]);
+
+  useEffect(() => {
+    return () => clearTimeout(saveTimerRef.current);
+  }, []);
 
   const hotkeyMap = useMemo(
     () => ({
       "mod+s": () => handleSave(),
       "mod+n": () => setPatientSelectorOpen(true),
-      "mod+h": () => setHistoryOpen((value) => !value),
+      "mod+h": () => router.push("/historico"),
       "mod+p": () => {
         if (patientName) setDashboardOpen((value) => !value);
       },
     }),
-    [handleSave, patientName]
+    [handleSave, patientName, router]
   );
 
   useHotkeys(hotkeyMap);
@@ -179,29 +193,21 @@ export function Topbar() {
     : "?";
 
   const isPro = subscriptionStatus === "active";
+  const isTrial = subscriptionStatus === "trial";
 
-  const trialDaysLeft =
-    subscriptionStatus === "trial" && trialEndsAt
-      ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
-      : null;
+  // Autosave label
+  const autosaveLabel = saveStatus === "saving"
+    ? "Salvando..."
+    : saveStatus === "saved"
+    ? "Salvo agora"
+    : lastSavedRef.current
+    ? `Salvo ${formatRelativeTime(lastSavedRef.current)}`
+    : null;
 
-  const trialLabel =
-    trialDaysLeft === null
-      ? "Trial"
-      : trialDaysLeft === 1
-        ? "Trial · expira hoje"
-        : `Trial · ${trialDaysLeft}d`;
+  const isInConsultation = pathname === "/consulta" && patientName;
 
-  const subscriptionMeta =
-    subscriptionStatus === "trial"
-      ? {
-          label: trialLabel,
-          className: "border-status-info/25 bg-status-info-bg text-status-info",
-        }
-      : SUBSCRIPTION_META[subscriptionStatus as keyof typeof SUBSCRIPTION_META] ?? {
-          label: subscriptionStatus || "Conta",
-          className: "border-outline bg-surface-container text-on-surface-variant",
-        };
+  // Show autosave and patient context whenever there's an active patient
+  const hasPatientContext = Boolean(patientName);
 
   return (
     <>
@@ -216,163 +222,205 @@ export function Topbar() {
       <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
       <div className="sticky top-0 z-30 bg-surface-low">
-        <div className="flex h-14 items-center justify-between px-6">
-          <div className="flex min-w-0 shrink-0 items-center gap-5">
+        {/* Main row */}
+        <div className="flex h-13 items-center px-5 gap-4">
+          {/* Left: brand + primary nav */}
+          <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => router.push("/")}
-              className="font-headline text-xl font-bold text-primary transition-opacity hover:opacity-75"
+              className="font-headline text-[17px] font-bold text-primary hover:opacity-70 transition-opacity shrink-0"
             >
               {BRAND.name}
             </button>
+
+            <div className="hidden lg:flex items-center gap-0.5 ml-6 pl-6 border-l border-outline-variant/40">
+              <NavButton
+                active={pathname === "/consulta" || pathname === "/nova-consulta"}
+                onClick={() => router.push("/consulta")}
+                label="Consulta"
+              />
+              <NavButton
+                active={pathname === "/pacientes"}
+                onClick={() => router.push("/pacientes")}
+                label="Pacientes"
+              />
+              <NavButton
+                active={pathname === "/historico"}
+                onClick={() => router.push("/historico")}
+                label="Histórico"
+              />
+            </div>
           </div>
 
-          {patientName && (
-            <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-status-ok" />
-              <span className="max-w-[280px] truncate font-headline text-[15px] italic text-on-surface">
-                {patientName}
+          {/* Center: patient + autosave */}
+          <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
+            {patientName && (
+              <>
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-status-ok" />
+                <span className="max-w-[240px] truncate font-headline text-[14px] italic text-on-surface">
+                  {patientName}
+                </span>
+              </>
+            )}
+            {autosaveLabel && hasPatientContext && (
+              <span className={`text-[11px] font-medium shrink-0 transition-colors ${
+                saveStatus === "saving"
+                  ? "text-on-surface-muted"
+                  : saveStatus === "saved"
+                  ? "text-status-ok"
+                  : "text-on-surface-muted"
+              }`}>
+                {autosaveLabel}
               </span>
-            </div>
-          )}
+            )}
+          </div>
 
-          <nav className="ml-4 hidden items-center gap-1 lg:flex">
-            <NavButton
-              active={pathname === "/nova-consulta"}
-              onClick={() => router.push("/nova-consulta")}
-              label="Nova consulta"
-            />
-            <NavButton
-              active={pathname === "/consulta"}
-              onClick={() => router.push("/consulta")}
-              label="Consulta"
-            />
-            <NavButton
-              active={pathname === "/pacientes"}
-              onClick={() => router.push("/pacientes")}
-              label="Pacientes"
-            />
-            <NavButton
-              active={pathname === "/historico"}
-              onClick={() => router.push("/historico")}
-              label="Histórico"
-            />
-            <NavButton
-              active={pathname === "/receituario"}
-              onClick={() => router.push("/receituario")}
-              label="Receituário"
-            />
-            <NavButton
-              active={pathname === "/pedidos"}
-              onClick={() => router.push("/pedidos")}
-              label="Pedidos"
-            />
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <div
-              className={`hidden rounded-full border px-2.5 py-1 text-[11px] font-medium sm:inline-flex ${subscriptionMeta.className}`}
-            >
-              {subscriptionMeta.label}
-            </div>
-
-            {!isPro && (
+          {/* Right: actions */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {patientName && (
               <button
-                onClick={handleCheckout}
-                disabled={checkoutLoading}
-                className="rounded-lg bg-primary px-3 py-1.5 text-[12px] font-semibold text-on-primary transition-all duration-200 hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => setDashboardOpen((v) => !v)}
+                className="hidden xl:flex h-[34px] items-center gap-1.5 rounded-lg border border-secondary/30 bg-secondary-container/20 px-3 text-[12px] font-medium text-secondary transition-colors hover:bg-secondary-container/40"
               >
-                {checkoutLoading ? "Redirecionando..." : "Ativar Pro"}
+                <span className="material-symbols-outlined text-[15px]">person</span>
+                Prontuário
               </button>
             )}
 
             <button
               onClick={() => setHistoryOpen(true)}
-              className="h-[34px] rounded-lg border border-outline-variant/50 bg-surface-lowest px-3 text-[13px] font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+              className="hidden md:flex h-[34px] items-center gap-1.5 rounded-lg border border-outline-variant/50 bg-surface-lowest px-3 text-[12px] font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
             >
-              SOAP anterior
+              <span className="material-symbols-outlined text-[15px]">history</span>
+              Consultas anteriores
             </button>
 
             <button
-              onClick={() => setTemplateSelectorOpen(true)}
-              className="h-[34px] rounded-lg border border-outline-variant/50 bg-surface-lowest px-3 text-[13px] font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+              onClick={handleSave}
+              disabled={!patientName || saveStatus === "saving"}
+              className="hidden md:flex h-[34px] items-center gap-1.5 rounded-lg border border-outline-variant/50 bg-surface-lowest px-3 text-[12px] font-medium text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Template
+              <span className="material-symbols-outlined text-[15px]">
+                {saveStatus === "saving" ? "sync" : "save"}
+              </span>
+              {saveStatus === "saving" ? "Salvando..." : "Salvar agora"}
             </button>
 
-            {patientName && (
-              <button
-                onClick={() => setDashboardOpen(true)}
-                className="h-[34px] rounded-lg border border-secondary/30 bg-secondary-container/20 px-3 text-[13px] font-medium text-secondary transition-colors hover:bg-secondary-container/40"
-              >
-                Prontuário
-              </button>
-            )}
-
-            <Button
-              variant="secondary"
-              className="h-[34px] px-3 text-[13px]"
-              onClick={() => router.push("/nova-consulta")}
+            <button
+              onClick={() => {
+                reset();
+                setPatientSelectorOpen(true);
+              }}
+              className="flex h-[34px] items-center gap-1.5 rounded-lg bg-primary px-4 text-[12px] font-bold text-on-primary transition-colors hover:bg-primary-container active:scale-[0.98]"
             >
+              <span className="material-symbols-outlined text-[16px]">add</span>
               Nova consulta
-            </Button>
+            </button>
 
-            <Button
-              variant="primary"
-              className="h-[34px] px-4 text-[13px]"
-              onClick={handleSave}
-              disabled={saveLoading}
-            >
-              {saveLoading ? "Salvando..." : currentConsultationId ? "Atualizar" : "Salvar"}
-            </Button>
-
-            <div className="relative ml-1" ref={menuRef}>
+            {/* User menu */}
+            <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex h-9 items-center gap-2 rounded-full border border-outline-variant/50 bg-surface-lowest pl-1.5 pr-2.5 text-left transition-colors hover:bg-surface-container"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-outline-variant/50 bg-surface-lowest transition-colors hover:bg-surface-container"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full border border-outline-variant/30 bg-surface-container text-[11px] font-semibold text-on-surface-variant">
+                <span className="text-[11px] font-semibold text-on-surface-variant">
                   {initials}
-                </span>
-                <span className="hidden min-w-0 flex-col leading-none lg:flex">
-                  <span className="max-w-[140px] truncate text-[12px] font-medium text-on-surface">
-                    {userName || "Minha conta"}
-                  </span>
                 </span>
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-11 z-[60] w-56 rounded-xl border border-outline-variant/30 bg-surface-lowest py-1.5 shadow-[0_8px_30px_rgba(23,28,31,0.10)]">
+                <div className="absolute right-0 top-11 z-[60] w-60 rounded-xl border border-outline-variant/30 bg-surface-lowest py-1.5 shadow-[0_8px_30px_rgba(23,28,31,0.10)]">
                   {userName && (
                     <div className="border-b border-outline-variant/30 px-4 py-3">
                       <p className="truncate text-[13px] font-medium text-on-surface">{userName}</p>
-                      <p className="mt-0.5 text-[12px] text-on-surface-muted">
-                        {subscriptionMeta.label}
-                      </p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${
+                            isPro
+                              ? "border-status-ok/30 bg-status-ok-bg text-status-ok"
+                              : isTrial
+                              ? "border-status-info/30 bg-status-info-bg text-status-info"
+                              : "border-outline bg-surface-container text-on-surface-variant"
+                          }`}
+                        >
+                          {isPro ? "Pro" : isTrial ? "Trial" : subscriptionStatus || "Conta"}
+                        </span>
+                        {!isPro && (
+                          <button
+                            onClick={() => {
+                              setMenuOpen(false);
+                              handleCheckout();
+                            }}
+                            disabled={checkoutLoading}
+                            className="text-[10px] font-semibold text-primary underline hover:text-primary/70 disabled:opacity-50"
+                          >
+                            {checkoutLoading ? "..." : "Ativar Pro"}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
+                  <div className="px-3 py-1.5">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1.5 px-1">
+                      Ferramentas
+                    </p>
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setTemplateSelectorOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-[12px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[15px] text-secondary">description</span>
+                      Templates
+                    </button>
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        router.push("/receituario");
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-[12px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[15px] text-secondary">medication</span>
+                      Receituário
+                      <span className="ml-auto rounded border border-status-warn/30 bg-status-warn-bg px-1.5 py-0.5 text-[9px] font-bold text-status-warn">beta</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        router.push("/pedidos");
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-[12px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[15px] text-secondary">lab_profile</span>
+                      Pedidos
+                      <span className="ml-auto rounded border border-status-warn/30 bg-status-warn-bg px-1.5 py-0.5 text-[9px] font-bold text-status-warn">beta</span>
+                    </button>
+                  </div>
+                  <div className="my-1 border-t border-outline-variant/30" />
                   <button
                     onClick={() => {
                       setMenuOpen(false);
                       router.push("/conta");
                     }}
-                    className="w-full px-4 py-2.5 text-left text-[13px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+                    className="w-full px-4 py-2 text-left text-[12px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface cursor-pointer"
                   >
                     Minha conta
                   </button>
                   <a
                     href={`mailto:${BRAND.supportEmail}`}
                     onClick={() => setMenuOpen(false)}
-                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[13px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-[12px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
                   >
-                    <span className="material-symbols-outlined text-[15px] leading-none">mail</span>
+                    <span className="material-symbols-outlined text-[14px]">mail</span>
                     Suporte
                   </a>
                   <div className="my-1 border-t border-outline-variant/30" />
                   <button
                     onClick={() => { setMenuOpen(false); setFeedbackOpen(true); }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-[13px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface cursor-pointer"
+                    className="w-full flex items-center gap-2 px-4 py-2 text-left text-[12px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface cursor-pointer"
                   >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
                       <circle cx="12" cy="12" r="10"/>
                       <line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -381,7 +429,7 @@ export function Topbar() {
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="w-full px-4 py-2.5 text-left text-[13px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-error"
+                    className="w-full px-4 py-2 text-left text-[12px] text-on-surface-variant transition-colors hover:bg-surface-container hover:text-error cursor-pointer"
                   >
                     Sair
                   </button>
@@ -389,6 +437,33 @@ export function Topbar() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Secondary nav row */}
+        <div className="flex h-9 items-center gap-1 border-t border-outline-variant/20 px-5">
+          <button
+            onClick={() => setTemplateSelectorOpen(true)}
+            className="flex h-8 items-center gap-1.5 rounded-md px-3 text-[11px] font-medium text-on-surface-muted transition-colors hover:bg-surface-container hover:text-on-surface"
+          >
+            <span className="material-symbols-outlined text-[14px]">description</span>
+            Templates
+          </button>
+          <button
+            onClick={() => router.push("/receituario")}
+            className="flex h-8 items-center gap-1.5 rounded-md px-3 text-[11px] font-medium text-on-surface-muted transition-colors hover:bg-surface-container hover:text-on-surface"
+          >
+            <span className="material-symbols-outlined text-[14px]">medication</span>
+            Receituário
+            <span className="rounded border border-status-warn/30 bg-status-warn-bg px-1.5 py-0.5 text-[8px] font-bold text-status-warn leading-none">beta</span>
+          </button>
+          <button
+            onClick={() => router.push("/pedidos")}
+            className="flex h-8 items-center gap-1.5 rounded-md px-3 text-[11px] font-medium text-on-surface-muted transition-colors hover:bg-surface-container hover:text-on-surface"
+          >
+            <span className="material-symbols-outlined text-[14px]">lab_profile</span>
+            Pedidos
+            <span className="rounded border border-status-warn/30 bg-status-warn-bg px-1.5 py-0.5 text-[8px] font-bold text-status-warn leading-none">beta</span>
+          </button>
         </div>
       </div>
     </>
@@ -416,4 +491,13 @@ function NavButton({
       {label}
     </button>
   );
+}
+
+function formatRelativeTime(date: Date): string {
+  const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (diff < 10) return "agora";
+  if (diff < 60) return `há ${diff}s`;
+  const min = Math.floor(diff / 60);
+  if (min < 60) return `há ${min}min`;
+  return `há ${Math.floor(min / 60)}h`;
 }

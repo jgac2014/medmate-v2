@@ -252,3 +252,14 @@ export interface TimerState {
   active_seconds: number;
 }
 
+// ── Template governance types ────────────────────────────────────────────────
+
+export type TemplateStatus = "ativo" | "em_revisao" | "desatualizado" | "rascunho";
+
+export type TemplateCategory =
+  | "cronico"
+  | "agudo"
+  | "saude_mental"
+  | "preventivo"
+  | "retorno_exames";
+

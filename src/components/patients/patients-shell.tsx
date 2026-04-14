@@ -15,14 +15,9 @@ import { ageFromBirthDate, formatDateBR } from "@/lib/utils";
 import { BRAND } from "@/lib/branding";
 import { markOnboardingStep } from "@/hooks/useOnboarding";
 import type { Patient, PatientMedication } from "@/types";
+import type { ConsultationItem } from "@/components/historico/historico-shell";
 
-type ConsultationPreview = {
-  id: string;
-  date: string;
-  assessment: string | null;
-  problems: string[] | null;
-  prescription: string | null;
-};
+// Reutiliza o mesmo tipo do Historico-shell para consistência longitudinal
 
 export function PatientsShell() {
   const router = useRouter();
@@ -30,7 +25,7 @@ export function PatientsShell() {
   const [query, setQuery] = useState("");
   const [patients, setPatients] = useState<Patient[]>([]);
   const [activePatientId, setActivePatientId] = useState<string | null>(null);
-  const [recentConsultations, setRecentConsultations] = useState<ConsultationPreview[]>([]);
+  const [recentConsultations, setRecentConsultations] = useState<ConsultationItem[]>([]);
   const [activeProblems, setActiveProblems] = useState<string[]>([]);
   const [medications, setMedications] = useState<PatientMedication[]>([]);
   const [loadingPatients, setLoadingPatients] = useState(true);
@@ -102,7 +97,7 @@ export function PatientsShell() {
       getPatientMedications(activePatientId),
     ])
       .then(([consultationsResult, problemsResult, medicationsResult]) => {
-        setRecentConsultations(((consultationsResult.data ?? []) as ConsultationPreview[]).slice(0, 6));
+        setRecentConsultations((consultationsResult.data ?? []) as unknown as ConsultationItem[]);
         setActiveProblems(problemsResult);
         setMedications(medicationsResult);
       })
@@ -308,40 +303,79 @@ export function PatientsShell() {
 
                   {!loadingDetails && recentConsultations.length === 0 && (
                     <div className="rounded-xl border border-dashed border-outline-variant bg-surface-lowest px-4 py-8 text-center">
-                      <p className="text-[14px] font-medium text-on-surface">Sem consultas anteriores</p>
+                      <p className="text-[14px] font-medium text-on-surface">Sem consultas registradas</p>
                       <p className="mt-1 text-[12px] text-on-surface-muted">
-                        Este paciente ainda não possui histórico salvo no {BRAND.name}.
+                        Inicie a primeira consulta para construir o histórico longitudinal.
                       </p>
                     </div>
                   )}
 
                   <div className="space-y-3">
-                    {recentConsultations.map((consultation) => (
-                      <div
-                        key={consultation.id}
-                        className="rounded-xl border border-outline-variant/40 bg-surface-lowest p-4"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-[13px] font-semibold text-primary">
-                            {formatDateBR(consultation.date)}
-                          </p>
-                          <button
-                            onClick={() => router.push(`/historico?patientId=${activePatient.id}`)}
-                            className="text-[12px] font-medium text-secondary transition-colors hover:text-primary"
-                          >
-                            Abrir no histórico
-                          </button>
+                    {recentConsultations.map((consultation) => {
+                      const problems = [
+                        ...(consultation.problems ?? []),
+                        ...(consultation.problems_other
+                          ? consultation.problems_other.split(",").map((s) => s.trim()).filter(Boolean)
+                          : []),
+                      ];
+                      const pa =
+                        consultation.vitals?.pas && consultation.vitals?.pad
+                          ? `${consultation.vitals.pas}/${consultation.vitals.pad}`
+                          : null;
+
+                      return (
+                        <div
+                          key={consultation.id}
+                          className="rounded-xl border border-outline-variant/40 bg-surface-lowest overflow-hidden"
+                        >
+                          {/* Card header */}
+                          <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-outline-variant/30">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[12px] font-bold text-primary">{formatDateBR(consultation.date)}</span>
+                              {problems.slice(0, 2).map((p) => (
+                                <span key={p} className="rounded-full bg-secondary-container/50 border border-secondary/20 px-2 py-0.5 text-[9px] font-semibold text-secondary">
+                                  {p}
+                                </span>
+                              ))}
+                            </div>
+                            <button
+                              onClick={() => router.push(`/historico?patientId=${activePatient.id}`)}
+                              className="text-[11px] font-medium text-secondary transition-colors hover:text-primary shrink-0"
+                            >
+                              Ver histórico →
+                            </button>
+                          </div>
+
+                          {/* SOAP summary */}
+                          <div className="px-4 py-3 grid grid-cols-2 gap-3">
+                            {consultation.subjective && (
+                              <div>
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">Subjetivo</p>
+                                <p className="text-[11px] text-on-surface leading-snug line-clamp-2">{consultation.subjective}</p>
+                              </div>
+                            )}
+                            {consultation.assessment && (
+                              <div>
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">Avaliação</p>
+                                <p className="text-[11px] text-on-surface leading-snug line-clamp-2">{consultation.assessment}</p>
+                              </div>
+                            )}
+                            {pa && (
+                              <div>
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">PA</p>
+                                <p className="text-[11px] font-bold text-on-surface">{pa} mmHg</p>
+                              </div>
+                            )}
+                            {consultation.plan && (
+                              <div>
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">Plano</p>
+                                <p className="text-[11px] text-on-surface leading-snug line-clamp-2">{consultation.plan}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <p className="mt-2 text-[13px] leading-relaxed text-on-surface-variant">
-                          {consultation.assessment?.trim() || consultation.problems?.join(", ") || "Sem avaliação registrada"}
-                        </p>
-                        {consultation.prescription && (
-                          <p className="mt-2 text-[12px] text-on-surface-muted">
-                            Prescrição: {consultation.prescription.split("\n")[0]}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 

@@ -3,7 +3,7 @@
 import type { Patient } from "@/types";
 import type { ConsultationItem } from "./historico-shell";
 import { formatDateBR } from "@/lib/utils";
-import { Search, FilePlus, RotateCcw, ClipboardList } from "lucide-react";
+import { Search, FilePlus, RotateCcw, Stethoscope, Pill, ClipboardList, Activity, AlertCircle, Copy } from "lucide-react";
 import { useState } from "react";
 
 interface HistoryTimelineProps {
@@ -11,6 +11,8 @@ interface HistoryTimelineProps {
   loading: boolean;
   selectedPatient: Patient | null;
   onNewConsultation: () => void;
+  onChangePatient: () => void;
+  onUseAsBase?: (consultation: ConsultationItem) => void;
 }
 
 export function HistoryTimeline({
@@ -18,81 +20,133 @@ export function HistoryTimeline({
   loading,
   selectedPatient,
   onNewConsultation,
+  onChangePatient,
+  onUseAsBase,
 }: HistoryTimelineProps) {
   const [eventSearch, setEventSearch] = useState("");
 
   if (!selectedPatient) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
-        <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center">
-          <Search className="w-6 h-6 text-on-surface-muted" />
+      <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+        <div className="w-16 h-16 rounded-3xl bg-surface-container flex items-center justify-center">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-on-surface-muted">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
         </div>
-        <p className="text-[15px] font-semibold text-on-surface-variant">Busque um paciente</p>
-        <p className="text-[13px] text-on-surface-muted leading-relaxed max-w-xs">
-          Use a busca acima para selecionar um paciente e visualizar o histórico longitudinal.
-        </p>
+        <div>
+          <p className="text-[15px] font-semibold text-on-surface-variant">Busque um paciente</p>
+          <p className="text-[12px] text-on-surface-muted mt-1 leading-relaxed max-w-sm">
+            Selecione um paciente na busca acima para visualizar seu histórico clínico longitudinal.
+          </p>
+        </div>
+        <button
+          onClick={onChangePatient}
+          className="mt-2 flex items-center gap-2 px-4 py-2.5 bg-primary text-on-primary text-[11px] font-bold rounded-xl hover:bg-primary-container transition-all shadow-sm"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          Buscar paciente
+        </button>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24">
+      <div className="flex items-center justify-center py-20 gap-3">
+        <span className="material-symbols-outlined text-[20px] text-secondary animate-spin">
+          progress_activity
+        </span>
         <p className="text-[13px] text-on-surface-muted">Carregando histórico...</p>
       </div>
     );
   }
 
   const filtered = consultations.filter((c) => {
-    const matchesSearch =
-      !eventSearch.trim() ||
-      (c.assessment ?? "").toLowerCase().includes(eventSearch.toLowerCase()) ||
-      (c.problems ?? []).some((p) => p.toLowerCase().includes(eventSearch.toLowerCase())) ||
-      (c.prescription ?? "").toLowerCase().includes(eventSearch.toLowerCase());
-    return matchesSearch;
+    if (!eventSearch.trim()) return true;
+    const q = eventSearch.toLowerCase();
+    const problems = [
+      ...(c.problems ?? []),
+      ...(c.problems_other ? c.problems_other.split(",").map((s) => s.trim()).filter(Boolean) : []),
+    ];
+    return (
+      problems.some((p) => p.toLowerCase().includes(q)) ||
+      (c.assessment ?? "").toLowerCase().includes(q) ||
+      (c.plan ?? "").toLowerCase().includes(q) ||
+      (c.subjective ?? "").toLowerCase().includes(q) ||
+      (c.prescription ?? "").toLowerCase().includes(q) ||
+      formatDateBR(c.date).toLowerCase().includes(q)
+    );
   });
 
   return (
     <>
-      {/* Filtros */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-muted w-4 h-4" />
+      {/* Filtro de busca */}
+      {consultations.length > 0 && (
+        <div className="relative mb-6">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-muted w-4 h-4 pointer-events-none" />
           <input
             type="text"
             value={eventSearch}
             onChange={(e) => setEventSearch(e.target.value)}
-            placeholder="Buscar diagnóstico, conduta ou exame..."
-            className="w-full bg-surface-lowest border border-outline-variant pl-10 pr-4 py-2.5 rounded-xl text-sm text-on-surface placeholder:text-on-surface-muted focus:ring-1 focus:ring-primary/20 focus:border-primary outline-none shadow-sm transition-all"
+            placeholder="Buscar por diagnóstico, conduta, problema..."
+            className="w-full bg-surface-lowest border border-outline-variant/50 pl-10 pr-4 py-2.5 rounded-xl text-[13px] text-on-surface placeholder:text-on-surface-muted/60 focus:ring-1 focus:ring-secondary/30 focus:border-secondary outline-none shadow-sm transition-all"
           />
-        </div>
-      </div>
-
-      {/* Empty state */}
-      {filtered.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center">
-            <ClipboardList className="w-5 h-5 text-on-surface-muted" />
-          </div>
-          <p className="text-[13px] font-medium text-on-surface-variant">
-            {eventSearch ? "Nenhum evento encontrado" : "Nenhuma consulta registrada"}
-          </p>
-          {!eventSearch && (
-            <button
-              onClick={onNewConsultation}
-              className="mt-2 flex items-center gap-2 px-4 py-2.5 bg-primary text-on-primary text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-container transition-all shadow-sm cursor-pointer"
-            >
-              <FilePlus className="w-4 h-4" />
-              Iniciar primeira consulta
-            </button>
+          {eventSearch && (
+            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] text-on-surface-muted">
+              {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
+            </span>
           )}
+        </div>
+      )}
+
+      {/* Empty state: sem consultas */}
+      {consultations.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+          <div className="w-16 h-16 rounded-3xl bg-surface-container flex items-center justify-center">
+            <ClipboardList className="w-7 h-7 text-on-surface-muted" />
+          </div>
+          <div>
+            <p className="text-[15px] font-semibold text-on-surface-variant">
+              Nenhuma consulta registrada
+            </p>
+            <p className="text-[12px] text-on-surface-muted mt-1 leading-relaxed max-w-sm">
+              Este paciente ainda não tem consultas registradas no sistema.
+            </p>
+          </div>
+          <button
+            onClick={onNewConsultation}
+            className="mt-2 flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary text-[11px] font-bold rounded-xl hover:bg-primary-container transition-all shadow-sm"
+          >
+            <FilePlus className="w-4 h-4" />
+            Registrar primeira consulta
+          </button>
+        </div>
+      )}
+
+      {/* Empty state: busca sem resultados */}
+      {consultations.length > 0 && filtered.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
+          <AlertCircle className="w-8 h-8 text-on-surface-muted/50" />
+          <p className="text-[13px] text-on-surface-muted">
+            Nenhum evento encontrado para &quot;{eventSearch}&quot;
+          </p>
+          <button
+            onClick={() => setEventSearch("")}
+            className="text-[11px] text-secondary font-medium hover:underline"
+          >
+            Limpar busca
+          </button>
         </div>
       )}
 
       {/* Timeline */}
       {filtered.length > 0 && (
-        <div className="relative pl-12">
-          <div className="absolute left-[1.125rem] top-0 bottom-0 w-px bg-outline-variant" />
+        <div className="relative pl-10">
+          <div className="absolute left-[1.1rem] top-0 bottom-0 w-px bg-outline-variant/40" />
 
           {filtered.map((consult, idx) => {
             const isLatest = idx === 0;
@@ -106,130 +160,172 @@ export function HistoryTimeline({
               consult.vitals?.pas && consult.vitals?.pad
                 ? `${consult.vitals.pas}/${consult.vitals.pad}`
                 : null;
+            const peso = consult.vitals?.peso || null;
+            const imc = consult.vitals?.imc || null;
             const pendingFollowups = (consult.followup_items ?? []).filter((fi) => !fi.completed);
 
             return (
-              <div key={consult.id} className="relative mb-8 group">
+              <div key={consult.id} className="relative mb-6 group">
                 {/* Timeline dot */}
                 <div
-                  className={`absolute -left-[3.15rem] top-2 w-5 h-5 rounded-full border-4 border-surface z-10 transition-transform group-hover:scale-110 ${
-                    isLatest ? "bg-primary" : "bg-secondary"
+                  className={`absolute -left-[3.1rem] top-2.5 w-4 h-4 rounded-full border-4 border-surface z-10 transition-transform group-hover:scale-125 ${
+                    isLatest ? "bg-primary shadow-sm" : "bg-secondary"
                   }`}
                 />
 
-                {/* Date label */}
-                <div className="absolute -left-[5.5rem] top-2 text-[10px] font-bold text-on-surface-muted text-right leading-none w-14 uppercase tracking-tighter">
+                {/* Date */}
+                <div className="absolute -left-[5.2rem] top-2.5 text-[10px] font-bold text-on-surface-muted text-right leading-none w-14 uppercase tracking-tight">
                   {formatDateBR(consult.date)}
-                  <br />
-                  <span className="font-normal opacity-60">
-                    {consult.date.slice(0, 4)}
-                  </span>
                 </div>
 
-                {/* Event card */}
-                {isLatest ? (
-                  // Latest consultation - full detail card
-                  <div className="bg-surface-lowest border-l-4 border-primary rounded-2xl p-6 shadow-sm ring-1 ring-outline-variant/50 transition-shadow hover:shadow-md">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <span className="px-2 py-0.5 bg-primary text-on-primary text-[9px] font-bold rounded-full uppercase tracking-wider">
+                {/* Card */}
+                <div
+                  className={`rounded-2xl border transition-all hover:shadow-md ${
+                    isLatest
+                      ? "bg-surface-lowest border-primary/30 shadow-sm ring-1 ring-primary/10"
+                      : "bg-surface-lowest border-outline-variant/50 shadow-sm"
+                  }`}
+                >
+                  {/* Card header */}
+                  <div className="flex items-start justify-between gap-3 p-4 pb-3">
+                    <div className="min-w-0 flex-1">
+                      {/* Labels */}
+                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                        {isLatest && (
+                          <span className="rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 text-[9px] font-bold text-primary uppercase tracking-wider">
                             Mais Recente
                           </span>
-                          {problems.length > 0 && (
-                            <span className="text-[13px] font-bold text-primary">
-                              {problems.slice(0, 2).join(" · ")}
-                              {problems.length > 2 && ` +${problems.length - 2}`}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 text-[12px] text-on-surface-variant flex-wrap">
-                          <span className="font-medium">{formatDateBR(consult.date)}</span>
-                          {pa && <span className="font-bold">PA: {pa} mmHg</span>}
-                          <div className="flex gap-1.5">
-                            {consult.assessment && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-surface-container text-[10px] font-bold text-on-surface-variant rounded border border-outline-variant">
-                                SOAP
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                        )}
+                        {problems.slice(0, 2).map((p) => (
+                          <span
+                            key={p}
+                            className="rounded-full bg-secondary-container/50 border border-secondary/20 px-2 py-0.5 text-[9px] font-semibold text-secondary"
+                          >
+                            {p}
+                          </span>
+                        ))}
+                        {problems.length > 2 && (
+                          <span className="text-[9px] text-on-surface-muted">
+                            +{problems.length - 2} mais
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Metadata row */}
+                      <div className="flex items-center gap-4 text-[11px] text-on-surface-muted flex-wrap">
+                        <span className="font-semibold">{formatDateBR(consult.date)}</span>
+                        {pa && (
+                          <span className={`font-bold ${
+                            Number(pa.split("/")[0]) >= 140 ? "text-status-crit" :
+                            Number(pa.split("/")[0]) >= 130 ? "text-status-warn" :
+                            "text-on-surface"
+                          }`}>
+                            PA {pa}
+                          </span>
+                        )}
+                        {peso && (
+                          <span>Peso {peso} kg</span>
+                        )}
+                        {imc && (
+                          <span>IMC {imc}</span>
+                        )}
                       </div>
                     </div>
+                  </div>
 
-                    {/* Assessment */}
-                    {consult.assessment && (
-                      <div className="grid grid-cols-2 gap-4 mb-5">
-                        <div className="bg-surface-container p-4 rounded-xl border border-outline-variant/50">
-                          <p className="text-[9px] font-bold text-on-surface-muted uppercase tracking-widest mb-2">
-                            Avaliação / Conduta
-                          </p>
-                          <p className="text-[13px] font-semibold text-on-surface leading-snug line-clamp-3">
-                            {consult.assessment}
-                          </p>
-                        </div>
-                        {pendingFollowups.length > 0 && (
-                          <div className="bg-surface-container p-4 rounded-xl border border-secondary/20">
-                            <p className="text-[9px] font-bold text-secondary uppercase tracking-widest mb-2">
-                              Pendências no Retorno
-                            </p>
-                            <ul className="space-y-1">
-                              {pendingFollowups.slice(0, 3).map((fi) => (
-                                <li key={fi.id} className="text-[12px] text-on-surface">
-                                  • {fi.text}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                  {/* SOAP sections */}
+                  <div className="px-4 pb-4 grid grid-cols-2 gap-3">
+                    {/* Subjetivo */}
+                    {consult.subjective && (
+                      <div className="bg-surface-container/60 rounded-xl p-3">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">
+                          Subjetivo
+                        </p>
+                        <p className="text-[11px] text-on-surface leading-snug line-clamp-2">
+                          {consult.subjective}
+                        </p>
                       </div>
                     )}
 
-                    <div className="flex gap-3">
-                      <button
-                        onClick={onNewConsultation}
-                        className="flex-[1.5] py-3 bg-primary text-on-primary text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-container transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                        Nova Consulta — Retorno
-                      </button>
-                      <button
-                        disabled
-                        className="flex-1 py-3 border border-outline-variant bg-surface-lowest text-primary text-[11px] font-bold uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"
-                      >
-                        <ClipboardList className="w-4 h-4" />
-                        Ver SOAP
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  // Older consultations - compact card
-                  <div className="bg-surface-lowest border border-outline-variant rounded-2xl p-4 flex items-center justify-between hover:border-secondary/40 transition-colors shadow-sm">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-secondary border border-outline-variant/50 shrink-0">
-                        <ClipboardList className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-on-surface text-[13px] truncate">
-                          {problems.length > 0
-                            ? problems.slice(0, 2).join(" · ")
-                            : "Consulta de rotina"}
-                        </h3>
-                        <p className="text-[10px] text-on-surface-muted uppercase font-semibold tracking-widest mt-0.5 flex items-center gap-2">
-                          {formatDateBR(consult.date)}
-                          {pa && <span className="text-on-surface-variant">PA: {pa}</span>}
-                        </p>
-                      </div>
-                    </div>
+                    {/* Avaliação */}
                     {consult.assessment && (
-                      <div className="text-right shrink-0 ml-4 max-w-[160px]">
-                        <p className="text-[10px] text-on-surface-muted line-clamp-2">
+                      <div className="bg-surface-container/60 rounded-xl p-3">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">
+                          Avaliação
+                        </p>
+                        <p className="text-[11px] text-on-surface leading-snug line-clamp-2">
                           {consult.assessment}
                         </p>
                       </div>
                     )}
+
+                    {/* Plano */}
+                    {consult.plan && (
+                      <div className="bg-surface-container/60 rounded-xl p-3">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">
+                          Plano
+                        </p>
+                        <p className="text-[11px] text-on-surface leading-snug line-clamp-2">
+                          {consult.plan}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Prescrição */}
+                    {consult.prescription && (
+                      <div className="bg-surface-container/60 rounded-xl p-3">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-secondary mb-1">
+                          Prescrição
+                        </p>
+                        <p className="text-[11px] text-on-surface leading-snug line-clamp-2">
+                          {consult.prescription}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Pendências */}
+                    {pendingFollowups.length > 0 && (
+                      <div className="col-span-2 bg-status-warn-bg rounded-xl p-3 border border-status-warn/20">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-status-warn mb-1.5 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-status-warn" />
+                          Pendências no retorno ({pendingFollowups.length})
+                        </p>
+                        <div className="space-y-1">
+                          {pendingFollowups.slice(0, 3).map((fi) => (
+                            <p key={fi.id} className="text-[11px] text-on-surface leading-snug">
+                              • {fi.text}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  {/* Card footer */}
+                  <div className="flex gap-2 px-4 pb-4">
+                    <button
+                      onClick={onNewConsultation}
+                      className={`flex items-center justify-center gap-2 py-2 text-[11px] font-bold rounded-xl transition-colors shadow-sm ${
+                        isLatest
+                          ? "flex-[1.5] bg-primary text-on-primary hover:bg-primary-container"
+                          : "flex-1 border border-outline-variant text-on-surface-variant hover:bg-surface-container"
+                      }`}
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      {isLatest ? "Novo Retorno" : "Ver consulta"}
+                    </button>
+                    {onUseAsBase && (
+                      <button
+                        onClick={() => onUseAsBase(consult)}
+                        className="flex items-center justify-center gap-1.5 flex-1 py-2 border border-secondary/30 text-secondary text-[11px] font-medium rounded-xl hover:bg-secondary-container/20 transition-colors"
+                        title="Usar esta consulta como base para uma nova"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        Usar como base
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             );
           })}
