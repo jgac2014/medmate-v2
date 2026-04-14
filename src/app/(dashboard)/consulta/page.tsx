@@ -34,7 +34,6 @@ import { trackEvent } from "@/lib/analytics";
 export default function ConsultaPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   // Guard contra re-entrada: so permite um timer-init por sessao
   const timerInitializedRef = useRef(false);
   const patientName = useConsultationStore((s) => s.patientName);
@@ -134,13 +133,6 @@ export default function ConsultaPage() {
               aria-label="Alternar sidebar"
             >
               <span className="material-symbols-outlined text-[18px] text-on-surface-muted">menu</span>
-            </button>
-            <button
-              onClick={() => setRightPanelOpen((v) => !v)}
-              className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-container transition-colors"
-              aria-label="Alternar painel eSUS"
-            >
-              <span className="material-symbols-outlined text-[18px] text-on-surface-muted">description</span>
             </button>
             <div className="flex items-center gap-1 px-2 py-1 bg-[#e9eff2] rounded text-[10px] font-bold text-[#717973] uppercase tracking-tight">
               <span className="w-1.5 h-1.5 rounded-full bg-secondary inline-block" />
@@ -244,7 +236,7 @@ export default function ConsultaPage() {
       </main>
 
       {/* Coluna direita: prévia eSUS + status documentação */}
-      <ConsultationRightPanel open={rightPanelOpen} />
+      <ConsultationRightPanel />
 
       <ExamReviewModal
         open={reviewModal.open}

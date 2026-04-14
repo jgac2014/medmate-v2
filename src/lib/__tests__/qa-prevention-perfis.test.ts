@@ -21,7 +21,7 @@ import {
   preventionOutputLabels,
   preventionShortLabel,
 } from "../output-labels";
-import type { PatientRuleInput } from "../types";
+import type { PatientRuleInput } from "@/types";
 
 type Profile = { label: string; age: number; gender: string; problems: string[] };
 
