@@ -1,7 +1,13 @@
 import type { ConsultationState } from "@/types";
 import { formatDateBR } from "@/lib/utils";
 import { EXAM_CARDS } from "@/lib/constants";
+import { preventionOutputLabels, preventionShortLabel, triagemOutputLine } from "@/lib/output-labels";
 
+/**
+ * Output detalhado — formato completo para存档/prontuário.
+ * Menos verboso que um documento clínico acadêmico, mais estruturado que o resumido.
+ * Sem contexto normativo nos labels de prevenção.
+ */
 export function generateDetalhadoOutput(state: ConsultationState): string {
   const lines: string[] = [];
   const { patient, vitals, problems, problemsOther, labs, labsDate, labsExtras, imaging, calculations, soap, history, prescription, requestedExams, patientInstructions } = state;
@@ -44,6 +50,17 @@ export function generateDetalhadoOutput(state: ConsultationState): string {
     allProblems.forEach((p) => lines.push(`• ${p}`));
   }
 
+  // Prevenções — só prevenção factual, rótulos curtos
+  if (state.preventions.length > 0) {
+    const shortPreventions = preventionOutputLabels(state.preventions)
+      .map(preventionShortLabel)
+      .filter(Boolean);
+    if (shortPreventions.length > 0) {
+      lines.push("\nPREVENÇÕES");
+      shortPreventions.forEach((p) => lines.push(`• ${p}`));
+    }
+  }
+
   // Sinais vitais
   const hasVitals = Object.values(vitals).some(Boolean);
   if (hasVitals) {
@@ -60,9 +77,16 @@ export function generateDetalhadoOutput(state: ConsultationState): string {
 
   // Cálculos
   const calcLines: string[] = [];
-  if (calculations.tfg) calcLines.push(`TFG (CKD-EPI): ${calculations.tfg.value.toFixed(1)} mL/min — ${calculations.tfg.stage}`);
-  if (calculations.fib4) calcLines.push(`FIB-4: ${calculations.fib4.value.toFixed(2)} — ${calculations.fib4.risk}`);
-  if (calculations.rcv) calcLines.push(`RCV (Framingham): ${calculations.rcv.value.toFixed(0)}% — ${calculations.rcv.risk}`);
+  if (calculations.tfg && Number.isFinite(calculations.tfg.value))
+    calcLines.push(`TFG (CKD-EPI): ${calculations.tfg.value.toFixed(1)} mL/min — ${calculations.tfg.stage}`);
+  if (calculations.fib4 && Number.isFinite(calculations.fib4.value))
+    calcLines.push(`FIB-4: ${calculations.fib4.value.toFixed(2)} — ${calculations.fib4.risk}`);
+  if (calculations.rcv && Number.isFinite(calculations.rcv.value))
+    calcLines.push(`RCV (Framingham): ${calculations.rcv.value.toFixed(0)}% — ${calculations.rcv.risk}`);
+  if (calculations.ldl && Number.isFinite(calculations.ldl.value))
+    calcLines.push(`LDL-c (Friedewald): ${calculations.ldl.value.toFixed(0)} mg/dL`);
+  if (calculations.naoHdl && Number.isFinite(calculations.naoHdl.value))
+    calcLines.push(`Não-HDL-c: ${calculations.naoHdl.value.toFixed(0)} mg/dL`);
   if (calcLines.length > 0) {
     lines.push("\nCÁLCULOS");
     calcLines.forEach((c) => lines.push(c));
@@ -88,11 +112,32 @@ export function generateDetalhadoOutput(state: ConsultationState): string {
     labsExtras.trim().split("\n").filter(Boolean).forEach((l) => lines.push(l));
   }
 
-  // Imagens
-  if (imaging.entries.trim()) {
-    const imgDate = formatDateBR(imaging.date);
-    lines.push(`\nIMAGENS${imgDate ? ` (${imgDate})` : ""}`);
-    imaging.entries.split("\n").filter(Boolean).forEach((e) => lines.push(`• ${e.trim()}`));
+  // Imagens / Exames estruturados
+  const validItems = imaging.items.filter(
+    (item) => item.name.trim() || item.result.trim() || item.notes.trim()
+  );
+  const hasImaging = validItems.length > 0 || imaging.entries.trim();
+  if (hasImaging) {
+    const byDate: Record<string, typeof validItems> = {};
+    for (const item of validItems) {
+      const d = item.examDate || imaging.date;
+      if (!byDate[d]) byDate[d] = [];
+      byDate[d].push(item);
+    }
+    for (const [dateKey, items] of Object.entries(byDate)) {
+      const formattedDate = formatDateBR(dateKey);
+      lines.push(`\nEXAMES E IMAGENS${formattedDate ? ` (${formattedDate})` : ""}`);
+      for (const item of items) {
+        const parts = [item.name.trim(), item.result.trim()].filter(Boolean).join(": ");
+        const suffix = item.notes.trim() ? ` — ${item.notes.trim()}` : "";
+        if (parts) lines.push(`• ${parts}${suffix}`);
+      }
+    }
+    if (imaging.entries.trim()) {
+      const imgDate = formatDateBR(imaging.date);
+      lines.push(`\nEXAMES E IMAGENS${imgDate ? ` (${imgDate})` : ""}`);
+      imaging.entries.split("\n").filter(Boolean).forEach((e) => lines.push(`• ${e.trim()}`));
+    }
   }
 
   // SOAP
@@ -119,13 +164,22 @@ export function generateDetalhadoOutput(state: ConsultationState): string {
     lines.push(patientInstructions);
   }
 
+  // Triagens — formato curto
   const triagemEntries = Object.values(state.triagens ?? {});
   if (triagemEntries.length > 0) {
+    const nucleoSUS = triagemEntries.filter(
+      (r) => r.scaleId === "ivcf20" || r.scaleId === "phq9"
+    );
+    const complementares = triagemEntries.filter(
+      (r) => r.scaleId !== "ivcf20" && r.scaleId !== "phq9"
+    );
+
     lines.push("\nTRIAGENS CLÍNICAS");
-    triagemEntries.forEach((r) => {
-      const id = r.scaleId.toUpperCase().replace("_", "-");
-      lines.push(`• ${id}: ${r.score} pts — ${r.interpretation}`);
-    });
+    nucleoSUS.forEach((r) => lines.push(`• ${triagemOutputLine(r.scaleId, r.score, r.interpretation)}`));
+    if (complementares.length > 0) {
+      lines.push("Complementares:");
+      complementares.forEach((r) => lines.push(`  • ${triagemOutputLine(r.scaleId, r.score, r.interpretation)}`));
+    }
   }
 
   return lines.join("\n").trimEnd();

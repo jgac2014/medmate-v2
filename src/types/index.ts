@@ -26,9 +26,19 @@ export interface LabValues {
   [key: string]: string;
 }
 
+export interface ImagingItem {
+  id: string;
+  examDate: string; // data do exame — fallback: imaging.date (legacy)
+  name: string;
+  result: string;
+  notes: string;
+  createdAt: string;
+}
+
 export interface ImagingData {
-  date: string;
-  entries: string;
+  date: string; // legacy — usado como fallback para itens sem examDate
+  entries: string; // legacy — mantido para migração de dados antigos
+  items: ImagingItem[];
 }
 
 export interface Calculations {
@@ -76,6 +86,8 @@ export interface ConsultationState {
   triagens: Record<string, TriagemResult>;
   timerState: TimerState;
   copiesThisSession: number;
+  /** Texto eSUS editado manualmente — null = usar geração automática */
+  customEsusText: string | null;
 }
 
 export interface ExamFieldDef {

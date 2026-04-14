@@ -10,6 +10,7 @@ interface ImcResult {
 }
 
 export function calculateIMC(pesoKg: number, alturaCm: number): ImcResult | null {
+  if (!Number.isFinite(pesoKg) || !Number.isFinite(alturaCm)) return null;
   if (pesoKg <= 0 || alturaCm <= 0) return null;
 
   const alturaM = alturaCm / 100;

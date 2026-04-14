@@ -37,7 +37,7 @@ export function formatObjectiveText(
   const anthropoParts: string[] = [];
   if (vitals.peso) anthropoParts.push(`Peso: ${vitals.peso} kg`);
   if (vitals.altura) anthropoParts.push(`Altura: ${vitals.altura} m`);
-  if (calculations.imc)
+  if (calculations.imc && !Number.isNaN(calculations.imc.value))
     anthropoParts.push(
       `IMC: ${calculations.imc.value.toFixed(1)} kg/m² (${calculations.imc.classification})`
     );

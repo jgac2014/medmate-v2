@@ -35,6 +35,10 @@ export interface ScaleDef {
   interpret: (score: number, gender?: string) => Interpretation;
   source: string;
   sourceYear: number;
+  /** Se true, a interpretação depende do sexo do paciente (ex: AUDIT-C) */
+  genderAware?: boolean;
+  /** Se true, requer avaliação presencial do examinador */
+  requiresInPerson?: boolean;
 }
 
 export interface TriagemResult {

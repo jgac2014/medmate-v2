@@ -23,7 +23,7 @@ export function FollowupPanel() {
   const done = followupItems.filter((i) => i.completed);
 
   return (
-    <div className="space-y-2">
+    <div id="section-retorno" className="space-y-2 scroll-mt-12">
       <div className="flex gap-2">
         <input
           type="text"

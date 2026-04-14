@@ -1,10 +1,17 @@
 import type { ConsultationState } from "@/types";
 import { formatDateBR } from "./utils";
 import { EXAM_CARDS } from "./constants";
+import { preventionOutputLabels, preventionShortLabel, triagemOutputLine } from "./output-labels";
 
 /**
  * Gera o texto de resumo formatado para colar no eSUS PEC.
  * Texto gerado em tempo real a partir do estado da consulta.
+ *
+ * Princípios de output:
+ * - Rótulos curtos, clínicos, sem contexto normativo
+ * - Triagens só aparecem se realmente aplicadas
+ * - Sem seções vazias, sem placeholders
+ * - PSA completamente ausente do output
  */
 export function generateEsusSummary(state: ConsultationState): string {
   const lines: string[] = [];
@@ -27,29 +34,48 @@ export function generateEsusSummary(state: ConsultationState): string {
     lines.push("");
   }
 
-  // PREVENÇÕES
+  // PREVENÇÕES — rótulos curtos, só prevenção factual (sem duplicação com TRIAGENS)
   if (state.preventions.length > 0) {
-    lines.push("PREVENÇÕES");
-    state.preventions.forEach((p) => lines.push(`• ${p}`));
-    lines.push("");
+    const outputItems = preventionOutputLabels(state.preventions)
+      .map(preventionShortLabel)
+      .filter(Boolean);
+    if (outputItems.length > 0) {
+      lines.push("PREVENÇÕES");
+      outputItems.forEach((p) => lines.push(`• ${p}`));
+      lines.push("");
+    }
   }
 
   // RASTREAMENTOS
   const screenings: string[] = [];
   const dateLab = formatDateBR(state.labsDate);
 
-  if (state.calculations.rcv) {
+  if (state.calculations.rcv && !state.calculations.rcv.outOfRange) {
     screenings.push(`• RCV: ${state.calculations.rcv.value}% — Risco ${state.calculations.rcv.risk} (Framingham/SBC 2022)`);
   }
   if (state.calculations.tfg) {
     screenings.push(`• TFG (CKD-EPI 2021): ${state.calculations.tfg.value} mL/min — ${state.calculations.tfg.stage}${dateLab ? ` (${dateLab})` : ""}`);
   }
-  if (state.calculations.fib4) {
+  if (state.calculations.fib4 && !state.calculations.fib4.lowValidity) {
     screenings.push(`• FIB-4: ${state.calculations.fib4.value} — ${state.calculations.fib4.risk}${dateLab ? ` (${dateLab})` : ""}`);
   }
   if (screenings.length > 0) {
     lines.push("RASTREAMENTOS");
     lines.push(...screenings);
+    lines.push("");
+  }
+
+  // LDL / Não-HDL
+  const lipidCalcs: string[] = [];
+  if (state.calculations.ldl && Number.isFinite(state.calculations.ldl.value)) {
+    lipidCalcs.push(`LDL-c (Friedewald): ${state.calculations.ldl.value.toFixed(0)} mg/dL`);
+  }
+  if (state.calculations.naoHdl && Number.isFinite(state.calculations.naoHdl.value)) {
+    lipidCalcs.push(`Não-HDL-c: ${state.calculations.naoHdl.value.toFixed(0)} mg/dL`);
+  }
+  if (lipidCalcs.length > 0) {
+    lines.push("LIPIDOGRAMA");
+    lipidCalcs.forEach((l) => lines.push(`• ${l}`));
     lines.push("");
   }
 
@@ -68,11 +94,33 @@ export function generateEsusSummary(state: ConsultationState): string {
     lines.push("");
   }
 
-  // IMAGENS / OUTROS
-  if (state.imaging.entries.trim()) {
-    const imgDate = formatDateBR(state.imaging.date);
-    lines.push(`Imagens / Outros${imgDate ? ` (${imgDate})` : ""}:`);
-    state.imaging.entries.split("\n").filter(Boolean).forEach((e) => lines.push(`• ${e.trim()}`));
+  // EXAMES E IMAGENS
+  const validItems = state.imaging.items.filter(
+    (item) => item.name.trim() || item.result.trim() || item.notes.trim()
+  );
+  const hasImaging = validItems.length > 0 || state.imaging.entries.trim();
+  if (hasImaging) {
+    const byDate: Record<string, typeof validItems> = {};
+    for (const item of validItems) {
+      const d = item.examDate || state.imaging.date;
+      if (!byDate[d]) byDate[d] = [];
+      byDate[d].push(item);
+    }
+
+    for (const [dateKey, items] of Object.entries(byDate)) {
+      const formattedDate = formatDateBR(dateKey);
+      lines.push(`Exames e Imagens${formattedDate ? ` (${formattedDate})` : ""}:`);
+      for (const item of items) {
+        const parts = [item.name.trim(), item.result.trim()].filter(Boolean).join(": ");
+        const suffix = item.notes.trim() ? ` — ${item.notes.trim()}` : "";
+        if (parts) lines.push(`• ${parts}${suffix}`);
+      }
+    }
+    if (state.imaging.entries.trim()) {
+      const imgDate = formatDateBR(state.imaging.date);
+      lines.push(`Exames e Imagens${imgDate ? ` (${imgDate})` : ""}:`);
+      state.imaging.entries.split("\n").filter(Boolean).forEach((e) => lines.push(`• ${e.trim()}`));
+    }
     lines.push("");
   }
 
@@ -83,7 +131,7 @@ export function generateEsusSummary(state: ConsultationState): string {
     lines.push("");
   }
 
-  // DOENÇA ATUAL (SOAP)
+  // DOENÇA ATUAL
   const hasSoap = state.soap.subjective || state.soap.objective || state.soap.assessment || state.soap.plan;
   if (hasSoap) {
     lines.push("DOENÇA ATUAL");
@@ -139,6 +187,22 @@ export function generateEsusSummary(state: ConsultationState): string {
   if (state.patientInstructions.trim()) {
     lines.push("ORIENTAÇÕES");
     lines.push(state.patientInstructions);
+    lines.push("");
+  }
+
+  // TRIAGENS CLÍNICAS — só se aplicadas
+  const triagemEntries = Object.values(state.triagens ?? {});
+  if (triagemEntries.length > 0) {
+    const nucleoSUS = triagemEntries.filter(
+      (r) => r.scaleId === "ivcf20" || r.scaleId === "phq9"
+    );
+    const complementares = triagemEntries.filter(
+      (r) => r.scaleId !== "ivcf20" && r.scaleId !== "phq9"
+    );
+
+    lines.push("AVALIAÇÕES CLÍNICAS");
+    nucleoSUS.forEach((r) => lines.push(`• ${triagemOutputLine(r.scaleId, r.score, r.interpretation)}`));
+    complementares.forEach((r) => lines.push(`• ${triagemOutputLine(r.scaleId, r.score, r.interpretation)}`));
     lines.push("");
   }
 

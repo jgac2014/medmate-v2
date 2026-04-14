@@ -10,7 +10,7 @@ export function ProblemList() {
   const { problems, problemsOther, toggleProblem, setProblemsOther } = useConsultationStore();
 
   return (
-    <div className="mb-3.5">
+    <div className="mb-3.5 scroll-mt-12">
       <SectionHeader label="Lista de Problemas" color="red" />
       <div className="flex flex-col gap-0.5">
         {PROBLEMS.map((p) => (

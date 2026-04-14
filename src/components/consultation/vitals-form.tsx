@@ -12,13 +12,24 @@ export function VitalsForm() {
   useEffect(() => {
     const peso = parseFloat(vitals.peso);
     const altura = parseFloat(vitals.altura);
+    // Só calcula se ambos forem números válidos e positivos
+    const pesoValid = !isNaN(peso) && peso > 0;
+    const alturaValid = !isNaN(altura) && altura > 0;
+    if (!pesoValid || !alturaValid) {
+      // Sempre limpa — impede estado residual ao trocar de paciente
+      setVitals({ imc: "" });
+      setCalculations({ imc: null });
+      return;
+    }
     const result = calculateIMC(peso, altura);
-    setVitals({ imc: result ? `${result.value} — ${result.classification}` : "" });
-    setCalculations({ imc: result });
+    // Sanitização final: se calculateIMC retornar objeto com value NaN, treat as null
+    const safeResult = result && !Number.isNaN(result.value) ? result : null;
+    setVitals({ imc: safeResult ? `${safeResult.value} — ${safeResult.classification}` : "" });
+    setCalculations({ imc: safeResult });
   }, [vitals.peso, vitals.altura, setVitals, setCalculations]);
 
   return (
-    <div className="mb-3.5">
+    <div className="mb-3.5 scroll-mt-12">
       <SectionHeader label="Exame Físico" color="amber" />
       <div className="grid grid-cols-2 gap-[5px]">
         <Input label="PAS (mmHg)" id="vital-pas" type="number" placeholder="120"

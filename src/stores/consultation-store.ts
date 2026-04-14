@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { ConsultationState, PatientInfo, Vitals, SoapNotes, History, ImagingData, Calculations, FollowUpItem, TriagemResult, TimerState } from "@/types";
+import type { ConsultationState, PatientInfo, Vitals, SoapNotes, History, ImagingData, ImagingItem, Calculations, FollowUpItem, TriagemResult, TimerState } from "@/types";
 
 function todayISO(): string {
   return new Date().toISOString().split("T")[0];
@@ -15,7 +15,7 @@ const initialState: ConsultationState = {
   preventions: [],
   labs: {},
   labsDate: todayISO(),
-  imaging: { date: todayISO(), entries: "" },
+  imaging: { date: todayISO(), entries: "", items: [] },
   calculations: { imc: null, tfg: null, fib4: null, rcv: null, ldl: null, naoHdl: null },
   soap: { subjective: "", objective: "", assessment: "", plan: "" },
   history: { personal: "", family: "", habits: "", medications: "", allergies: "", comorbidities: "" },
@@ -31,6 +31,7 @@ const initialState: ConsultationState = {
     active_seconds: 0,
   },
   copiesThisSession: 0,
+  customEsusText: null,
 };
 
 interface ConsultationActions {
@@ -42,6 +43,9 @@ interface ConsultationActions {
   setLab: (key: string, value: string) => void;
   setLabsDate: (date: string) => void;
   setImaging: (imaging: Partial<ImagingData>) => void;
+  addImagingItem: (item: Omit<ImagingItem, "id" | "createdAt">) => void;
+  removeImagingItem: (id: string) => void;
+  updateImagingItem: (id: string, item: Partial<Omit<ImagingItem, "id" | "createdAt">>) => void;
   setLabsExtras: (text: string) => void;
   setCalculations: (calcs: Partial<Calculations>) => void;
   setSoap: (soap: Partial<SoapNotes>) => void;
@@ -66,6 +70,7 @@ interface ConsultationActions {
   setTimerState: (timer: Partial<TimerState>) => void;
   incrementCopies: () => void;
   resetCopiesThisSession: () => void;
+  setCustomEsusText: (text: string | null) => void;
 }
 
 export type ConsultationStore = ConsultationState & ConsultationActions;
@@ -111,8 +116,36 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
       return { triagens: rest };
     }),
 
-  loadState: (savedState, id, patientId) =>
-    set({ ...savedState, currentConsultationId: id, patientId: patientId ?? null }),
+  loadState: (savedState, id, patientId) => {
+    const rawImc = savedState.calculations?.imc;
+    const safeImc =
+      rawImc && typeof rawImc === "object" && !Number.isNaN(rawImc.value)
+        ? rawImc
+        : null;
+
+    // Migração: imaging.entries legacy → imaging.items (com examDate do imaging.date)
+    const migratedImaging = { ...savedState.imaging, items: savedState.imaging.items ?? [] };
+    if (savedState.imaging.entries?.trim()) {
+      migratedImaging.items.push({
+        id: crypto.randomUUID(),
+        examDate: savedState.imaging.date || new Date().toISOString().split("T")[0],
+        name: "Dados de imagem/exames",
+        result: savedState.imaging.entries.trim(),
+        notes: "",
+        createdAt: new Date().toISOString(),
+      });
+      migratedImaging.entries = "";
+    }
+
+    set({
+      ...savedState,
+      calculations: { ...savedState.calculations, imc: safeImc },
+      imaging: migratedImaging,
+      currentConsultationId: id,
+      patientId: patientId ?? null,
+      customEsusText: savedState.customEsusText ?? null,
+    });
+  },
 
   setTimerState: (timer) =>
     set((state) => ({ timerState: { ...state.timerState, ...timer } })),
@@ -121,6 +154,8 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
     set((state) => ({ copiesThisSession: state.copiesThisSession + 1 })),
 
   resetCopiesThisSession: () => set(() => ({ copiesThisSession: 0 })),
+
+  setCustomEsusText: (text) => set({ customEsusText: text }),
 
   setPatient: (patient) =>
     set((state) => ({ patient: { ...state.patient, ...patient } })),
@@ -152,6 +187,35 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
   setImaging: (imaging) =>
     set((state) => ({ imaging: { ...state.imaging, ...imaging } })),
 
+  addImagingItem: (item) =>
+    set((state) => ({
+      imaging: {
+        ...state.imaging,
+        items: [
+          ...state.imaging.items,
+          {
+            ...item,
+            examDate: item.examDate || state.imaging.date,
+            id: crypto.randomUUID(),
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      },
+    })),
+
+  removeImagingItem: (id) =>
+    set((state) => ({
+      imaging: { ...state.imaging, items: state.imaging.items.filter((i) => i.id !== id) },
+    })),
+
+  updateImagingItem: (id, item) =>
+    set((state) => ({
+      imaging: {
+        ...state.imaging,
+        items: state.imaging.items.map((i) => (i.id === id ? { ...i, ...item } : i)),
+      },
+    })),
+
   setLabsExtras: (text) => set({ labsExtras: text }),
 
   setCalculations: (calcs) =>
@@ -180,5 +244,6 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
         active_seconds: 0,
       },
       copiesThisSession: 0,
+      customEsusText: null,
     }),
 }));

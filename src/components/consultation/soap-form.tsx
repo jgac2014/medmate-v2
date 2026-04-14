@@ -34,8 +34,8 @@ export function SoapForm() {
   const { soap, setSoap } = useConsultationStore();
 
   return (
-    <div className="mb-3.5">
-      <div className="flex items-center gap-2 mb-3 px-4 py-2.5 -mx-5 -mt-5 bg-primary/5 border-b border-primary/10">
+    <div className="mb-3">
+      <div className="flex items-center gap-2 mb-2 px-3 py-2 -mx-5 -mt-5 bg-primary/5 border-b border-primary/10">
         <span className="material-symbols-outlined text-primary text-[18px]">
           article
         </span>
@@ -47,7 +47,7 @@ export function SoapForm() {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
         {SOAP_FIELDS.map((f) => (
           <div key={f.key} className="space-y-1.5">
             <div className="flex items-center gap-2 mb-1">
@@ -59,10 +59,11 @@ export function SoapForm() {
               </p>
             </div>
             <textarea
+              id={`soap-${f.key}`}
               placeholder={f.placeholder}
               value={soap[f.key]}
               onChange={(e) => setSoap({ [f.key]: e.target.value })}
-              className="w-full min-h-[100px] px-3 py-2 border border-primary/10 rounded-lg bg-surface/40 text-[var(--on-surface)] text-[12px] resize-y leading-relaxed placeholder:text-[var(--on-surface-muted)] focus:outline-none focus:border-primary/40 transition-colors"
+              className="w-full min-h-[120px] px-3 py-2 border border-primary/10 rounded-lg bg-surface/40 text-[var(--on-surface)] text-[12px] resize-y leading-relaxed placeholder:text-[var(--on-surface-muted)] focus:outline-none focus:border-primary/40 transition-colors scroll-mt-12"
             />
             {f.key === "objective" && (
               <ObjectiveDataDrawer

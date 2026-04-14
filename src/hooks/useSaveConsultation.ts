@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { saveConsultation } from "@/lib/supabase/consultations";
 import { upsertPatientProblems } from "@/lib/supabase/patient-problems";
@@ -20,12 +20,20 @@ export function useSaveConsultation(userId: string | null): SaveResult {
   const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [esusTextSnapshot, setEsusTextSnapshot] = useState("");
+  // Idempotency: evitar duplicate INSERT se já há save in-flight
+  const saveInFlightRef = useRef(false);
 
   const save = useCallback(async () => {
     if (!userId) {
       showToast("Sessão expirada, faça login novamente", "error");
       return;
     }
+
+    if (saveInFlightRef.current) {
+      showToast("Salvamento em andamento, aguarde...", "info");
+      return;
+    }
+    saveInFlightRef.current = true;
 
     setSaving(true);
     try {
@@ -37,7 +45,12 @@ export function useSaveConsultation(userId: string | null): SaveResult {
         state.patientId
       );
 
-      if (error) throw error;
+      if (error) {
+        saveInFlightRef.current = false;
+        const msg = error.message ?? "Erro desconhecido do banco";
+        showToast(`Erro ao salvar: ${msg}`, "error");
+        throw error;
+      }
 
       if (data) {
         setCurrentConsultationId(data.id);
@@ -45,8 +58,8 @@ export function useSaveConsultation(userId: string | null): SaveResult {
 
       showToast("Consulta salva!", "success");
 
-      // Snapshot do texto eSUS para o modal
-      const esusText = generateEsusSummary(useConsultationStore.getState());
+      // Snapshot do texto eSUS para o modal — usa edição manual se existir
+      const esusText = state.customEsusText ?? generateEsusSummary(state);
       setEsusTextSnapshot(esusText);
       setModalOpen(true);
 
@@ -61,10 +74,9 @@ export function useSaveConsultation(userId: string | null): SaveResult {
         ];
         upsertPatientProblems(userId, currentState.patientId, allProblems).catch(() => {});
       }
-    } catch {
-      showToast("Erro ao salvar consulta", "error");
     } finally {
       setSaving(false);
+      saveInFlightRef.current = false;
     }
   }, [userId, setCurrentConsultationId]);
 

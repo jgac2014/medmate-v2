@@ -1,12 +1,21 @@
 /**
  * Definições das escalas de triagem clínica para APS
  *
+ * Hierarquia de fontes: MS / INCA / Portarias / eSUS APS / Linhas de Cuidado
+ *
  * Escalas implementadas:
- * - PHQ-9: rastreio de depressão (Kroenke & Spitzer 2002 / MS Linha de Cuidado Depressão)
- * - GAD-7: rastreio de ansiedade (Spitzer et al. 2006 / MS Linha de Cuidado Ansiedade)
- * - AUDIT-C: uso de álcool (Bush et al. 1998 / WHO AUDIT / MS PNAN Álcool)
- * - Mini-Cog: rastreio cognitivo (Borson et al. 2000 / MS Caderno Saúde Pessoa Idosa 2023)
- * - Edmonton Frailty Scale: avaliação de fragilidade (Rolfson et al. 2006 / MS Caderno Saúde Pessoa Idosa 2023)
+ * - IVCF-20: avaliação multidimensional de idosos — NÚCLEO PRINCIPAL SUS (MS Protocolo Envelhecimento Saudável)
+ * - PHQ-9: rastreio de depressão — NÚCLEO PRINCIPAL SUS (MS Linha de Cuidado Depressão)
+ * - GAD-7: rastreio de ansiedade — COMPLEMENTAR ÚTIL (MS Linha de Cuidado Ansiedade)
+ * - AUDIT-C: uso de álcool — COMPLEMENTAR ÚTIL (MS PNAN Álcool / WHO AUDIT)
+ * - Mini-Cog: rastreio cognitivo — COMPLEMENTAR GERIÁTRICA PRESENCIAL (MS Caderno Saúde Pessoa Idosa)
+ * - Edmonton Frailty Scale: fragilidade — COMPLEMENTAR GERIÁTRICA PRESENCIAL (MS Caderno Saúde Pessoa Idosa)
+ *
+ * IVCF-20 é o instrumento OFICIAL do MS para idosos >=60a na APS.
+ * Deve aparecer como triagem geriátrica primária — antes de Mini-Cog/Edmonton.
+ *
+ * Escalas marcadas "nucleoSUS": prioritárias na UI e no fluxo eSUS.
+ * Escalas marcadas "complementar": úteis como complemento ou quando há suspeita clínica.
  */
 
 import type { ScaleDef } from "./types";
@@ -81,6 +90,7 @@ export const AUDIT_C: ScaleDef = {
   maxScore: 12,
   source: "Bush et al. 1998 / WHO AUDIT / MS PNAN Álcool 2023",
   sourceYear: 1998,
+  genderAware: true,
   questions: [
     {
       id: "q1",
@@ -132,6 +142,7 @@ export const MINI_COG: ScaleDef = {
   maxScore: 5,
   source: "Borson et al. 2000 / MS Caderno Saúde Pessoa Idosa 2023",
   sourceYear: 2000,
+  requiresInPerson: true,
   questions: [
     {
       id: "recall",
@@ -167,6 +178,7 @@ export const EDMONTON: ScaleDef = {
   maxScore: 17,
   source: "Rolfson et al. 2006 / MS Caderno Saúde Pessoa Idosa 2023",
   sourceYear: 2006,
+  requiresInPerson: true,
   questions: [
     {
       id: "cognitivo",
@@ -262,7 +274,221 @@ export const EDMONTON: ScaleDef = {
   },
 };
 
-export const ALL_SCALES: ScaleDef[] = [PHQ9, GAD7, AUDIT_C, MINI_COG, EDMONTON];
+/**
+ * IVCF-20 — Índice de Vulnerabilidade Clínico-Funcional para Idosos
+ *
+ * Instrumento OFICIAL do MS para avaliação multidimensional de idosos >=60a na APS.
+ * Fonte: MS — Protocolo de Envelhecimento Saudável / Caderneta de Saúde da Pessoa Idosa.
+ * Autores originais: Maia et al. 2016 (IAF-20); adaptado pelo MS para IVCF-20.
+ * 20 itens em 8 domínios funcionais.
+ * Score: 0–20 (higher = more frail).
+ *
+ * Interpretação:
+ *  0–5  : Idoso robusto / independente
+ *  6–10 : Idoso vulnerável
+ * 11–20 : Idoso frágil / dependente
+ *
+ * ⚠️  Este instrumento requer aplicação PRESENCIAL. Não aplicar por teleconsulta.
+ */
+export const IVCF20: ScaleDef = {
+  id: "ivcf20",
+  name: "IVCF-20",
+  shortName: "IVCF-20",
+  description: "Avaliação multidimensional de idosos — 20 itens (instrumento oficial MS)",
+  source: "Maia et al. 2016 / MS Protocolo Envelhecimento Saudável / Caderneta Pessoa Idosa",
+  sourceYear: 2016,
+  requiresInPerson: true,
+  maxScore: 20,
+  questions: [
+    {
+      id: "idade",
+      text: "1. Idade",
+      options: [
+        { label: "60–74a (0)", value: 0 },
+        { label: "75–84a (1)", value: 1 },
+        { label: ">=85a (2)", value: 2 },
+      ],
+    },
+    {
+      id: "autopercepcao_saude",
+      text: "2. Autopercepção de saúde",
+      options: [
+        { label: "Ótima/boa (0)", value: 0 },
+        { label: "Regular (1)", value: 1 },
+        { label: "Ruim/péssima (2)", value: 2 },
+      ],
+    },
+    {
+      id: "internacoes",
+      text: "3. Internações nos últimos 12 meses",
+      options: [
+        { label: "Nenhuma (0)", value: 0 },
+        { label: "1–2 (1)", value: 1 },
+        { label: ">=3 (2)", value: 2 },
+      ],
+    },
+    {
+      id: "medicamentos",
+      text: "4. Número de medicamentos de uso contínuo (sem contar fitoterápicos)",
+      options: [
+        { label: "Nenhum (0)", value: 0 },
+        { label: "1–4 (1)", value: 1 },
+        { label: ">=5 (2)", value: 2 },
+      ],
+    },
+    {
+      id: "cognicao",
+      text: "5. Cognição — recordação de 3 palavras após 5 minutos",
+      options: [
+        { label: "Lembrou 3 palavras (0)", value: 0 },
+        { label: "Lembrou 1–2 palavras (1)", value: 1 },
+        { label: "Não lembrou nenhuma (2)", value: 2 },
+      ],
+    },
+    {
+      id: "humor",
+      text: "6. Humor — sentimentos de tristeza, desânimo ou desinteresse (perguntar ao paciente ou cuidador)",
+      options: [
+        { label: "Nenhum sintoma (0)", value: 0 },
+        { label: "Algum sintoma (1)", value: 1 },
+        { label: "Sintomas frequentes / persistente (2)", value: 2 },
+      ],
+    },
+    {
+      id: "mobilidade",
+      text: "7. Mobilidade — ability de transferir da cama/cadeira e caminhar",
+      options: [
+        { label: "Independente (0)", value: 0 },
+        { label: "Precisa de ajuda (1)", value: 1 },
+        { label: "Dependente / cadeira de rodas / acamado (2)", value: 2 },
+      ],
+    },
+    {
+      id: "transferencias",
+      text: "8. Transferências — ability de levantar-se da cama/cadeira",
+      options: [
+        { label: "Independente (0)", value: 0 },
+        { label: "Precisa de ajuda (1)", value: 1 },
+        { label: "Dependente (2)", value: 2 },
+      ],
+    },
+    {
+      id: "avds_instrumentais",
+      text: "9. Atividades instrumentais da vida diária — usar telefone, transporte, medicação, compras",
+      options: [
+        { label: "Independente (0)", value: 0 },
+        { label: "Precisa de ajuda (1)", value: 1 },
+        { label: "Dependente (2)", value: 2 },
+      ],
+    },
+    {
+      id: "avd_basicas",
+      text: "10. Atividades básicas de vida diária — vestir, banhar, higiene, alimentação, continência",
+      options: [
+        { label: "Independente em todas (0)", value: 0 },
+        { label: "Dependente em 1–2 (1)", value: 1 },
+        { label: "Dependente em >=3 (2)", value: 2 },
+      ],
+    },
+    {
+      id: "visao",
+      text: "11. Visão — consegue ler jornal ou ver TV com óculos se usar?",
+      options: [
+        { label: "Sim, sem dificuldade (0)", value: 0 },
+        { label: "Com alguma dificuldade (1)", value: 1 },
+        { label: "Não consegue / sem óculos (2)", value: 2 },
+      ],
+    },
+    {
+      id: "audicao",
+      text: "12. Audição — consegue manter uma conversa em tom normal?",
+      options: [
+        { label: "Sim, sem dificuldade (0)", value: 0 },
+        { label: "Precisa aumentar volume / repete palavras (1)", value: 1 },
+        { label: "Não consegue / usa aparelho e não ajuda (2)", value: 2 },
+      ],
+    },
+    {
+      id: "marcha",
+      text: "13. Marcha — ao caminhar 3 metros, velocidade é:",
+      options: [
+        { label: "Normal / rápida (0)", value: 0 },
+        { label: "Lenta, mas não para (1)", value: 1 },
+        { label: "Lenta, para, ou não caminha (2)", value: 2 },
+      ],
+    },
+    {
+      id: "quedas",
+      text: "14. Quedas nos últimos 6 meses",
+      options: [
+        { label: "Nenhuma (0)", value: 0 },
+        { label: "1 queda (1)", value: 1 },
+        { label: ">=2 quedas (2)", value: 2 },
+      ],
+    },
+    {
+      id: "nutricao",
+      text: "15. Perda de peso não intencional nos últimos 6 meses",
+      options: [
+        { label: "Não perdeu ou ganhou (0)", value: 0 },
+        { label: "Perdeu 1–4 kg (1)", value: 1 },
+        { label: "Perdeu >4 kg / não sabe quanto (2)", value: 2 },
+      ],
+    },
+    {
+      id: "atividades_fisicas",
+      text: "16. Pratica atividades físicas regulares (caminhada, ginástica, dança, hidro, etc.)?",
+      options: [
+        { label: "Sim, >=3x/semana (0)", value: 0 },
+        { label: "Sim, 1–2x/semana (1)", value: 1 },
+        { label: "Não pratica (2)", value: 2 },
+      ],
+    },
+    {
+      id: "rede_social",
+      text: "17. Rede de apoio social — quando precisa de ajuda, tem alguém?",
+      options: [
+        { label: "Sempre tem alguém (0)", value: 0 },
+        { label: "Às vezes tem (1)", value: 1 },
+        { label: "Nunca ou quase nunca tem (2)", value: 2 },
+      ],
+    },
+    {
+      id: "continencia",
+      text: "18. Continência urinária",
+      options: [
+        { label: "Preserva continência (0)", value: 0 },
+        { label: "Incontinência de esforço / urgência ocasional (1)", value: 1 },
+        { label: "Sonda / fralda / incontinência total (2)", value: 2 },
+      ],
+    },
+    {
+      id: "comunicacao",
+      text: "19. Comunicação — consegue se fazer entender e compreender os outros?",
+      options: [
+        { label: "Sim, sem dificuldade (0)", value: 0 },
+        { label: "Com dificuldade (1)", value: 1 },
+        { label: "Não consegue / não se entende (2)", value: 2 },
+      ],
+    },
+    {
+      id: "orientacao",
+      text: "20. Orientação temporal — sabe que dia é hoje (dia, mês, ano)?",
+      options: [
+        { label: "Sabe os 3 (0)", value: 0 },
+        { label: "Sabe 1–2 (1)", value: 1 },
+        { label: "Não sabe nenhum (2)", value: 2 },
+      ],
+    },
+  ],
+  interpret(score) {
+    if (score <= 5) return { label: "Idoso robusto / independente", level: "ok" };
+    if (score <= 10) return { label: "Idoso vulnerável", level: "warn" };
+    return { label: "Idoso frágil / dependente", level: "crit" };
+  },
+};
+
+export const ALL_SCALES: ScaleDef[] = [IVCF20, PHQ9, GAD7, AUDIT_C, MINI_COG, EDMONTON];
 
 export function computeScore(answers: Record<string, number>): number {
   return Object.values(answers).reduce((sum, v) => sum + v, 0);

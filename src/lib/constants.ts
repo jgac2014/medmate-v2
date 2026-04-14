@@ -15,27 +15,89 @@ export const PROBLEMS = [
   "Osteoporose",
 ] as const;
 
+/**
+ * Lista de prevenções / rastreamentos exibidos ao médico na tela de consulta.
+ *
+ * Hierarquia de fontes (em ordem de prioridade):
+ * 1. Ministério da Saúde / INCA / Portarias / eSUS APS / Linhas de Cuidado
+ * 2. Calendário Nacional/Técnico de Vacinação vigente
+ * 3. Caderno de Atenção Primária nº 29 (Rastreamento) — apenas fallback histórico
+ *    quando não houver regra mais nova e mais específica
+ *
+ * Categorias:
+ * - "padrão"   : Prevenção padrão APS/SUS (INCA, PNI, MS — rastreamento poblacional)
+ * - "contextual": Contextual por risco/oportunidade (não universal, considera contexto clínico)
+ * - "decisão"   : Decisão compartilhada com o paciente
+ * - "triagem"   : Triagem principal SUS (PHQ-2/PHQ-9 → via triagens-section)
+ * - "oculto"    : Item removido do checklist padrão default
+ *
+ * Ao adicionar item: definir categoria + referenciar fonte no código (clinical-rules.ts).
+ * Rótulos são descritivos e clinicamente acionáveis — não usar linguagem genérica.
+ */
 export const PREVENTIONS = [
-  "Mamografia em dia",
-  "Papanicolau em dia",
-  "Colonoscopia / PSOF em dia",
-  "Densitometria em dia",
-  "Influenza (vacinado)",
-  "COVID-19 (vacinado)",
-  "HPV (vacinado)",
-  "HIV (testado)",
-  "Hepatite C (anti-HCV)",
-  "Hepatite B (anti-HBs)",
-  "PSA (disc. compartilhada)",
-  // --- Rastreamentos MS/SBC expandidos ---
-  "Glicemia de jejum / TOTG",
-  "Perfil lipídico",
-  "Sífilis (VDRL/teste rápido)",
-  "dT / dTpa (vacinado)",
-  "Rastreio depressão (PHQ-2)",
-  "Avaliação visual (idoso)",
-  "Avaliação auditiva (idoso)",
+  // ── Padrão APS/SUS ──────────────────────────────────────────────────────────
+  "Mamografia em dia (50–69a, a cada 2 anos)",
+  "Rastreamento do colo do útero em dia (DNA-HPV ou citologia — conforme oferta local)",
+  "dT reforço em dia (a cada 10 anos, >=7a)",
+
+  // ── Contextual por risco / oportunidade ────────────────────────────────────
+  "Testagem HIV em dia (conforme risco / oportunidade)",
+  "Testagem hepatite C em dia (>=40a ou fatores de risco)",
+  "Vacinação hepatite B em dia",
+  "Sífilis: testagem em dia (conforme risco / oportunidade)",
+  "Rastreio glicêmico em dia (GJ ou HbA1c — considerar fatores de risco)",
+  "Perfil lipídico em dia",
+  "Influenza: vacinado (conforme grupo prioritário sazonal)",
+  "COVID-19: vacinado (conforme estratégia vacinal vigente)",
+  "HPV: vacinado (9–14 anos ou populações específicas PNI)",
+
+  // ── Decisão compartilhada ───────────────────────────────────────────────────
+  "Densitometria óssea: considerar (>=65a mulheres ou risco)",
+
+  // ── Triagem principal (sugerido via triagens-section, visível aqui para contexto) ──
+  "Rastreio de depressão em dia (PHQ-2/PHQ-9 — >=18a)",
+  "IVCF-20: avaliar (>60a — avaliação multidimensional)",
+
+  // ── Oculto por enquanto ─────────────────────────────────────────────────────
+  // "Colonoscopia / PSOF em dia" — ocultado: diretriz nacional em consulta pública;
+  // sem regra SUS fechada. Manter como protocolo local / contextual de risco se necessário.
+  //
+  // "Hepatite B (anti-HBs)" — removido: anti-HBs universal não é estratégia PNI.
+  // Substituído por "Vacinação hepatite B em dia".
+  //
+  // "Avaliação visual/auditiva (idoso)" — movida para triagens-section como
+  // avaliação complementar presencial, não prevenção isolada.
+  //
+  // "PSA" — ocultado: fora do escopo preventivo padrão SUS/INCA para esta versão.
+  // Decisão compartilhada não entra no output. PSA fica totalmente fora do produto.
 ] as const;
+
+/** Meta-categorias para organização visual na UI */
+export const PREVENTION_CATEGORIES = {
+  padrao: [
+    "Mamografia em dia (50–69a, a cada 2 anos)",
+    "Rastreamento do colo do útero em dia (DNA-HPV ou citologia — conforme oferta local)",
+    "dT reforço em dia (a cada 10 anos, >=7a)",
+  ] as string[],
+  contextual: [
+    "Testagem HIV em dia (conforme risco / oportunidade)",
+    "Testagem hepatite C em dia (>=40a ou fatores de risco)",
+    "Vacinação hepatite B em dia",
+    "Sífilis: testagem em dia (conforme risco / oportunidade)",
+    "Rastreio glicêmico em dia (GJ ou HbA1c — considerar fatores de risco)",
+    "Perfil lipídico em dia",
+    "Influenza: vacinado (conforme grupo prioritário sazonal)",
+    "COVID-19: vacinado (conforme estratégia vacinal vigente)",
+    "HPV: vacinado (9–14 anos ou populações específicas PNI)",
+  ] as string[],
+  decisao: [
+    "Densitometria óssea: considerar (>=65a mulheres ou risco)",
+  ] as string[],
+  triagem: [
+    "Rastreio de depressão em dia (PHQ-2/PHQ-9 — >=18a)",
+    "IVCF-20: avaliar (>60a — avaliação multidimensional)",
+  ] as string[],
+} as const;
 
 export const GENDER_OPTIONS = ["Masculino", "Feminino", "Outro"] as const;
 

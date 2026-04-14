@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useConsultationStore } from "@/stores/consultation-store";
-import { ALL_SCALES, computeScore } from "@/lib/triagens/scales";
+import { IVCF20, PHQ9, GAD7, AUDIT_C, MINI_COG, EDMONTON, computeScore } from "@/lib/triagens/scales";
 import type { ScaleDef, InterpretLevel } from "@/lib/triagens/types";
 
 function levelClass(level: InterpretLevel) {
@@ -17,12 +17,30 @@ function levelDot(level: InterpretLevel) {
   return "bg-[var(--status-crit)]";
 }
 
+/** Badge de categoria visual — diferencia núcleo SUS de complementar */
+function CategoryBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded border bg-[var(--primary)] text-[var(--on-primary)] border-[var(--primary)]/40 shrink-0">
+      {label}
+    </span>
+  );
+}
+
+function ComplementaryBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded border border-[var(--outline-variant)] text-[var(--on-surface-muted)] bg-[var(--surface-container)] shrink-0">
+      Complementar
+    </span>
+  );
+}
+
 interface ScaleCardProps {
   scale: ScaleDef;
   gender: string;
+  badge?: React.ReactNode;
 }
 
-function ScaleCard({ scale, gender }: ScaleCardProps) {
+function ScaleCard({ scale, gender, badge }: ScaleCardProps) {
   const saved = useConsultationStore((s) => s.triagens[scale.id]);
   const setTriagemResult = useConsultationStore((s) => s.setTriagemResult);
   const clearTriagemResult = useConsultationStore((s) => s.clearTriagemResult);
@@ -66,10 +84,24 @@ function ScaleCard({ scale, gender }: ScaleCardProps) {
       {/* Cabeçalho do card */}
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium text-[12px] text-[var(--on-surface)] tracking-wide">
               {scale.name}
             </span>
+            {badge}
+            {scale.requiresInPerson && (
+              <span className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded border border-[var(--outline-variant)] text-[var(--on-surface-muted)] bg-[var(--surface-container)] shrink-0">
+                <svg className="w-2.5 h-2.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M8 1L10 6h5l-4 3 1.5 5L8 11l-4.5 3L5 9 1 6h5z" strokeLinejoin="round" />
+                </svg>
+                Presencial
+              </span>
+            )}
+            {scale.genderAware && (
+              <span className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded border border-[var(--outline-variant)] text-[var(--on-surface-muted)] bg-[var(--surface-container)] shrink-0">
+                Limiar depende do sexo
+              </span>
+            )}
             {saved && (
               <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border ${levelClass(saved.level)}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${levelDot(saved.level)}`} />
@@ -175,34 +207,140 @@ function ScaleCard({ scale, gender }: ScaleCardProps) {
 }
 
 export function TriagensSection() {
-  const appliedCount = useConsultationStore((s) => Object.keys(s.triagens).length);
+  const ageStr = useConsultationStore((s) => s.patient.age);
   const gender = useConsultationStore((s) => s.patient.gender);
+  const appliedCount = useConsultationStore((s) => Object.keys(s.triagens).length);
 
-  const applied = { length: appliedCount };
+  // Calcular idade numérica
+  const age = (() => {
+    const match = ageStr?.match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : null;
+  })();
+
+  const isElderly = age !== null && age >= 60;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-[13px] font-semibold text-[var(--on-surface)]">Triagens Clínicas</h3>
           <p className="text-[11px] text-[var(--on-surface-muted)] mt-0.5">
-            Escalas padronizadas — aplicar conforme indicação clínica
+            Escalas padronizadas — aplicar conforme indicação clínica e idade
           </p>
         </div>
-        {applied.length > 0 && (
+        {appliedCount > 0 && (
           <span className="text-[10px] font-medium text-[var(--primary)] bg-[var(--primary)]/8 px-2 py-0.5 rounded-full border border-[var(--primary)]/20">
-            {applied.length} aplicada{applied.length > 1 ? "s" : ""}
+            {appliedCount} aplicada{appliedCount > 1 ? "s" : ""}
           </span>
         )}
       </div>
 
-      {/* Cards das escalas */}
-      <div className="space-y-2">
-        {ALL_SCALES.map((scale) => (
-          <ScaleCard key={scale.id} scale={scale} gender={gender} />
-        ))}
+      {/* ── NÚCLEO PRINCIPAL SUS ──────────────────────────────────────────────── */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shrink-0" />
+          <p className="text-[10px] font-semibold text-[var(--primary)] uppercase tracking-wide">
+            Núcleo principal SUS
+          </p>
+          <span className="text-[9px] text-[var(--on-surface-muted)]">
+            — инструментов oficiales MS para APS
+          </span>
+        </div>
+        <div className="space-y-2">
+          {/* IVCF-20 — só mostra para idosos */}
+          {isElderly && (
+            <ScaleCard
+              scale={IVCF20}
+              gender={gender}
+              badge={<CategoryBadge label="Núcleo SUS" />}
+            />
+          )}
+          {!isElderly && (
+            <div className="rounded-xl border border-dashed border-[var(--outline-variant)] bg-[var(--surface-low)] px-4 py-3 flex items-start gap-2.5">
+              <span className="w-4 h-4 shrink-0 flex items-center justify-center mt-0.5">
+                <svg className="w-3.5 h-3.5 text-[var(--on-surface-muted)]" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M8 1L10 6h5l-4 3 1.5 5L8 11l-4.5 3L5 9 1 6h5z" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <div>
+                <p className="text-[12px] text-[var(--on-surface)] font-medium">{IVCF20.name}</p>
+                <p className="text-[11px] text-[var(--on-surface-muted)]">{IVCF20.description}</p>
+                <p className="text-[10px] text-[var(--on-surface-muted)] mt-1 italic">
+                  Indicado para pacientes ≥ 60 anos — ferramenta oficial MS para avaliação multidimensional na APS
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* PHQ-9 */}
+          <ScaleCard
+            scale={PHQ9}
+            gender={gender}
+            badge={<CategoryBadge label="Núcleo SUS" />}
+          />
+        </div>
       </div>
+
+      {/* ── TRIAGENS COMPLEMENTARES ÚTEIS ──────────────────────────────────── */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--on-surface-muted)] shrink-0" />
+          <p className="text-[10px] font-semibold text-[var(--on-surface-muted)] uppercase tracking-wide">
+            Triagens complementares úteis
+          </p>
+          <span className="text-[9px] text-[var(--on-surface-muted)]">
+            — aplicar conforme suspeita clínica
+          </span>
+        </div>
+        <div className="space-y-2">
+          <ScaleCard
+            scale={GAD7}
+            gender={gender}
+            badge={<ComplementaryBadge />}
+          />
+          <ScaleCard
+            scale={AUDIT_C}
+            gender={gender}
+            badge={<ComplementaryBadge />}
+          />
+        </div>
+      </div>
+
+      {/* ── TRIAGENS COMPLEMENTARES GERIÁTRICAS PRESENCIAIS ──────────────────── */}
+      {isElderly && (
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--on-surface-muted)] shrink-0" />
+            <p className="text-[10px] font-semibold text-[var(--on-surface-muted)] uppercase tracking-wide">
+              Avaliação geriátrica complementar presencial
+            </p>
+            <span className="text-[9px] text-[var(--on-surface-muted)]">
+              — úteis quando IVCF-20 indica vulnerabilidade ou suspeita de declínio
+            </span>
+          </div>
+          <div className="space-y-2">
+            <ScaleCard
+              scale={MINI_COG}
+              gender={gender}
+              badge={<ComplementaryBadge />}
+            />
+            <ScaleCard
+              scale={EDMONTON}
+              gender={gender}
+              badge={<ComplementaryBadge />}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Nota para pacientes < 60: Mini-Cog e Edmonton */}
+      {!isElderly && (
+        <p className="text-[10px] text-[var(--on-surface-muted)] italic px-1">
+          Mini-Cog e Edmonton Frailty Scale: indicados para pacientes ≥ 60 anos
+          com suspeita de declínio cognitivo ou fragilidade — aplicar presencialmente
+        </p>
+      )}
     </div>
   );
 }

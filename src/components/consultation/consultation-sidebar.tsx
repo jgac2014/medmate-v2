@@ -143,51 +143,49 @@ export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) 
     vitals.pas && vitals.pad ? `${vitals.pas}/${vitals.pad} mmHg` : null;
 
   return (
-    <aside className={`w-64 shrink-0 h-full flex-col bg-[#F5F7F6] border-r border-primary/10 ${open ? "flex" : "hidden lg:flex"}`}>
+    <aside className={`w-56 shrink-0 h-full flex-col bg-[#F5F7F6] border-r border-primary/10 ${open ? "flex" : "hidden lg:flex"}`}>
       {/* Header: Patient */}
-      <div className="p-3 border-b border-primary/5">
-        <div className="flex items-center gap-3 mb-3">
+      <div className="p-2.5 border-b border-primary/5">
+        <div className="flex items-center gap-2 mb-2">
           {/* Avatar */}
           <div className="relative shrink-0">
-            <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <span className="text-[15px] font-bold text-primary">
+            <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <span className="text-[13px] font-bold text-primary">
                 {displayName ? displayName[0].toUpperCase() : "?"}
               </span>
             </div>
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#F5F7F6] rounded-full" />
+            <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border-2 border-[#F5F7F6] rounded-full" />
           </div>
 
           {/* Nome + badge */}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             {displayName ? (
               <>
-                <h2 className="font-headline italic text-lg text-primary truncate leading-tight">
+                <h2 className="font-headline italic text-[14px] text-primary truncate leading-tight">
                   {displayName}
                 </h2>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <p className="font-label text-[9px] tracking-wider uppercase text-[#454B4E]">
-                    {[age, gender].filter(Boolean).join(" • ")}
-                  </p>
-                  {alerts.length > 0 && (
-                    <span className="px-1.5 py-0.5 bg-error/10 text-error text-[8px] font-bold rounded uppercase tracking-tighter">
-                      {alerts.length} alerta{alerts.length > 1 ? "s" : ""}
-                    </span>
-                  )}
-                </div>
+                <p className="font-label text-[8px] tracking-wider uppercase text-[#454B4E]">
+                  {[age, gender].filter(Boolean).join(" · ")}
+                </p>
               </>
             ) : (
-              <p className="text-[12px] text-[#717973] italic">
+              <p className="text-[11px] text-[#717973] italic">
                 Nenhum paciente
               </p>
             )}
           </div>
+          {alerts.length > 0 && (
+            <span className="px-1.5 py-0.5 bg-error/10 text-error text-[8px] font-bold rounded uppercase tracking-tighter shrink-0">
+              {alerts.length}
+            </span>
+          )}
         </div>
 
         {/* Memória Clínica */}
         {patientId && (
-          <div className="bg-white/50 p-2 rounded border border-primary/5 space-y-1.5">
-            <p className="font-label text-[8px] uppercase tracking-[0.12em] text-primary/70 font-bold flex items-center gap-1">
-              <span className="material-symbols-outlined text-[10px]">
+          <div className="bg-white/50 p-2 rounded border border-primary/5 space-y-1">
+            <p className="font-label text-[7px] uppercase tracking-[0.12em] text-primary/70 font-bold flex items-center gap-1">
+              <span className="material-symbols-outlined text-[9px]">
                 history_edu
               </span>
               Memória Clínica
@@ -195,10 +193,10 @@ export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) 
 
             {currentPA && (
               <div className="flex justify-between items-baseline">
-                <span className="text-[9px] text-[#717973] font-medium">
+                <span className="text-[8px] text-[#717973] font-medium">
                   PA atual
                 </span>
-                <span className="text-[10px] font-bold text-primary">
+                <span className="text-[9px] font-bold text-primary">
                   {currentPA}
                 </span>
               </div>
@@ -206,31 +204,31 @@ export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) 
 
             {medications.length > 0 && (
               <div className="flex justify-between items-baseline">
-                <span className="text-[9px] text-[#717973] font-medium">
+                <span className="text-[8px] text-[#717973] font-medium">
                   Medicamentos
                 </span>
-                <span className="text-[10px] font-bold text-[#454B4E]">
+                <span className="text-[9px] font-bold text-[#454B4E]">
                   {medications.length} ativo{medications.length > 1 ? "s" : ""}
                 </span>
               </div>
             )}
 
             {loading && (
-              <p className="text-[9px] text-[#717973] italic">Carregando...</p>
+              <p className="text-[8px] text-[#717973] italic">Carregando...</p>
             )}
 
             {activeProblems.length > 0 && (
-              <div className="flex flex-wrap gap-1 pt-1.5 border-t border-primary/5">
+              <div className="flex flex-wrap gap-0.5 pt-1 border-t border-primary/5">
                 {activeProblems.slice(0, 3).map((p) => (
                   <span
                     key={p}
-                    className="px-1 py-0.5 bg-[#bdedd7]/40 text-[#416d5c] text-[8px] rounded font-bold border border-[#3b6756]/10"
+                    className="px-1 py-0.5 bg-[#bdedd7]/40 text-[#416d5c] text-[7px] rounded font-bold border border-[#3b6756]/10"
                   >
                     {p}
                   </span>
                 ))}
                 {activeProblems.length > 3 && (
-                  <span className="px-1 py-0.5 bg-gray-100 text-[#717973] text-[8px] rounded font-bold">
+                  <span className="px-1 py-0.5 bg-gray-100 text-[#717973] text-[7px] rounded font-bold">
                     +{activeProblems.length - 3}
                   </span>
                 )}
@@ -241,21 +239,21 @@ export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) 
       </div>
 
       {/* Navegação */}
-      <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 py-1.5 px-1.5 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
             onClick={() => handleNavClick(item.id)}
-            className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
+            className={`w-full flex items-center gap-2 px-2 py-1.5 text-left transition-colors ${
               activeNav === item.id
-                ? "text-primary font-bold bg-primary/5 border-l-4 border-primary"
+                ? "text-primary font-bold bg-primary/5 border-l-[3px] border-primary"
                 : "text-[#454B4E] hover:bg-primary/5 hover:text-primary"
             }`}
           >
-            <span className="material-symbols-outlined text-lg">
+            <span className="material-symbols-outlined text-[15px]">
               {item.icon}
             </span>
-            <span className="font-label text-[10px] tracking-widest uppercase">
+            <span className="font-label text-[9px] tracking-widest uppercase">
               {item.label}
             </span>
           </button>
@@ -273,13 +271,13 @@ export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) 
       </nav>
 
       {/* Rodapé */}
-      <div className="p-3 border-t border-primary/10 bg-white/30">
-        <div className="flex justify-between items-center text-[10px] text-[#454B4E]">
+      <div className="p-2 border-t border-primary/10 bg-white/30">
+        <div className="flex justify-between items-center text-[9px] text-[#454B4E]">
           <button
             onClick={() => router.push("/conta")}
             className="hover:text-primary flex items-center gap-1 transition-colors"
           >
-            <span className="material-symbols-outlined text-[14px]">
+            <span className="material-symbols-outlined text-[13px]">
               settings
             </span>
             Ajustes
@@ -291,7 +289,7 @@ export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) 
             }}
             className="hover:text-error flex items-center gap-1 transition-colors"
           >
-            <span className="material-symbols-outlined text-[14px]">
+            <span className="material-symbols-outlined text-[13px]">
               logout
             </span>
             Sair

@@ -9,11 +9,11 @@ import type { StatusLevel } from "@/types";
 
 function TagGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="mb-2.5">
-      <div className="text-[9px] font-semibold tracking-[0.08em] uppercase text-[var(--on-surface-muted)] mb-[5px]">
+    <div className="mb-2">
+      <div className="text-[8px] font-semibold tracking-[0.08em] uppercase text-[var(--on-surface-muted)] mb-[3px]">
         {label}
       </div>
-      <div className="flex flex-wrap gap-[3px]">{children}</div>
+      <div className="flex flex-wrap gap-[2px]">{children}</div>
     </div>
   );
 }
@@ -21,9 +21,13 @@ function TagGroup({ label, children }: { label: string; children: React.ReactNod
 export function ClinicalSummary() {
   const { patient, vitals, problems, preventions, labs, calculations } = useConsultationStore();
 
+  // ── Exames alterados (warn/crit) ──────────────────────────────────────────
   const alteredExams: { label: string; value: string; status: StatusLevel }[] = [];
   for (const card of [...PRIMARY_EXAM_CARDS, ...ADDITIONAL_EXAM_CARDS]) {
-    const allFields = [...card.primaryFields, ...(card.secondaryFields as readonly { key: string; label: string; unit: string; auto?: boolean }[])];
+    const allFields = [
+      ...card.primaryFields,
+      ...(card.secondaryFields as readonly { key: string; label: string; unit: string; auto?: boolean }[]),
+    ];
     for (const field of allFields) {
       if ("auto" in field && field.auto) continue;
       const val = labs[field.key];
@@ -37,104 +41,128 @@ export function ClinicalSummary() {
     }
   }
 
+  // ── Vitais relevantes ─────────────────────────────────────────────────────
+  const hasVitals = Boolean(vitals.pas || vitals.peso || vitals.fc || vitals.spo2 || vitals.temp);
+  const hasCalculations = Boolean(calculations.tfg || calculations.fib4 || calculations.rcv || calculations.naoHdl ||
+    (calculations.imc && !Number.isNaN(calculations.imc.value)));
+
+  // ── Has content for empty state ─────────────────────────────────────────
   const hasSummaryContent =
-    Boolean(patient.name) ||
-    Boolean(vitals.pas || vitals.peso || vitals.fc || vitals.spo2 || vitals.temp) ||
+    hasVitals ||
     problems.length > 0 ||
     alteredExams.length > 0 ||
-    Boolean(calculations.tfg || calculations.fib4 || calculations.rcv || calculations.imc) ||
+    hasCalculations ||
     preventions.length > 0;
 
   return (
-    <div className="mb-3.5">
+    <div className="mb-3">
       <SectionHeader label="Resumo Clínico" color="purple" />
 
-      {!hasSummaryContent && (
+      {!hasSummaryContent ? (
         <div className="rounded-xl border border-dashed border-[var(--outline)] bg-[var(--surface-container)] px-3.5 py-3 mb-3">
           <p className="text-[12px] font-medium text-[var(--on-surface)] mb-1">
-            O resumo clínico aparece conforme a consulta ganha contexto.
+            {patient.name
+              ? "Sem dados clínicos registrados nesta consulta."
+              : "Selecione um paciente para carregar o resumo clínico."}
           </p>
           <p className="text-[11px] leading-relaxed text-[var(--on-surface-variant)]">
-            Preencha identificação, vitais, problemas ou exames para visualizar os principais sinais desta consulta em um bloco só.
+            {patient.name
+              ? "Preencha vitais, problemas ou exames para visualizar os principais achados."
+              : "O resumo clínico é montado automaticamente conforme você preenche cada seção."}
           </p>
         </div>
-      )}
+      ) : (
+        /* Render order: alerts/altered → vitals → problems → calculations → preventions */
+        <>
+          {alteredExams.length > 0 && (
+            <TagGroup label="Achados anormais">
+              {alteredExams.map((e) => (
+                <Tag key={`${e.label}-${e.value}`} variant={e.status === "crit" ? "crit" : "warn"}>
+                  {e.label}: {e.value}
+                </Tag>
+              ))}
+            </TagGroup>
+          )}
 
-      {patient.name && (
-        <TagGroup label="Paciente">
-          <Tag variant="info">{patient.name}</Tag>
-          {patient.age && <Tag variant="info">{patient.age} anos</Tag>}
-          {patient.gender && (
-            <Tag variant="info">
-              {patient.gender === "Masculino" ? "Masc." : patient.gender === "Feminino" ? "Fem." : "Outro"}
-            </Tag>
+          {hasVitals && (
+            <TagGroup label="Sinais vitais">
+              {vitals.pas && vitals.pad && <Tag variant="info">PA {vitals.pas}/{vitals.pad}</Tag>}
+              {vitals.peso && vitals.altura && (
+                <Tag variant={
+                  calculations.imc && !Number.isNaN(calculations.imc.value)
+                    ? calculations.imc.value >= 30 ? "warn"
+                    : calculations.imc.value < 18.5 ? "warn"
+                    : "info"
+                    : "info"
+                }>
+                  {vitals.peso} kg
+                </Tag>
+              )}
+              {vitals.fc && <Tag variant="info">FC {vitals.fc}</Tag>}
+              {vitals.spo2 && <Tag variant="info">SpO₂ {vitals.spo2}%</Tag>}
+              {vitals.temp && <Tag variant="info">T {vitals.temp}°C</Tag>}
+              {calculations.imc && !Number.isNaN(calculations.imc.value) && (
+                <Tag variant={
+                  calculations.imc.value >= 35 ? "crit" :
+                  calculations.imc.value >= 30 ? "warn" :
+                  calculations.imc.value < 18.5 ? "warn" :
+                  "ok"
+                }>
+                  IMC {calculations.imc.value} — {calculations.imc.classification}
+                </Tag>
+              )}
+            </TagGroup>
           )}
-          {patient.race && <Tag variant="info">{patient.race}</Tag>}
-        </TagGroup>
-      )}
 
-      {(vitals.pas || vitals.peso || vitals.fc || vitals.spo2 || vitals.temp || calculations.imc) && (
-        <TagGroup label="Vitais">
-          {vitals.pas && vitals.pad && <Tag variant="info">PA {vitals.pas}/{vitals.pad}</Tag>}
-          {vitals.fc && <Tag variant="info">FC {vitals.fc}</Tag>}
-          {vitals.spo2 && <Tag variant="info">SpO2 {vitals.spo2}%</Tag>}
-          {vitals.temp && <Tag variant="info">T {vitals.temp}°C</Tag>}
-          {calculations.imc && (
-            <Tag variant={calculations.imc.value >= 25 ? "warn" : "ok"}>
-              IMC {calculations.imc.value} - {calculations.imc.classification}
-            </Tag>
+          {problems.length > 0 && (
+            <TagGroup label="Problemas ativos">
+              {problems.map((p) => (
+                <Tag key={p} variant="warn">{p}</Tag>
+              ))}
+            </TagGroup>
           )}
-        </TagGroup>
-      )}
 
-      {problems.length > 0 && (
-        <TagGroup label="Problemas Ativos">
-          {problems.map((p) => (
-            <Tag key={p} variant="crit">{p}</Tag>
-          ))}
-        </TagGroup>
-      )}
+          {hasCalculations && (
+            <TagGroup label="Cálculos">
+              {calculations.tfg && (
+                <Tag variant="calc">TFG {calculations.tfg.value} — {calculations.tfg.stage}</Tag>
+              )}
+              {calculations.tfg?.uacrCategory && (
+                <Tag variant="calc">{calculations.tfg.uacrCategory}</Tag>
+              )}
+              {calculations.fib4 && (
+                <Tag variant={
+                  calculations.fib4.lowValidity ? "info"
+                    : calculations.fib4.risk === "Alto risco" ? "crit"
+                    : calculations.fib4.risk === "Risco indeterminado" ? "warn"
+                    : "ok"
+                }>
+                  FIB-4 {calculations.fib4.value} — {calculations.fib4.risk}
+                </Tag>
+              )}
+              {calculations.rcv && !calculations.rcv.outOfRange && (
+                <Tag variant={
+                  calculations.rcv.risk === "Alto risco" ? "crit"
+                    : calculations.rcv.risk === "Risco intermediário" ? "warn"
+                    : "ok"
+                }>
+                  RCV {calculations.rcv.value}% — {calculations.rcv.risk}
+                </Tag>
+              )}
+              {calculations.naoHdl && (
+                <Tag variant="calc">Não-HDL {calculations.naoHdl.value} mg/dL</Tag>
+              )}
+            </TagGroup>
+          )}
 
-      {alteredExams.length > 0 && (
-        <TagGroup label="Exames Alterados">
-          {alteredExams.map((e) => (
-            <Tag key={`${e.label}-${e.value}`} variant={e.status === "crit" ? "crit" : "warn"}>
-              {e.label}: {e.value}
-            </Tag>
-          ))}
-        </TagGroup>
-      )}
-
-      {(calculations.tfg || calculations.fib4 || calculations.rcv || calculations.naoHdl) && (
-        <TagGroup label="Cálculos">
-          {calculations.tfg && (
-            <Tag variant="calc">TFG {calculations.tfg.value} — {calculations.tfg.stage}</Tag>
+          {preventions.length > 0 && (
+            <TagGroup label="Prevenções em dia">
+              {preventions.map((p) => (
+                <Tag key={p} variant="ok">{p}</Tag>
+              ))}
+            </TagGroup>
           )}
-          {calculations.tfg?.uacrCategory && (
-            <Tag variant="calc">{calculations.tfg.uacrCategory}</Tag>
-          )}
-          {calculations.fib4 && (
-            <Tag variant={calculations.fib4.lowValidity ? "info" : calculations.fib4.risk === "Alto risco" ? "crit" : calculations.fib4.risk === "Risco indeterminado" ? "warn" : "ok"}>
-              FIB-4 {calculations.fib4.value} — {calculations.fib4.risk}
-            </Tag>
-          )}
-          {calculations.rcv && !calculations.rcv.outOfRange && (
-            <Tag variant={calculations.rcv.risk === "Alto risco" ? "crit" : calculations.rcv.risk === "Risco intermediário" ? "warn" : "ok"}>
-              RCV {calculations.rcv.value}% — {calculations.rcv.risk}
-            </Tag>
-          )}
-          {calculations.naoHdl && (
-            <Tag variant="calc">Não-HDL {calculations.naoHdl.value} mg/dL</Tag>
-          )}
-        </TagGroup>
-      )}
-
-      {preventions.length > 0 && (
-        <TagGroup label="Prevenções em dia">
-          {preventions.map((p) => (
-            <Tag key={p} variant="ok">{p}</Tag>
-          ))}
-        </TagGroup>
+        </>
       )}
     </div>
   );

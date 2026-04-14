@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ConsultationSidebar } from "@/components/consultation/consultation-sidebar";
@@ -35,6 +35,8 @@ export default function ConsultaPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
+  // Guard contra re-entrada: so permite um timer-init por sessao
+  const timerInitializedRef = useRef(false);
   const patientName = useConsultationStore((s) => s.patientName);
   const patient = useConsultationStore((s) => s.patient);
   const timerState = useConsultationStore((s) => s.timerState);
@@ -52,18 +54,18 @@ export default function ConsultaPage() {
     }
   }, [patientName, patient.name, userId]);
 
+    // Timer-init: dispara uma unica vez quando paciente e carregado.
+  // Nao faz save aqui -- apenas marca o inicio da consulta.
   useEffect(() => {
-    if (!patientName || !userId || timerState.started_at || timerState.finished_at) return;
+    if (!patientName || !userId) return;
+    if (timerState.started_at || timerState.finished_at) return;
+    if (timerInitializedRef.current) return;
+    timerInitializedRef.current = true;
+
     const now = new Date().toISOString();
     setTimerState({ started_at: now, finished_at: null, active_seconds: 0 });
     trackEvent("timer_started");
-    import("@/lib/supabase/consultations").then(({ saveConsultation }) => {
-      const state = useConsultationStore.getState();
-      if (state.currentConsultationId) {
-        saveConsultation(userId, state, state.currentConsultationId, state.patientId).catch(() => {});
-      }
-    });
-  }, [patientName, userId]);
+  }, [patientName, userId, timerState.started_at, timerState.finished_at, setTimerState]);
 
   useDraftAutosave(userId);
 

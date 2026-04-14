@@ -46,6 +46,19 @@ describe("calculateIMC", () => {
     expect(calculateIMC(-5, 170)).toBeNull();
     expect(calculateIMC(70, -10)).toBeNull();
   });
+
+  it("retorna null para NaN inputs (parseFloat de string vazia/inválida)", () => {
+    // Simula o que parseFloat("") retorna
+    expect(calculateIMC(NaN, 170)).toBeNull();
+    expect(calculateIMC(70, NaN)).toBeNull();
+    expect(calculateIMC(NaN, NaN)).toBeNull();
+  });
+
+  it("retorna null para valores infinitos (Number.isFinite como proteção extra)", () => {
+    expect(calculateIMC(Infinity, 170)).toBeNull();
+    expect(calculateIMC(70, Infinity)).toBeNull();
+    expect(calculateIMC(-Infinity, 170)).toBeNull();
+  });
 });
 
 // ─── TFG CKD-EPI 2021 ──────────────────────────────────────────────────────────
@@ -244,5 +257,64 @@ describe("calculateRCV — threshold por sexo", () => {
     const r = calculateRCV(75, 130, 200, 50, "Masculino", false, false, false);
     expect(r).not.toBeNull();
     expect(r!.outOfRange).toBe(true);
+  });
+});
+
+// ─── IMC — badge de severidade (fronteiras OMS) ───────────────────────────────
+describe("calculateIMC — badge de severidade por faixa", () => {
+  // Helper que reproduz exatamente a lógica do clinical-summary.tsx
+  function badgeVariant(value: number): string {
+    if (value >= 35) return "crit";
+    if (value >= 30) return "warn";
+    if (value < 18.5) return "warn";
+    if (value < 25) return "ok";
+    return "warn";
+  }
+
+  it("< 18.5 → warn (baixo peso)", () => {
+    expect(badgeVariant(17.9)).toBe("warn");
+    expect(badgeVariant(18.4)).toBe("warn");
+  });
+
+  it("18.5–24.9 → ok (eutrófico)", () => {
+    expect(badgeVariant(18.5)).toBe("ok");
+    expect(badgeVariant(22.0)).toBe("ok");
+    expect(badgeVariant(24.9)).toBe("ok");
+  });
+
+  it("25–29.9 → warn (sobrepeso)", () => {
+    expect(badgeVariant(25.0)).toBe("warn");
+    expect(badgeVariant(27.0)).toBe("warn");
+    expect(badgeVariant(29.9)).toBe("warn");
+  });
+
+  it("30–34.9 → warn (obesidade I)", () => {
+    expect(badgeVariant(30.0)).toBe("warn");
+    expect(badgeVariant(32.0)).toBe("warn");
+    expect(badgeVariant(34.9)).toBe("warn");
+  });
+
+  it("35–39.9 → crit (obesidade II)", () => {
+    expect(badgeVariant(35.0)).toBe("crit");
+    expect(badgeVariant(37.0)).toBe("crit");
+    expect(badgeVariant(39.9)).toBe("crit");
+  });
+
+  it(">= 40 → crit (obesidade III)", () => {
+    expect(badgeVariant(40.0)).toBe("crit");
+    expect(badgeVariant(50.0)).toBe("crit");
+  });
+
+  it("fronteiras exatas: 18.5, 25, 30, 35, 40", () => {
+    expect(badgeVariant(18.4)).toBe("warn");  // 18.4 < 18.5
+    expect(badgeVariant(18.5)).toBe("ok");    // 18.5 >= 18.5 mas < 25
+    expect(badgeVariant(24.9)).toBe("ok");    // 24.9 < 25
+    expect(badgeVariant(25.0)).toBe("warn");  // 25.0 >= 25
+    expect(badgeVariant(29.9)).toBe("warn");  // 29.9 >= 25
+    expect(badgeVariant(30.0)).toBe("warn");  // 30.0 >= 30
+    expect(badgeVariant(34.9)).toBe("warn");  // 34.9 < 35
+    expect(badgeVariant(35.0)).toBe("crit");  // 35.0 >= 35
+    expect(badgeVariant(39.9)).toBe("crit");  // 39.9 >= 35
+    expect(badgeVariant(40.0)).toBe("crit");  // 40.0 >= 35
   });
 });

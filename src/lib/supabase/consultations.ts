@@ -16,8 +16,10 @@ export function dbRecordToState(record: any): ConsultationState {
     preventions: record.preventions ?? [],
     labs: record.labs ?? {},
     labsDate: record.labs_date ?? record.date ?? new Date().toISOString().split("T")[0],
-    imaging: record.imaging ?? { date: record.date ?? "", entries: "" },
-    calculations: record.calculations ?? { imc: null, tfg: null, fib4: null, rcv: null },
+    imaging: record.imaging
+      ? { ...record.imaging, items: record.imaging.items ?? [] }
+      : { date: record.date ?? "", entries: "", items: [] },
+    calculations: record.calculations ?? { imc: null, tfg: null, fib4: null, rcv: null, ldl: null, naoHdl: null },
     soap: {
       subjective: record.subjective ?? "",
       objective: record.objective ?? "",
@@ -37,14 +39,17 @@ export function dbRecordToState(record: any): ConsultationState {
       active_seconds: record.consultation_active_seconds ?? 0,
     },
     copiesThisSession: 0, // session-only counter, resets to 0 on load
+    customEsusText: record.custom_esus_text ?? null, // hidrata edições manuais do banco
   };
 }
 
 export async function saveConsultation(userId: string, state: ConsultationState, consultationId?: string, patientId?: string | null) {
   const supabase = createClient();
-  const esusSummary = generateEsusSummary(state);
+  // Usa texto eSUS editado manualmente se existir, senão gera automaticamente
+  const esusSummary = state.customEsusText ?? generateEsusSummary(state);
 
   const data = {
+    custom_esus_text: state.customEsusText,
     user_id: userId,
     patient_id: patientId ?? null,
     date: state.patient.consultationDate || new Date().toISOString().split("T")[0],
