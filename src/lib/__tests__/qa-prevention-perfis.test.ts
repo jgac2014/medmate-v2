@@ -62,46 +62,47 @@ describe("isContextualExclude — exclusão de contextuais do output", () => {
 
 describe("preventionShortLabel — compressão de labels", () => {
   it("remove todo o contexto normativo entre parênteses/colchetes/traço e limpa 'reforço:'", () => {
+    // Labels já curtas — verificação de robustez com versão longa residual
     expect(preventionShortLabel("Mamografia em dia (50–69a, a cada 2 anos)"))
       .toBe("Mamografia em dia");
-    expect(preventionShortLabel("dT reforço em dia (a cada 10 anos, >=7a)"))
+    expect(preventionShortLabel("dT em dia"))
       .toBe("dT em dia");
-    expect(preventionShortLabel("Rastreamento do colo do útero em dia (DNA-HPV ou citologia — conforme oferta local)"))
+    expect(preventionShortLabel("Rastreamento do colo do útero em dia"))
       .toBe("Rastreamento do colo do útero em dia");
   });
 
   it("substitui 'em dia' por 'verificado' em testagens opportunísticas (sem dash extra)", () => {
-    expect(preventionShortLabel("Testagem HIV em dia (conforme risco / oportunidade)"))
+    expect(preventionShortLabel("Testagem HIV em dia"))
       .toBe("Testagem HIV verificado");
-    expect(preventionShortLabel("Sífilis: testagem em dia (conforme risco / oportunidade)"))
-      .toBe("Sífilis: testagem verificado");
-    expect(preventionShortLabel("Testagem hepatite C em dia (>=40a ou fatores de risco)"))
+    expect(preventionShortLabel("Testagem sífilis em dia"))
+      .toBe("Testagem sífilis verificado");
+    expect(preventionShortLabel("Testagem hepatite C em dia"))
       .toBe("Testagem hepatite C verificado");
   });
 
-  it("mantém 'vacinado' para vacinas e 'em dia' para padrões", () => {
+  it("mantém 'em dia' para vacinas e padrões", () => {
     expect(preventionShortLabel("Vacinação hepatite B em dia"))
       .toBe("Vacinação hepatite B em dia");
-    expect(preventionShortLabel("Influenza: vacinado (conforme grupo prioritário sazonal)"))
-      .toBe("Influenza: vacinado");
+    expect(preventionShortLabel("Vacina influenza em dia"))
+      .toBe("Vacina influenza em dia");
   });
 
   it("retorna string vazia para itens excluídos", () => {
-    expect(preventionShortLabel("PSA em dia (decisão compartilhada)")).toBe("");
+    expect(preventionShortLabel("PSA em dia")).toBe("");
     expect(preventionShortLabel("Rastreio de depressão em dia")).toBe("");
     expect(preventionShortLabel("IVCF-20: avaliar")).toBe("");
-    expect(preventionShortLabel("Densitometria óssea: considerar")).toBe("");
+    expect(preventionShortLabel("Densitometria óssea")).toBe("");
   });
 });
 
 describe("preventionOutputLabels — pipeline completo de filtragem", () => {
   it("remove PSA, triage items e contextuais; opportunísticas viram 'verificado'", () => {
     const all = [
-      "Mamografia em dia (50–69a, a cada 2 anos)",
-      "Testagem HIV em dia (conforme risco / oportunidade)",
-      "PSA em dia (decisão compartilhada — sem rastreamento universal)",
-      "Rastreio de depressão em dia (PHQ-2/PHQ-9 — >=18a)",
-      "Densitometria óssea: considerar (>=65a mulheres ou risco)",
+      "Mamografia em dia",
+      "Testagem HIV em dia",
+      "PSA em dia",
+      "Rastreio de depressão em dia",
+      "Densitometria óssea",
       "Vacinação hepatite B em dia",
     ];
     const result = preventionOutputLabels(all).map(preventionShortLabel).filter(Boolean);
@@ -147,9 +148,10 @@ describe("P1 — Homem, 30a", () => {
     expect(rules.some((r) => r.id === "vacina-dt")).toBe(true);
   });
 
-  it("sugere PHQ-2 para >=18a", () => {
+  it("NÃO sugere PHQ-2 nem IVCF-20 (regras removidas — existem apenas em Triagens Clínicas)", () => {
     const rules = getSuggestedPreventions({ age: profile.age, gender: profile.gender, problems: profile.problems, preventions: [] });
-    expect(rules.some((r) => r.id === "depressao-phq2")).toBe(true);
+    expect(rules.some((r) => r.id === "depressao-phq2")).toBe(false);
+    expect(rules.some((r) => r.id === "ivcf20")).toBe(false);
   });
 
   it("NÃO sugere IVCF-20 para <60a", () => {
@@ -207,9 +209,9 @@ describe("P2 — Mulher, 55a", () => {
     expect(rules.some((r) => r.id === "ivcf20")).toBe(false);
   });
 
-  it("sugere PHQ-2 para >=18a", () => {
+  it("NÃO sugere PHQ-2 nem IVCF-20 (regras removidas — existem apenas em Triagens Clínicas)", () => {
     const rules = getSuggestedPreventions({ age: profile.age, gender: profile.gender, problems: profile.problems, preventions: [] });
-    expect(rules.some((r) => r.id === "depressao-phq2")).toBe(true);
+    expect(rules.some((r) => r.id === "depressao-phq2")).toBe(false);
   });
 
   it("PREVENÇÕES output: mamografia, colo útero, DT, opportunistic verificados", () => {
@@ -219,7 +221,7 @@ describe("P2 — Mulher, 55a", () => {
     expect(output).toContain("Mamografia em dia");
     expect(output).toContain("Rastreamento do colo do útero em dia");
     expect(output).toContain("Testagem HIV verificado");
-    expect(output).toContain("Sífilis: testagem verificado");
+    expect(output).toContain("Testagem sífilis verificado");
     expect(output).toContain("Rastreio glicêmico verificado");
     expect(output).toContain("Perfil lipídico verificado");
     // Sem duplicação TRIAGENS
@@ -257,9 +259,9 @@ describe("P3 — Mulher, 70a", () => {
     expect(rules.some((r) => r.id === "densitometria")).toBe(true);
   });
 
-  it("sugere IVCF-20 (>60a)", () => {
+  it("NÃO sugere IVCF-20 via getSuggestedPreventions (regras removidas — existe apenas em Triagens Clínicas)", () => {
     const rules = getSuggestedPreventions({ age: profile.age, gender: profile.gender, problems: profile.problems, preventions: [] });
-    expect(rules.some((r) => r.id === "ivcf20")).toBe(true);
+    expect(rules.some((r) => r.id === "ivcf20")).toBe(false);
   });
 
   it("PREVENÇÕES output: nenhum item de triagem aparece, densitometria não aparece", () => {
@@ -290,8 +292,9 @@ describe("P4 — Homem, 62a c/HAS/DM2", () => {
     expect(rules.some((r) => r.id === "perfil-lipidico")).toBe(true);
     expect(rules.some((r) => r.id === "influenza")).toBe(true);
     expect(rules.some((r) => r.id === "covid19")).toBe(true);
-    expect(rules.some((r) => r.id === "ivcf20")).toBe(true);
-    expect(rules.some((r) => r.id === "depressao-phq2")).toBe(true);
+    // IVCF-20 e PHQ-2: removidos das regras — existem apenas em Triagens Clínicas
+    expect(rules.some((r) => r.id === "ivcf20")).toBe(false);
+    expect(rules.some((r) => r.id === "depressao-phq2")).toBe(false);
   });
 
   it("NÃO sugere mamografia nem colo uterino", () => {
@@ -317,11 +320,11 @@ describe("P4 — Homem, 62a c/HAS/DM2", () => {
     expect(output).toContain("Testagem HIV verificado");
     expect(output).toContain("Testagem hepatite C verificado");
     expect(output).toContain("Vacinação hepatite B em dia");
-    expect(output).toContain("Sífilis: testagem verificado");
+    expect(output).toContain("Testagem sífilis verificado");
     expect(output).toContain("Rastreio glicêmico verificado");
     expect(output).toContain("Perfil lipídico verificado");
-    expect(output).toContain("Influenza: vacinado");
-    expect(output).toContain("COVID-19: vacinado");
+    expect(output).toContain("Vacina influenza em dia");
+    expect(output).toContain("Vacina COVID-19 em dia");
     // Sem duplicação TRIAGENS
     expect(output.some((o) => o.toLowerCase().includes("depressão"))).toBe(false);
     expect(output.some((o) => o.toLowerCase().includes("ivcf"))).toBe(false);

@@ -244,7 +244,7 @@ export function TriagensSection() {
             Núcleo principal SUS
           </p>
           <span className="text-[9px] text-[var(--on-surface-muted)]">
-            — инструментов oficiales MS para APS
+            — instrumentos oficiais MS para APS
           </span>
         </div>
         <div className="space-y-2">

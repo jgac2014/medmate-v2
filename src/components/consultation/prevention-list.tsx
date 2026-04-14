@@ -43,16 +43,28 @@ function DecisaoBadge() {
   );
 }
 
-/** Badge para núcleo triagem principal */
-function NucleoBadge() {
-  return (
-    <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded border bg-[var(--primary)] text-[var(--on-primary)] border-[var(--primary)]/40 shrink-0">
-      Núcleo SUS
-    </span>
-  );
-}
 
 type Category = keyof typeof PREVENTION_CATEGORIES;
+
+/** Tooltip map: label curta → contexto normativo/clínico. Null = sem tooltip. */
+function getTooltip(label: string): string | null {
+  const map: Record<string, string> = {
+    "Mamografia em dia": "INCA: mulheres 50–69a, a cada 2 anos",
+    "Rastreamento do colo do útero em dia": "INCA: 25–64a; DNA-HPV (preferencial) ou citologia",
+    "dT em dia": "PNI: reforço a cada 10 anos, >=7a",
+    "Testagem HIV em dia": "Conforme risco/oportunidade — não universal por idade",
+    "Testagem hepatite C em dia": ">=40a ou fatores de risco — não universal",
+    "Vacinação hepatite B em dia": "PNI: esquema completo conforme idade de início",
+    "Testagem sífilis em dia": "Conforme risco/oportunidade — não universal por idade",
+    "Rastreio glicêmico em dia": "GJ ou HbA1c; considerar fatores de risco metabólico",
+    "Perfil lipídico em dia": "Colesterol total, LDL, HDL, TG",
+    "Vacina influenza em dia": "Grupos prioritários sazonais conforme campanha PNI",
+    "Vacina COVID-19 em dia": "Conforme estratégia vacinal vigente MS",
+    "Vacina HPV em dia": "PNI: 9–14a (2 doses); populações específicas até 26a",
+    "Densitometria óssea": ">=65a mulheres ou fatores de risco — decisão compartilhada",
+  };
+  return map[label] ?? null;
+}
 
 interface CategorySectionProps {
   category: Category;
@@ -85,23 +97,23 @@ function CategorySection({
   function renderBadge() {
     if (category === "padrao") return <PadraoBadge />;
     if (category === "contextual") return <ContextualBadge />;
+    if (category === "vacinais") return <ContextualBadge />;
     if (category === "decisao") return <DecisaoBadge />;
-    if (category === "triagem") return <NucleoBadge />;
     return null;
   }
 
   function categoryLabel() {
     if (category === "padrao") return "Prevenção padrão APS/SUS";
-    if (category === "contextual") return "Contextual por risco / oportunidade";
+    if (category === "contextual") return "Testagens e rastreios";
+    if (category === "vacinais") return "Situação vacinal";
     if (category === "decisao") return "Decisão compartilhada";
-    if (category === "triagem") return "Avaliação de saúde mental / cognição";
     return category;
   }
 
   function categoryNote() {
-    if (category === "contextual") return "Aplicar conforme contexto clínico — não universal";
-    if (category === "decisao") return "Discutir com o paciente — sem rastreamento populacional";
-    if (category === "triagem") return "Usar escala na aba Triagens Clínicas";
+    if (category === "contextual") return "Conforme oportunidade clínica — não universal por idade";
+    if (category === "vacinais") return "PNI/MS — verificar caderneta ou registre";
+    if (category === "decisao") return "Discutir com o paciente";
     return null;
   }
 
@@ -126,6 +138,7 @@ function CategorySection({
           <CheckboxItem
             key={item}
             label={item}
+            tooltip={getTooltip(item)}
             checked={checked.includes(item)}
             onChange={() => onToggle(item)}
           />
@@ -177,24 +190,19 @@ export function PreventionList() {
         <div className="mb-3 pb-3 border-b border-[var(--outline-variant)]/40">
           <p className="text-[9.5px] font-semibold text-[var(--primary)] uppercase tracking-wide mb-2 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shrink-0" />
-            Considerar nesta consulta
+            Sugestões
           </p>
           <div className="flex flex-col gap-1">
             {suggestions.slice(0, 6).map((rule) => (
               <button
                 key={rule.id}
                 onClick={() => togglePrevention(rule.preventionLabel)}
-                className="flex items-start gap-2 text-left group cursor-pointer"
+                className="flex items-start gap-2 text-left group cursor-pointer px-1.5 py-1.5 rounded-lg hover:bg-[var(--surface-container)] transition-colors"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-status-warn mt-1.5 shrink-0 group-hover:bg-primary transition-colors" />
-                <div>
-                  <p className="text-[12px] text-on-surface-variant group-hover:text-on-surface transition-colors leading-snug">
-                    {rule.preventionLabel}
-                  </p>
-                  <p className="text-[10px] text-on-surface-muted leading-relaxed mt-0.5">
-                    {rule.description}
-                  </p>
-                </div>
+                <p className="text-[12px] text-on-surface-variant group-hover:text-on-surface transition-colors leading-snug">
+                  {rule.preventionLabel}
+                </p>
               </button>
             ))}
           </div>
@@ -236,6 +244,7 @@ export function PreventionList() {
               <CheckboxItem
                 key={item}
                 label={item}
+                tooltip={getTooltip(item)}
                 checked={true}
                 onChange={() => togglePrevention(item)}
               />
@@ -277,11 +286,6 @@ export function PreventionList() {
         </div>
       )}
 
-      {/* ── Nota: colorretal ocultado ───────────────────────────────────────── */}
-      <p className="text-[9px] text-on-surface-muted italic mt-2 px-1">
-        Rastreamento colorretal: ocultado por enquanto — diretriz nacional em definição.
-        Implementar conforme protocolo local ou expansão futura do MS.
-      </p>
     </div>
   );
 }

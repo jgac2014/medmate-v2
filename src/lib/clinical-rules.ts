@@ -17,7 +17,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   // ── Padrão APS/SUS ─────────────────────────────────────────────────────────
   {
     id: "mamografia",
-    preventionLabel: "Mamografia em dia (50–69a, a cada 2 anos)",
+    preventionLabel: "Mamografia em dia",
     // FUENTE: INCA — Controle do Câncer de Mama (2023): rastreamento populacional
     // mulheres 50–69 a cada 2 anos. Não universal para 70+.
     // For fonte: https://www.inca.gov.br (faixa etária vigente)
@@ -30,7 +30,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   },
   {
     id: "colo-utero",
-    preventionLabel: "Rastreamento do colo do útero em dia (DNA-HPV ou citologia — conforme oferta local)",
+    preventionLabel: "Rastreamento do colo do útero em dia",
     // FUENTE: INCA — Rastreamento do Câncer do Colo do Útero.
     // População-alvo: mulheres/pessoas com colo do útero, 25–64a, com história sexual.
     // Método: citologia a cada 3 anos (2 normais consecutivos) ou DNA-HPV a cada 5 anos.
@@ -44,7 +44,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   },
   {
     id: "vacina-dt",
-    preventionLabel: "dT reforço em dia (a cada 10 anos, >=7a)",
+    preventionLabel: "dT em dia",
     // FUENTE: PNI/MS — Calendário Nacional de Vacinação.
     // dT (dupla bacteriana adulto): rotina para >=7a com esquema completo (3 doses primárias + reforços).
     // Reforço a cada 10 anos. dTpa tem indicações específicas (gestantes, profissionais de saúde, ferimentos graves).
@@ -55,7 +55,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   // ── Contextual por risco / oportunidade ────────────────────────────────────
   {
     id: "hiv-testagem",
-    preventionLabel: "Testagem HIV em dia (conforme risco / oportunidade)",
+    preventionLabel: "Testagem HIV em dia",
     // FUENTE: MS PCDT HIV 2024 / PN DST/AIDS.
     // Testagem opportunística — não universal por idade.
     // Recomendada: ≥15a ao menos uma vez; populações-chave em re-testagem periódica.
@@ -65,7 +65,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   },
   {
     id: "hepatite-c",
-    preventionLabel: "Testagem hepatite C em dia (>=40a ou fatores de risco)",
+    preventionLabel: "Testagem hepatite C em dia",
     // FUENTE: MS — Nota Técnica Hepatite C / Guia Eliminação Hepatites Virais.
     // Faixa etária de risco: >=40a (coorte de maior prevalência).
     // Antes de fatores de risco: profissionais de saúde, DPRL, IST/DST, tatuagem,
@@ -87,7 +87,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   },
   {
     id: "sifilis-testagem",
-    preventionLabel: "Sífilis: testagem em dia (conforme risco / oportunidade)",
+    preventionLabel: "Testagem sífilis em dia",
     // FUENTE: MS — Estratégia de testagem opportunística para sífilis.
     // Não universal por idade. Aplicável: gestação, pré-nupcial, IST/DST, populações-chave.
     // Teste rápido como ponto de cuidado. Re-testagem conforme contexto de risco.
@@ -96,7 +96,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   },
   {
     id: "glicemia-rastreio",
-    preventionLabel: "Rastreio glicêmico em dia (GJ ou HbA1c — considerar fatores de risco)",
+    preventionLabel: "Rastreio glicêmico em dia",
     // FUENTE: MS PCDT DM2 2024.
     // PCDT DM2 NÃO estabelece >=45 como regra fixa universal.
     // Rastreamento contextual: sobrepeso/obesidade, história familiar de DM2, SOP,
@@ -122,7 +122,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   },
   {
     id: "influenza",
-    preventionLabel: "Influenza: vacinado (conforme grupo prioritário sazonal)",
+    preventionLabel: "Vacina influenza em dia",
     // FUENTE: PNI/MS — Campanha de Influenza Sazonal.
     // Não rastreamento universal. Grupos prioritários: >=60a, gestantes, puérperas,
     // crianças <6a, profissionais de saúde, comorbidades, etc.
@@ -132,7 +132,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   },
   {
     id: "covid19",
-    preventionLabel: "COVID-19: vacinado (conforme estratégia vacinal vigente)",
+    preventionLabel: "Vacina COVID-19 em dia",
     // FUENTE: PNI/MS — Estratégia de Vacinação COVID-19.
     // Sem rastreamento populacional clássico. Manter como contextual vaccination compliance.
     // Estratégia vigente: idosos >=60+, imunossuprimidos, gestantes, profissionais de saúde.
@@ -142,7 +142,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   },
   {
     id: "hpv-vac",
-    preventionLabel: "HPV: vacinado (9–14 anos ou populações específicas PNI)",
+    preventionLabel: "Vacina HPV em dia",
     // FUENTE: PNI/MS — Calendário Nacional de Vacinação / INCA.
     // Grupo-alvo padrão: meninas e meninos 9–14a (2 doses).
     // Populações específicas: imunossuprimidos até 26a, DPRL, PVHIV.
@@ -157,7 +157,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
   // Mantido apenas como referência para possível expansão futura.
   {
     id: "densitometria",
-    preventionLabel: "Densitometria óssea: considerar (>=65a mulheres ou risco)",
+    preventionLabel: "Densitometria óssea",
     // FUENTE: SBR (Sociedade Brasileira de Reumatologia) / NOF (National Osteoporosis Foundation).
     // MS/SUS não tem rastreamento universal de osteoporose como política pública fechada.
     // Rastreamento por oportunidade: mulheres >=65a; homens >=70a;
@@ -170,27 +170,7 @@ export const CLINICAL_RULES: ClinicalRule[] = [
       p.age >= 65,
   },
 
-  // ── Triagem principal SUS (sugerido via triagens-section) ───────────────────
-  {
-    id: "depressao-phq2",
-    preventionLabel: "Rastreio de depressão em dia (PHQ-2/PHQ-9 — >=18a)",
-    // FUENTE: MS — Linha de Cuidado: Depressão / Caderno APS.
-    // PHQ-2 como triagem inicial — positivo (>=3) → PHQ-9 completo.
-    // Flujo: PHQ-2 >=3 → aplicação PHQ-9 → classificação e conduta.
-    // Não registrar "PHQ-9 em dia" como prevenção — é escala aplicada na seção triagens.
-    description: "MS Linha de Cuidado Depressão — PHQ-2 >=18a; PHQ-2>=3 → PHQ-9",
-    condition: (p) => p.age !== null && p.age >= 18,
-  },
-  {
-    id: "ivcf20",
-    preventionLabel: "IVCF-20: avaliar (>60a — avaliação multidimensional)",
-    // FUENTE: MS — Protocolo de Envelhecimento Saudável / Caderneta de Saúde da Pessoa Idosa.
-    // Instrumento OFICIAL do MS para avaliação multidimensional de idosos >=60a na APS.
-    // 20 itens em 8 domínios funcionais — avaliação mais abrangente que Mini-Cog/Edmonton.
-    // Deve ser a triagem geriátrica principal no fluxo SUS.
-    description: "MS Protocolo Envelhecimento Saudável — >=60a; instrumento oficial MS para APS",
-    condition: (p) => p.age !== null && p.age > 60,
-  },
+  // PHQ-2/PHQ-9 e IVCF-20 removidos: não são prevenção factual — vivem em Triagens Clínicas.
 ];
 
 /** Retorna as regras aplicáveis que ainda não estão marcadas em preventions. */

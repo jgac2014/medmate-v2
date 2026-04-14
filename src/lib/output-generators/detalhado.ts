@@ -25,7 +25,6 @@ export function generateDetalhadoOutput(state: ConsultationState): string {
 
   // Antecedentes
   const antKeys: [keyof typeof history, string][] = [
-    ["comorbidities", "Comorbidades"],
     ["medications", "Medicamentos em uso"],
     ["allergies", "Alergias"],
     ["personal", "Antecedentes pessoais"],

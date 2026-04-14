@@ -124,13 +124,6 @@ export function generateEsusSummary(state: ConsultationState): string {
     lines.push("");
   }
 
-  // MUC
-  if (state.history.comorbidities.trim()) {
-    lines.push("MUC");
-    state.history.comorbidities.split("\n").filter(Boolean).forEach((m) => lines.push(`• ${m.trim()}`));
-    lines.push("");
-  }
-
   // DOENÇA ATUAL
   const hasSoap = state.soap.subjective || state.soap.objective || state.soap.assessment || state.soap.plan;
   if (hasSoap) {

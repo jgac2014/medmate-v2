@@ -1,16 +1,36 @@
 /**
  * Utilitário de formatação de labels para outputs clínicos.
  *
- * Regras de separação PREVENÇÕES vs TRIAGENS:
- * - TRIAGENS (seção separada no output): IVCF-20, PHQ-9, GAD-7, AUDIT-C, Mini-Cog, Edmonton
- *   → Items de "Prevenções" que são escalas (Rastreio depressão, IVCF-20) VÃO para TRIAGENS,
- *     não para a seção PREVENÇÕES — evitam duplicação conceitual
- * - PREVENÇÕES: tudo que é prevenção factual (mamografia, colo útero, dT, vacinas em dia,
- *   testagens opportunísticas quando feitas — não escalas)
- * - PSA: filtrado de todos os outputs
- * - Contextuais sem escala: densitometria — não entra no output PREVENÇÕES
+ * ═══════════════════════════════════════════════════════════════════
+ * REGRAS FINAIS — Freeze ETAPA 5
+ * ═══════════════════════════════════════════════════════════════════
  *
- * PSA é filtrado de todos os outputs — fora do escopo preventivo padrão SUS/INCA.
+ * SEPARAÇÃO CONCEITUAL:
+ *
+ * PREVENÇÕES (seção no output):
+ *   • Prevenção factual padrão APS/SUS: Mamografia, colo útero, dT
+ *   • Vacinas em dia (PNI): HepB, Influenza, COVID-19, HPV
+ *   • Testagens opportunísticas feitas: HIV, sífilis, hepatite C, glicemia, perfil lipídico
+ *     → Todas mostram "verificado" no output (não universal por idade)
+ *   • Não inclui: escalas, PSA, densitometria, avaliações funcionais
+ *
+ * TRIAGENS CLÍNICAS (seção separada no output):
+ *   • Escalas padronizadas: IVCF-20, PHQ-9, PHQ-2, GAD-7, AUDIT-C, Mini-Cog, Edmonton
+ *   • Aplicadas via TriagensSection — nunca via PreventionList
+ *   • Aparecem no output apenas quando aplicadas (score salvo)
+ *
+ * EXCLUÍDOS DO OUTPUT:
+ *   • PSA (isPSA): fora do escopo SUS/INCA — não existe na UI
+ *   • isTriageItem(): escalas — existem apenas em Triagens Clínicas
+ *   • isContextualExclude(): densitometria, avaliações visuais/auditivas/geriátricas
+ *
+ * LÓGICA DE RÓTULOS NO OUTPUT:
+ *   • "em dia": prevenção factual padrão (mamografia, colo, dT, HepB, Influenza, COVID, HPV)
+ *   • "verificado": testagem opportunística feita (HIV, sífilis, HepC, glicemia, perfil lipídico)
+ *   • Escalas: formato "PHQ-9: 8 pts — depressão moderada"
+ *
+ * FONTE: Regras clínicas definidas em clinical-rules.ts. Labels UI definidas em constants.ts.
+ * Para alterar regras: clinical-rules.ts. Para alterar labels UI: constants.ts.
  */
 
 /** Padrões de itens PSA — nunca entram no output. */

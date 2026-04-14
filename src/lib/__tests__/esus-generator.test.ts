@@ -91,7 +91,6 @@ describe("generateEsusSummary", () => {
     expect(output).toContain("ORIENTAÇÕES");
     expect(output).toContain("RASTREAMENTOS");
     expect(output).toContain("ANTECEDENTES");
-    expect(output).toContain("MUC");
     expect(output).toContain("ALERGIAS");
     expect(output).toContain("PREVENÇÕES");
   });

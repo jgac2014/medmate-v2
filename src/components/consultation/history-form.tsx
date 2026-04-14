@@ -9,7 +9,6 @@ const HISTORY_FIELDS = [
   { key: "habits" as const, label: "Hábitos de vida", placeholder: "Etilismo, sedentarismo..." },
   { key: "medications" as const, label: "Medicamentos em uso", placeholder: "Metformina 850mg 2x/dia..." },
   { key: "allergies" as const, label: "Alergias", placeholder: "Penicilina, AAS..." },
-  { key: "comorbidities" as const, label: "MUC / Morbidades", placeholder: "HAS estágio 2, DM2 em controle..." },
 ];
 
 export function HistoryForm() {
