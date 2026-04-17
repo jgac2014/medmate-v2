@@ -19,7 +19,7 @@ export function DraftRecoveryBanner() {
   const [userId, setUserId] = useState<string | null>(null);
   const [draftTime, setDraftTime] = useState<string | null>(null);
   const [draftData, setDraftData] = useState<ConsultationState | null>(null);
-  const { currentConsultationId, loadState, setPatientName } = useConsultationStore();
+  const { currentConsultationId, patientId: currentPatientId, loadState, setPatientName } = useConsultationStore();
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
@@ -29,7 +29,8 @@ export function DraftRecoveryBanner() {
       // Só mostrar banner se não há consulta aberta
       if (currentConsultationId) return;
 
-      const draft = loadDraft(user.id);
+      // Chave namespaced por patientId — draft de outro paciente nunca é carregado
+      const draft = loadDraft(user.id, currentPatientId ?? undefined);
       if (!draft) return;
 
       // Verificar se o draft tem conteúdo relevante
@@ -45,7 +46,7 @@ export function DraftRecoveryBanner() {
         setDraftData(state);
       }
     });
-  }, [currentConsultationId]);
+  }, [currentConsultationId, currentPatientId]);
 
   if (!draftTime || !draftData) return null;
 
@@ -59,7 +60,7 @@ export function DraftRecoveryBanner() {
   }
 
   function handleDiscard() {
-    if (userId) clearDraft(userId);
+    if (userId) clearDraft(userId, currentPatientId ?? undefined);
     setDraftTime(null);
     setDraftData(null);
   }

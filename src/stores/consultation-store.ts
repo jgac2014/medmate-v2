@@ -32,6 +32,7 @@ const initialState: ConsultationState = {
   },
   copiesThisSession: 0,
   customEsusText: null,
+  pendingUploads: 0,
 };
 
 interface ConsultationActions {
@@ -71,6 +72,8 @@ interface ConsultationActions {
   incrementCopies: () => void;
   resetCopiesThisSession: () => void;
   setCustomEsusText: (text: string | null) => void;
+  incrementPendingUploads: () => void;
+  decrementPendingUploads: () => void;
 }
 
 export type ConsultationStore = ConsultationState & ConsultationActions;
@@ -156,6 +159,12 @@ export const useConsultationStore = create<ConsultationStore>((set) => ({
   resetCopiesThisSession: () => set(() => ({ copiesThisSession: 0 })),
 
   setCustomEsusText: (text) => set({ customEsusText: text }),
+
+  incrementPendingUploads: () =>
+    set((state) => ({ pendingUploads: state.pendingUploads + 1 })),
+
+  decrementPendingUploads: () =>
+    set((state) => ({ pendingUploads: Math.max(0, state.pendingUploads - 1) })),
 
   setPatient: (patient) =>
     set((state) => ({ patient: { ...state.patient, ...patient } })),

@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { copyToClipboard } from "@/lib/clipboard";
 import { showToast } from "@/components/ui/toast";
 import { submitFeedback } from "@/lib/feedback";
-import { DocumentationChecklist } from "@/components/consultation/documentation-checklist";
 import { useOutputSummary } from "@/hooks/useOutputSummary";
 import { markOnboardingStep } from "@/hooks/useOnboarding";
 import { trackEvent } from "@/lib/analytics";
@@ -133,11 +132,6 @@ export function ConsultationRightPanel() {
             >
               <span className="material-symbols-outlined text-[13px] text-[var(--on-surface-muted)]">close</span>
             </button>
-          </div>
-
-          {/* Status de documentação */}
-          <div className="p-3 border-b border-[var(--outline-variant)]">
-            <DocumentationChecklist />
           </div>
 
           {/* Seção: Prévia eSUS */}

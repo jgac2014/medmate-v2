@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Upload, Loader2 } from "lucide-react";
 import { showToast } from "@/components/ui/toast";
+import { useConsultationStore } from "@/stores/consultation-store";
 
 interface TranscribeResult {
   matched: Record<string, string>;
@@ -15,16 +16,17 @@ interface ExamUploadButtonProps {
 
 export function ExamUploadButton({ onResult }: ExamUploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [loading, setLoading] = useState(false);
-  const [notConfigured, setNotConfigured] = useState(false);
+  const loading = useConsultationStore((s) => s.pendingUploads > 0);
+  const pendingCount = useConsultationStore((s) => s.pendingUploads);
+  const incrementPendingUploads = useConsultationStore((s) => s.incrementPendingUploads);
+  const decrementPendingUploads = useConsultationStore((s) => s.decrementPendingUploads);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
 
-    setLoading(true);
-    setNotConfigured(false);
+    incrementPendingUploads();
 
     try {
       const formData = new FormData();
@@ -34,7 +36,7 @@ export function ExamUploadButton({ onResult }: ExamUploadButtonProps) {
       const data = await res.json();
 
       if (data.error === "API_NOT_CONFIGURED") {
-        setNotConfigured(true);
+        showToast("API de transcrição não configurada", "error");
         return;
       }
 
@@ -53,7 +55,7 @@ export function ExamUploadButton({ onResult }: ExamUploadButtonProps) {
     } catch {
       showToast("Erro ao enviar o arquivo. Verifique sua conexão.", "error");
     } finally {
-      setLoading(false);
+      decrementPendingUploads();
     }
   }
 
@@ -79,13 +81,6 @@ export function ExamUploadButton({ onResult }: ExamUploadButtonProps) {
         )}
         {loading ? "Processando..." : "Importar PDF / imagem"}
       </button>
-
-      {notConfigured && (
-        <p className="mt-1.5 text-[11px] text-status-warn">
-          Funcionalidade indisponível. Configure{" "}
-          <code className="font-mono">ANTHROPIC_API_KEY</code> nas variáveis de ambiente do Vercel.
-        </p>
-      )}
     </div>
   );
 }

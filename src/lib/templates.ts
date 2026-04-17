@@ -19,9 +19,9 @@
 //   ASMA  — MS. Linha de Cuidado Asma. linhasdecuidado.saude.gov.br/portal/asma/
 //   DPOC  — MS. Linha de Cuidado DPOC. linhasdecuidado.saude.gov.br/portal/doenca-pulmonar-obstrutiva-cronica/
 
-import type { SoapNotes, TemplateCategory, TemplateStatus } from "@/types";
+import type { SoapNotes, TemplateCategory, TemplateStatus, TemplateGovernance } from "@/types";
 
-export type { TemplateCategory, TemplateStatus } from "@/types";
+export type { TemplateCategory, TemplateStatus, TemplateGovernance } from "@/types";
 
 // ─── Schema lean — uso clínico rápido ────────────────────────────────────────
 // Campos essenciais para decisão em segundos, sem perder segurança mínima.
@@ -63,13 +63,7 @@ export interface ClinicalTemplate {
   followup?: string;
 
   // Governança
-  governance?: {
-    source: string;
-    sourceUrl?: string;
-    status: TemplateStatus;
-    version: string;
-    lastRevised: string;
-  };
+  governance?: TemplateGovernance;
 
   // Retrocompatibilidade com templates legados (pré-migração)
   source?: string;
@@ -98,6 +92,10 @@ const GV = {
 //   DEP    — MS. Linha de Cuidado para Depressão na Atenção Básica, 2022. linhasdecuidado.saude.gov.br
 //   ANSIED — MS. Linha de Cuidado para Transtornos de Ansiedade, 2022. linhasdecuidado.saude.gov.br
 //   DRC    — KDIGO 2022 CKD Guidelines. kdigo.org; MS. Linha de Cuidado para DRC. linhasdecuidado.saude.gov.br
+//
+// Fontes adicionadas na Sessão 15 (15/04/2026):
+//   DPOC   — GOLD 2024. goldcopd.org; MS. Linha de Cuidado DPOC
+//   ASMA   — GINA 2025. ginacoalition.org; MS. Linha de Cuidado Asma, 2021
 //   GOTA   — SBR. Consenso Brasileiro para Diagnóstico e Tratamento da Gota, 2022. reumatologia.org.br
 //   OSTEO  — MS. PCDT Osteoporose. Portaria SCTIE/MS nº 39/2022. gov.br/saude
 //   ICC    — SBC. Diretriz Brasileira de Insuficiência Cardíaca Crônica e Aguda, 2023. arquivosonline.com.br
@@ -120,27 +118,77 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
   {
     id: "has_retorno",
     name: "HAS — Retorno",
-    description: "Retorno de HAS crônica — avaliação de controle e adesão",
+    description: "Seguimento de hipertensão arterial sistêmica na APS — controle pressórico, adesão, segurança e ajuste terapêutico",
     category: "cronico",
-    whenToUse: "Paciente em uso de anti-hipertensivo, retorno para reavaliar controle. Avaliar adesão, efeitos adversos e risco cardiovascular.",
-    whenNotToUse: "Hipertensão de emergência — referenciar imediatamente.",
-    minimumData: ["PA atual", "Lista de medicamentos em uso"],
-    tags: ["hipertensão", "HAS", "PA", "anti-hipertensivo", "retorno", "adesão"],
+    whenToUse: "Adulto com HAS já diagnosticada, em seguimento ambulatorial/APS, para reavaliar controle pressórico, adesão, efeitos adversos, risco cardiovascular e necessidade de ajuste do tratamento.",
+    whenNotToUse: "Primeira avaliação diagnóstica de HAS. Urgência/emergência hipertensiva ou suspeita de lesão aguda de órgão-alvo. Gestante com hipertensão.",
+    minimumData: [
+      "PA atual",
+      "Medicamentos em uso e adesão",
+      "Efeitos adversos ou sintomas de hipotensão",
+      "PA domiciliar/MRPA, se houver",
+    ],
+    tags: ["HAS", "hipertensão", "anti-hipertensivo", "adesão", "retorno"],
     soap: {
-      subjective: "PA atual: ___ | Adesão: [ ] Boa [ ] Irregular | Efeitos adversos: ___ | MRPA: ___",
-      assessment: "HAS [ ] controlada <140/90 | [ ] não controlada. Meta <130/80 mmHg se DM/DRC/RCV alto. Risco cardiovascular: [ ] baixo [ ] alto",
-      plan: "MNF: sal <5g, exercício ≥150min/sem. [ ] Manter [ ] Ajustar anti-hipertensivo. Retorno em ___ meses.",
+      subjective: "PA atual: ___ | PA domiciliar/MRPA: ___ | Adesão: [ ] boa [ ] irregular | Efeitos adversos/hipotensão: ___ | Uso de AINEs, álcool ou outros fatores que elevam PA: ___",
+      assessment: "HAS [ ] no alvo terapêutico | [ ] fora do alvo. Risco cardiovascular: [ ] baixo [ ] moderado [ ] alto [ ] muito alto | Lesão de órgão-alvo/comorbidades: ___",
+      plan: "Reforçar medidas não farmacológicas. [ ] Manter esquema atual | [ ] Ajustar tratamento | [ ] Reforçar adesão e técnica de medida da PA | [ ] Solicitar/atualizar exames | Retorno conforme controle.",
     },
-    exams: "Creatinina+TFG, potássio, glicemia, lipidograma, EAS, ECG (>2 anos).",
-    guidance: "Aferir PA em casa e anotar. Sal <5g/dia. Exercício 30min/dia. Não interromper medicação. Buscar se PA >180/110 ou sintomas (cefaleia intensa, dor no peito).",
-    redFlags: ["PA >180/110 mmHg", "Sintomas de urgência hipertensiva"],
-    followup: "Retorno em 1–3 meses conforme controle.",
+    exams:
+      "PAINEL BASE: creatinina com TFGe, potássio, glicemia de jejum ou HbA1c, perfil lipídico, urinálise/EAS, eletrocardiograma; sódio se uso de diurético tiazídico.\n" +
+      "EXAME DIRIGIDO: MRPA/MAPA se suspeita de avental branco, hipertensão mascarada, discordância entre PA do consultório e domiciliar, ou sintomas de hipotensão.\n" +
+      "EXAME DIRIGIDO: albuminúria/relação albumina-creatinina, ecocardiograma ou outros exames conforme DRC, DM, lesão de órgão-alvo, suspeita de HAS secundária ou comorbidades.",
+    guidance: "Não interromper medicação por conta própria. Levar registro de PA domiciliar quando disponível. Reduzir sal e ultraprocessados, manter atividade física regular e retornar antes se PA muito elevada ou sintomas de alarme.",
+    redFlags: [
+      "PAS ≥180 mmHg ou PAD ≥120 mmHg, especialmente se persistente ou sintomática",
+      "Dor torácica, dispneia, déficit neurológico focal, alteração visual importante, rebaixamento do sensório ou oligúria",
+    ],
+    followup: "Reavaliar em 1 mês após início ou mudança do tratamento, até atingir o alvo terapêutico. Depois acompanhar 2–4 vezes no primeiro ano, idealmente a cada 3–6 meses; após controle, seguimento semestral. Exames laboratoriais anuais ou pelo menos a cada 2 anos; ECG conforme indicação clínica.",
     governance: {
-      source: "MS. Linha de Cuidado HAS no Adulto, 2021; CAB nº 37, 2013",
-      sourceUrl: "https://linhasdecuidado.saude.gov.br/portal/hipertensao-arterial-sistemica-(HAS)-no-adulto/",
-      status: GV.ativo,
-      version: GV.v,
-      lastRevised: GV.dt,
+      source: "MS/Conitec. PCDT de Hipertensão Arterial Sistêmica, 2025; Linha de Cuidado da HAS no Adulto, 2021; CAB nº 37 como referência complementar.",
+      sourceUrl: "https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-hipertensao-arterial-sistemica.pdf",
+      status: "ativo",
+      version: "1.1.0",
+      lastRevised: "2026-04-17",
+    },
+  },
+
+  // ── HAS — Início ────────────────────────────────────────────────────────
+  {
+    id: "has_inicial",
+    name: "HAS — Início",
+    description: "Avaliação inicial de pressão arterial elevada/suspeita de HAS na APS — confirmação diagnóstica, estratificação de risco e definição da conduta inicial",
+    category: "cronico",
+    whenToUse: "Adulto com PA elevada no consultório ou fora dele, sem diagnóstico fechado de HAS, para confirmar o diagnóstico, estratificar risco cardiovascular e definir seguimento ou início de tratamento.",
+    whenNotToUse: "Urgência/emergência hipertensiva ou suspeita de lesão aguda de órgão-alvo. Gestante com hipertensão. Paciente já com HAS confirmada em seguimento regular.",
+    minimumData: [
+      "PA aferida corretamente em ≥2 medidas na consulta",
+      "Aferições prévias e/ou MRPA/MAPA, se houver",
+      "Risco cardiovascular, comorbidades e lesão de órgão-alvo",
+      "Medicamentos/substâncias que possam elevar PA",
+    ],
+    tags: ["HAS", "hipertensão", "diagnóstico", "MRPA", "MAPA", "risco cardiovascular"],
+    soap: {
+      subjective: "PA consultório: ___/___ mmHg em ___ medidas | Aferições prévias: ___ | MRPA/MAPA: ___ | Comorbidades/lesão de órgão-alvo: ___ | Medicamentos/substâncias que elevam PA: ___ | Sintomas de alarme: ___",
+      assessment: "Classificação: [ ] ótima (<120/<80) | [ ] normal (120-129/80-84) | [ ] normal alta (130-139/85-89) | [ ] HAS grau 1 (140-159/90-99) | [ ] HAS grau 2 (160-179/100-109) | [ ] HAS grau 3 (≥180/≥110). Confirmação diagnóstica: [ ] pendente | [ ] confirmada. Risco cardiovascular: [ ] baixo | [ ] moderado | [ ] alto | [ ] muito alto | Suspeita de HAS secundária: ___",
+      plan: "Confirmar diagnóstico com medidas seriadas e, quando indicado, MAPA ou, se indisponível, MRPA. Medidas não farmacológicas para todos. [ ] PA normal alta com muito alto risco: considerar tratamento medicamentoso | [ ] HAS grau 1 com RCV baixo: reavaliar em 3–6 meses | [ ] HAS grau 1 com RCV moderado/alto ou lesão de órgão-alvo: iniciar tratamento medicamentoso | [ ] HAS grau 2/3: iniciar tratamento medicamentoso | [ ] Solicitar exames iniciais e fundo de olho.",
+    },
+    exams:
+      "PAINEL BASE: creatinina com TFGe, potássio, sódio, ácido úrico, albuminúria, glicemia de jejum, perfil lipídico, urinálise/EAS e eletrocardiograma.\n" +
+      "EXAME DIRIGIDO: MAPA ou, se indisponível, MRPA, para confirmação diagnóstica quando indicado.\n" +
+      "EXAME DIRIGIDO: TSH/T4 livre, relação aldosterona-renina, ecocardiograma, Doppler de artérias renais ou outros exames conforme suspeita de HAS secundária, lesão de órgão-alvo ou comorbidades.",
+    guidance: "Explicar que o diagnóstico de HAS deve ser confirmado com medidas seriadas e, quando indicado, MAPA/MRPA. Orientar técnica correta de medida da PA, redução de sal e ultraprocessados, controle de peso, atividade física regular, redução de álcool e cessação do tabagismo.",
+    redFlags: [
+      "PAS ≥180 mmHg ou PAD ≥120 mmHg, especialmente se houver sintomas ou suspeita de lesão aguda de órgão-alvo",
+      "Dor torácica, dispneia, déficit neurológico focal, alteração visual importante, rebaixamento do sensório ou edema agudo de pulmão",
+    ],
+    followup: "Se iniciar ou modificar tratamento, reavaliar em 1 mês. Se PA normal alta ou HAS grau 1 com baixo risco sem tratamento medicamentoso inicial, reavaliar PA e risco cardiovascular em 3–6 meses. Após confirmação diagnóstica e estabilização, seguir monitoramento periódico conforme controle pressórico.",
+    governance: {
+      source: "MS/Conitec. PCDT de Hipertensão Arterial Sistêmica, 2025; Linha de Cuidado da HAS no Adulto, 2021; CAB nº 37 como referência complementar.",
+      sourceUrl: "https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-hipertensao-arterial-sistemica.pdf",
+      status: "ativo",
+      version: "1.0.0",
+      lastRevised: "2026-04-17",
     },
   },
 
@@ -148,27 +196,80 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
   {
     id: "dm2_retorno",
     name: "DM2 — Retorno",
-    description: "Retorno de DM2 crônico — controle glicêmico e rastreio de complicações",
+    description: "Seguimento de diabete melito tipo 2 na APS — controle glicêmico, segurança terapêutica e rastreio de complicações crônicas",
     category: "cronico",
-    whenToUse: "Paciente com DM2 em uso de hipoglicemiante, retorno para reavaliar controle e rastrear complicações.",
-    whenNotToUse: "Cetoacidose diabética ou emergência hiperglicêmica — referenciar.",
-    minimumData: ["HbA1c ou glicemia recente", "Lista de hipoglicemiantes"],
-    tags: ["diabetes", "DM2", "HbA1c", "glicemia", "retorno", "pé diabético"],
+    whenToUse: "Pessoa adulta com DM2 já diagnosticado, em seguimento ambulatorial/APS, para reavaliar controle glicêmico, adesão, hipoglicemia, tratamento em uso e rastrear complicações.",
+    whenNotToUse: "Cetoacidose diabética, síndrome hiperosmolar hiperglicêmica, hipoglicemia grave ou descompensação aguda com rebaixamento do sensório, vômitos persistentes ou sinais de desidratação importante.",
+    minimumData: [
+      "HbA1c e/ou glicemias recentes",
+      "Medicamentos em uso, incluindo insulina",
+      "Hipoglicemias e adesão ao tratamento",
+      "Função renal/albuminúria e rastreio prévio de complicações, se houver"
+    ],
+    tags: ["DM2", "diabetes", "HbA1c", "hipoglicemia", "pé diabético", "retorno"],
     soap: {
-      subjective: "Sintomas hiperglicemia: [ ] poliúria [ ] polidipsia [ ] visão turva | Hipoglicemia: [ ] Sim freq:___ [ ] Não | Adesão: [ ] Boa [ ] Irregular",
-      assessment: "DM2 [ ] controlado (HbA1c <7%) | [ ] não controlado. Meta HbA1c 7,5–8,5% se idoso frágil. Glicemia jejum: ___ mg/dL.",
-      plan: "Dieta: reduzir carboidratos simples. [ ] Manter [ ] Ajustar hipoglicemiante. Avaliar pé diabético. Rastrear retinopatia (oftalmologia). Retorno em ___ meses.",
+      subjective: "Sintomas de hiperglicemia: ___ | Hipoglicemias: [ ] não [ ] sim, frequência/gravidade: ___ | Adesão: [ ] boa [ ] irregular | Medicações em uso: ___ | Glicemias capilares/automonitorização: ___ | Lesão nos pés, parestesias ou piora visual: ___",
+      assessment: "DM2 [ ] no alvo glicêmico | [ ] fora do alvo. Meta HbA1c: [ ] <7,0% (adulto geral) | [ ] <7,5% (idoso saudável) | [ ] <8,0% (idoso comprometido) | [ ] evitar sintomas de hiper/hipoglicemia (idoso muito comprometido). Complicações/comorbidades: ___",
+      plan: "Reforçar medidas não farmacológicas e educação em autocuidado. [ ] Manter tratamento atual | [ ] Ajustar esquema medicamentoso | [ ] Rever risco de hipoglicemia e técnica de uso das medicações/insulina | [ ] Solicitar/atualizar rastreio de nefropatia, retinopatia e pé diabético | Retorno conforme controle.",
     },
-    exams: "HbA1c (a cada 3 meses se instável), glicemia jejum, lipidograma, creatinina+TFG, RAC, EAS.",
-    guidance: "Glicemia em jejum ao acordar e pós-refeições. Não pular refeições. Atividade física regular. Inspecionar pés diariamente. Não interromper medicação. Buscar se glicemia >300 ou sintomas de cetoacidose.",
-    redFlags: ["Glicemia >300 mg/dL com sintomas", "Cetoacidose (hálito cetônico,confusão)"],
-    followup: "HbA1c a cada 3 meses; retornos a cada 3–6 meses.",
+    exams:
+      "PAINEL BASE: hemoglobina glicada, glicemia de jejum, creatinina com TFGe, albuminúria/relação albumina-creatinina e perfil lipídico.\n" +
+      "EXAME DIRIGIDO: fundoscopia para rastreio de retinopatia diabética, ao diagnóstico e anualmente.\n" +
+      "EXAME DIRIGIDO: avaliação do pé diabético/neuropatia, ao diagnóstico e anualmente, com maior frequência conforme estratificação de risco.\n" +
+      "EXAME DIRIGIDO: urinálise/EAS, urocultura ou outros exames conforme sintomas, suspeita de infecção, descompensação clínica ou complicações.",
+    guidance: "Manter alimentação adequada, atividade física regular e uso correto das medicações. A frequência da automonitorização glicêmica deve ser individualizada. Não pular refeições se houver risco de hipoglicemia. Inspecionar os pés diariamente e procurar atendimento se houver lesão, sinais de infecção, piora visual, vômitos persistentes ou glicemias muito elevadas com sintomas.",
+    redFlags: [
+      "Glicemia muito elevada com sintomas importantes, desidratação, vômitos persistentes, sonolência ou suspeita de cetoacidose/síndrome hiperosmolar",
+      "Hipoglicemia grave, confusão, convulsão, rebaixamento do sensório, infecção importante no pé ou sinais de isquemia"
+    ],
+    followup: "Peso e pressão arterial em cada consulta. Hemoglobina glicada e glicemia de jejum a cada 6 meses, podendo antecipar conforme controle. Rastreio de nefropatia, retinopatia e pé diabético ao menos anualmente. Retorno em 3–6 meses se estável, ou antes após ajuste terapêutico ou descontrole.",
     governance: {
-      source: "MS. Linha de Cuidado DM2 no Adulto; CAB nº 36, 2013",
-      sourceUrl: "https://linhasdecuidado.saude.gov.br/portal/diabetes-mellitus-tipo-2-(DM2)-no-adulto/",
+      source: "MS/Conitec. PCDT de Diabete Melito Tipo 2, 2026; CAB nº 36 como referência complementar.",
+      sourceUrl: "https://www.gov.br/saude/pt-br/assuntos/pcdt/d/diabete-melito-tipo-2.pdf/view",
       status: GV.ativo,
-      version: GV.v,
-      lastRevised: GV.dt,
+      version: "1.1.0",
+      lastRevised: "2026-04-17",
+    },
+  },
+
+  // ── DM2 — Início ──────────────────────────────────────────────────────────
+  {
+    id: "dm2_inicial",
+    name: "DM2 — Início",
+    description: "Avaliação inicial de diabete melito tipo 2 na APS — confirmação diagnóstica, estratificação clínica e definição do tratamento inicial",
+    category: "cronico",
+    whenToUse: "Adulto com suspeita ou diagnóstico recente de DM2, em avaliação inicial na APS, para confirmar o diagnóstico, identificar gravidade, rastrear complicações e iniciar o plano terapêutico.",
+    whenNotToUse: "Cetoacidose diabética, síndrome hiperosmolar hiperglicêmica, hiperglicemia aguda sintomática com desidratação ou rebaixamento do sensório. Suspeita de DM1/LADA ou diabetes gestacional requerem condução específica.",
+    minimumData: [
+      "HbA1c e/ou glicemias usadas para o diagnóstico",
+      "Sintomas de hiperglicemia e perda de peso",
+      "Comorbidades, risco cardiovascular e sinais de complicações",
+      "Medicamentos em uso e condições que possam interferir no diagnóstico"
+    ],
+    tags: ["DM2", "diabetes", "diagnóstico", "HbA1c", "tratamento inicial", "complicações"],
+    soap: {
+      subjective: "Sintomas de hiperglicemia: ___ | Perda de peso, infecções de repetição ou candidíase: ___ | Exames prévios: HbA1c ___ / glicemia ___ | História familiar/comorbidades: ___ | Medicamentos que alteram glicemia: ___ | Sinais de alerta ou suspeita de outro tipo de diabetes: ___",
+      assessment: "DM2 [ ] confirmado | [ ] em confirmação. Critério laboratorial: [ ] HbA1c ≥6,5% | [ ] glicemia de jejum ≥126 mg/dL | [ ] TTGO 2h ≥200 mg/dL | [ ] glicemia aleatória ≥200 mg/dL com sintomas. Gravidade/complicações iniciais: ___ | Risco cardiovascular: [ ] baixo | [ ] moderado | [ ] alto | [ ] muito alto",
+      plan: "Medidas não farmacológicas para todos. [ ] Iniciar metformina, se não houver contraindicação | [ ] Considerar terapia de combinação se HbA1c >7,5% ao diagnóstico | [ ] Solicitar avaliação basal de complicações e exames iniciais | [ ] Orientar automonitorização quando indicada | [ ] Reavaliar resposta clínica e laboratorial após início do tratamento.",
+    },
+    exams:
+      "PAINEL BASE: hemoglobina glicada, glicemia de jejum, creatinina com TFGe, albuminúria/relação albumina-creatinina e perfil lipídico.\n" +
+      "EXAME DIRIGIDO: TTGO 75 g se necessário para esclarecimento diagnóstico quando apropriado.\n" +
+      "EXAME DIRIGIDO: fundoscopia para rastreio de retinopatia, ao diagnóstico e anualmente.\n" +
+      "EXAME DIRIGIDO: avaliação do pé diabético/neuropatia, ao diagnóstico e anualmente, com maior frequência conforme estratificação de risco.\n" +
+      "EXAME DIRIGIDO: investigação adicional se suspeita de DM1/LADA, diabetes secundário ou condição que distorça a HbA1c.",
+    guidance: "Explicar o diagnóstico e o caráter crônico do DM2. Reforçar alimentação adequada, atividade física regular, redução de peso quando indicado e uso correto das medicações. A automonitorização glicêmica deve ser individualizada. Orientar cuidado diário com os pés e procurar atendimento se houver vômitos persistentes, desidratação, sonolência, glicemias muito elevadas com sintomas ou lesões/infecção nos pés.",
+    redFlags: [
+      "Hiperglicemia aguda sintomática, especialmente com glicemia aleatória ≥250 mg/dL, desidratação, vômitos persistentes ou rebaixamento do sensório",
+      "Suspeita de cetoacidose, síndrome hiperosmolar, hipoglicemia grave ou fenótipo compatível com DM1/LADA"
+    ],
+    followup: "Peso e pressão arterial em cada consulta. Hemoglobina glicada e glicemia de jejum ao diagnóstico e a cada 6 meses, podendo antecipar conforme necessidade clínica. Rastreio de pé diabético, nefropatia, dislipidemia e retinopatia ao diagnóstico e anualmente. Reavaliar mais cedo após início do tratamento ou se houver descontrole/sintomas.",
+    governance: {
+      source: "MS/Conitec. PCDT de Diabete Melito Tipo 2, 2026; CAB nº 36 como referência complementar.",
+      sourceUrl: "https://www.gov.br/saude/pt-br/assuntos/pcdt/d/diabete-melito-tipo-2.pdf/view",
+      status: "ativo",
+      version: "1.0.0",
+      lastRevised: "2026-04-17",
     },
   },
 
@@ -176,54 +277,184 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
   {
     id: "has_dm2_retorno",
     name: "HAS + DM2 — Retorno",
-    description: "Retorno combinado para HAS e DM2 crônicos",
+    description: "Seguimento combinado de hipertensão arterial sistêmica e diabete melito tipo 2 na APS — controle pressórico, controle glicêmico e rastreio de complicações cardiovasculares e microvasculares",
     category: "cronico",
-    whenToUse: "Paciente com ambas HAS e DM2 — avaliar controle conjunto e risco cardiovascular sinérgico.",
-    whenNotToUse: "Emergência hipertensiva ou cetoacidose — referenciar.",
-    minimumData: ["PA atual", "HbA1c ou glicemia", "Lista de medicamentos"],
-    tags: ["hipertensão", "diabetes", "HAS", "DM2", "retorno", "risco cardiovascular"],
+    whenToUse: "Pessoa com HAS e DM2 já diagnosticados, em seguimento ambulatorial/APS, para reavaliar controle pressórico e glicêmico, adesão, segurança terapêutica e rastrear complicações.",
+    whenNotToUse: "Emergência/urgência hipertensiva, cetoacidose diabética, síndrome hiperosmolar hiperglicêmica, hipoglicemia grave ou descompensação aguda com rebaixamento do sensório, vômitos persistentes ou desidratação importante.",
+    minimumData: [
+      "PA atual e, se houver, PA domiciliar/MRPA",
+      "HbA1c e/ou glicemias recentes",
+      "Medicamentos em uso, incluindo anti-hipertensivos, antidiabéticos e insulina",
+      "Função renal/albuminúria e rastreio prévio de complicações, se houver"
+    ],
+    tags: ["HAS", "DM2", "hipertensão", "diabetes", "risco cardiovascular", "retorno"],
     soap: {
-      subjective: "PA: ___ | Glicemia: ___ | Adesão: [ ] Boa [ ] Irregular | MRPA/glicemia domiciliar: ___",
-      assessment: "HAS: meta PA <130/80 (paciente com DM). DM2: meta HbA1c <7% (adulto geral). Risco cardiovascular alto pela associação.",
-      plan: "MNF: dieta hipossódica + restrição carboidratos simples, exercício ≥150min/sem. [ ] Manter [ ] Ajustar farmacos. Avaliar pé diabético. Retorno em ___ meses.",
+      subjective: "PA atual: ___ | PA domiciliar/MRPA: ___ | HbA1c/glicemias recentes: ___ | Hipoglicemias: [ ] não [ ] sim, frequência/gravidade: ___ | Adesão: [ ] boa [ ] irregular | Medicações em uso: ___ | Sintomas de alarme, lesão nos pés, parestesias ou piora visual: ___",
+      assessment: "HAS [ ] no alvo terapêutico | [ ] fora do alvo. DM2 [ ] no alvo glicêmico | [ ] fora do alvo. Meta HbA1c: [ ] <7,0% (adulto geral) | [ ] <7,5% (idoso saudável) | [ ] <8,0% (idoso comprometido) | [ ] evitar sintomas de hiper/hipoglicemia (idoso muito comprometido). Risco cardiovascular: [ ] alto | [ ] muito alto | DRC/albuminúria/lesão de órgão-alvo/DCV estabelecida: ___",
+      plan: "Reforçar medidas não farmacológicas e autocuidado. [ ] Manter tratamento atual | [ ] Ajustar anti-hipertensivos | [ ] Ajustar esquema antidiabético/insulina | [ ] Rever risco de hipoglicemia e adesão | [ ] Atualizar rastreio de nefropatia, retinopatia e pé diabético | [ ] Reavaliar função renal e albuminúria | Retorno conforme controle.",
     },
-    exams: "HbA1c, glicemia jejum, lipidograma, creatinina+TFG, RAC, potássio, EAS, ECG.",
-    guidance: "Controlar sal E açúcares. Exercício 30min/dia. Monitorar PA e glicemia em casa. Inspecionar pés. Não interromper medicação. Buscar se PA >180/110 ou glicemia >300.",
-    redFlags: ["PA >180/110", "Glicemia >300 mg/dL"],
-    followup: "Retorno em 2–3 meses.",
+    exams:
+      "PAINEL BASE: hemoglobina glicada, glicemia de jejum, creatinina com TFGe, albuminúria/relação albumina-creatinina, perfil lipídico e potássio.\n" +
+      "EXAME DIRIGIDO: fundoscopia para rastreio de retinopatia diabética, ao menos anualmente.\n" +
+      "EXAME DIRIGIDO: avaliação do pé diabético/neuropatia, ao menos anualmente, com maior frequência conforme estratificação de risco.\n" +
+      "EXAME DIRIGIDO: eletrocardiograma, urinálise/EAS, urocultura, MRPA/MAPA ou outros exames conforme sintomas, controle pressórico, suspeita de infecção, descompensação clínica ou complicações.",
+    guidance: "Reduzir sal, açúcar e ultraprocessados, manter atividade física regular e uso correto das medicações. A automonitorização glicêmica deve ser individualizada. Levar registros de PA domiciliar quando disponíveis. Inspecionar os pés diariamente e procurar atendimento se houver lesão, infecção, piora visual, glicemias muito elevadas com sintomas, vômitos persistentes, desidratação ou PA muito elevada com sintomas.",
+    redFlags: [
+      "PAS ≥180 mmHg ou PAD ≥120 mmHg, especialmente se persistente ou acompanhada de sintomas/lesão aguda de órgão-alvo",
+      "Glicemia muito elevada com sintomas importantes, desidratação, vômitos persistentes, sonolência ou suspeita de cetoacidose/síndrome hiperosmolar",
+      "Hipoglicemia grave, dor torácica, dispneia, déficit neurológico focal, rebaixamento do sensório, infecção importante no pé ou sinais de isquemia"
+    ],
+    followup: "Peso e pressão arterial em cada consulta. Hemoglobina glicada e glicemia de jejum a cada 6 meses, podendo antecipar conforme controle. Rastreio de nefropatia, retinopatia e pé diabético ao menos anualmente. Reavaliar em 1–3 meses se descontrole ou ajuste terapêutico; 3–6 meses se estável.",
     governance: {
-      source: "MS. Linha de Cuidado HAS (2021) e DM2 no Adulto; CAB nº 36 e nº 37, 2013",
-      sourceUrl: "https://linhasdecuidado.saude.gov.br/portal/hipertensao-arterial-sistemica-(HAS)-no-adulto/",
-      status: GV.ativo,
-      version: GV.v,
-      lastRevised: GV.dt,
+      source: "MS/Conitec. PCDT de Hipertensão Arterial Sistêmica, 2025; MS/Conitec. PCDT de Diabete Melito Tipo 2, 2026.",
+      sourceUrl: "https://www.gov.br/saude/pt-br/assuntos/pcdt/d/diabete-melito-tipo-2.pdf/view",
+      status: "ativo",
+      version: "1.1.0",
+      lastRevised: "2026-04-17",
     },
   },
 
-  // ── Dislipidemia ──────────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DISLIPIDEMIA — SBC 2025 (PREVENT)
+  // Fonte: SBC. Diretriz Brasileira de Dislipidemias e Prevenção da Aterosclerose, 2025.
+  //        pmc.ncbi.nlm.nih.gov/articles/PMC12674852/
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── Dislipidemia — Início ─────────────────────────────────────────────────
+  {
+    id: "dislipidemia_inicial",
+    name: "Dislipidemia — Início",
+    description: "Avaliação inicial de dislipidemia — estratificação PREVENT e decisão de tratamento",
+    category: "cronico",
+    whenToUse: "Adulto com lipidograma alterado ou em avaliação de prevenção primária — estratificar risco cardiovascular PREVENT e definir conduta.",
+    whenNotToUse: "Gestação, lactação, hepatopatia ativa descompensada — referenciar. LDL ≥190 mg/dL: iniciar estatina alta intensidade SEM calcular escore — direto ao plano.",
+    minimumData: ["Lipidograma completo", "PA", "Creatinina+TFG", "Glicemia jejum ou HbA1c"],
+    tags: ["dislipidemia", "estatina", "LDL", "PREVENT", "prevenção primária", "risco cardiovascular", "ezetimiba"],
+    soap: {
+      subjective:
+        "Fatores de risco cardiovascular: [ ] HAS [ ] DM2 [ ] Tabagismo [ ] Obesidade [ ] Dislipidemia familiar.\n" +
+        "Antecedente familiar: DAC prematura <55a (homem) / <65a (mulher)? [ ] Sim [ ] Não.\n" +
+        "Sintomas de DCV: dispneia aos esforços, dor torácica atípica? [ ] Sim [ ] Não.\n" +
+        "Interações medicamentosas: ciclosporina, gemfibrozil, azólicos, macrolídeos? [ ] Sim [ ] Não.\n" +
+        "Hepatopatia prévia, miopatia, hipotireoidismo não controlado? ___",
+      assessment:
+        "LDL-c: ___ mg/dL | TG: ___ mg/dL | HDL: ___ mg/dL | Não-HDL: ___ mg/dL.\n" +
+        "Se LDL ≥190 mg/dL → iniciar estatina ALTA intensidade, SEM escore PREVENT.\n" +
+        "Se LDL <190 mg/dL → calcular escore PREVENT 10 anos (SBC 2025).\n" +
+        "  • PREVENT Baixo       → LDL meta <115 mg/dL — MNF isolado 3–6 meses.\n" +
+        "  • PREVENT Moderado    → LDL meta <100 mg/dL — considerar estatina moderada.\n" +
+        "  • PREVENT Alto        → LDL meta <70  mg/dL — estatina moderada a alta.\n" +
+        "  • PREVENT Muito alto  → LDL meta <50  mg/dL — estatina alta + ezetimiba.\n" +
+        "Se TG ≥150 mg/dL → Não-HDL = meta coprimária (LDL + 30 mg/dL).\n" +
+        "Avaliar função renal/TFG para escolha e ajuste de dose de estatina quando necessário.",
+      plan:
+        "[ ] LDL ≥190 mg/dL → iniciar rosuvastatina 20mg OU atorvastatina 40mg 1x/dia.\n" +
+        "[ ] LDL <190 + PREVENT moderado-alto → estatina moderada intensidade.\n" +
+        "[ ] TG ≥440 mg/dL jejum confirmado → referenciar ou iniciar fibrato.\n" +
+        "MNF: dieta hipolipídica, exercício, cessação tabágica.\n" +
+        "Reavaliar lipidograma em 4–12 semanas e função hepática (AST/ALT).",
+    },
+    exams:
+      "PAINEL BASE: lipidograma (jejum não obrigatório na rotina), creatinina+TFG, AST/ALT, glicemia jejum.\n" +
+      "EXAME DIRIGIDO: Jejum 12–14h apenas se TG >440 mg/dL para confirmação.\n" +
+      "EXAME DIRIGIDO: TSH — se sinais de hipotireoidismo OU dislipidemia sem fator de risco claro.\n" +
+      "EXAME DIRIGIDO: HbA1c — se glicemia jejum ≥100 mg/dL OU diagnóstico prévio de DM2.\n" +
+      "EXAME DIRIGIDO: ApoB — se TG elevados, discordância aterogênica ou risco aumentado.\n" +
+      "EXAME DIRIGIDO: Lp(a) — considerar dosagem pelo menos uma vez na vida; priorizar se DAC familiar prematura.\n" +
+      "EXAME DIRIGIDO: ECG — se >40a OU com fatores de risco cardiovascular.",
+    guidance:
+      "Tomar a estatina 1x/dia em horário fixo. Para sinvastatina, preferir uso noturno; para atorvastatina/rosuvastatina, manter horário regular conforme prescrição.\n" +
+      "Não suspender sem orientação — o efeito é cumulativo.\n" +
+      "Relatar dor muscular intensa ou urina escura — pode ser miopatia.\n" +
+      "Dieta: preferir in natura, evitar ultraprocessados, frituras, embutidos.\n" +
+      "Atividade física ≥150 min/sem.\n" +
+      "Se LDL ≥190 mg/dL, risco cardiovascular já é alto — controle rigoroso.",
+    redFlags: [
+      "LDL ≥190 mg/dL — indicação absoluta de estatina de alta intensidade",
+      "TG ≥440 mg/dL em jejum confirmado — risco de pancreatite aguda",
+      "Mialgia + CPK elevada em uso de estatina — risco de rabdomiólise",
+    ],
+    followup:
+      "Lipidograma e AST/ALT + CPK em 4–12 semanas após início.\n" +
+      "Depois estável: lipidograma a cada 6–12 meses.",
+    governance: {
+      source: "SBC. Diretriz Brasileira de Dislipidemias e Prevenção da Aterosclerose, 2025 (PREVENT)",
+      sourceUrl: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12674852/",
+      status: "ativo",
+      version: "1.2.0",
+      lastRevised: "2026-04-17",
+    },
+  },
+
+  // ── Dislipidemia — Retorno ────────────────────────────────────────────────
   {
     id: "dislipidemia_retorno",
     name: "Dislipidemia — Retorno",
-    description: "Retorno de dislipidemia — metas de LDL por risco cardiovascular",
+    description: "Retorno de dislipidemia em uso de estatina — metas LDL/não-HDL por PREVENT",
     category: "cronico",
-    whenToUse: "Paciente em uso de estatina — reavaliar metas LDL conforme risco cardiovascular e adesão.",
-    minimumData: ["Lipidograma atual", "Medicamentos em uso"],
-    tags: ["dislipidemia", "estatina", "LDL", "colesterol", "risco cardiovascular"],
+    whenToUse: "Paciente em uso de estatina — reavaliar adesão, metas conforme PREVENT e necessidade de escalonar terapia.",
+    whenNotToUse: "Gestação, lactação, hepatopatia ativa descompensada, miopatia em uso de estatina — referenciar ou suspender e encaminhar.",
+    minimumData: ["Lipidograma atual", "Estatina e dose em uso", "PA", "Creatinina+TFG"],
+    tags: ["dislipidemia", "estatina", "LDL", "não-HDL", "PREVENT", "risco cardiovascular", "ezetimiba"],
     soap: {
-      subjective: "Mialgia (estatina): [ ] Sim [ ] Não | Adesão estatina: [ ] Regular [ ] Irregular | Dieta/exercício: ___",
-      assessment: "LDL-c atual: ___ mg/dL. Metas (SBC 2025): <190 risco baixo | <130 intermediário | <100 alto | <70 muito alto | <50 extremo. Meta Não-HDL = LDL + 30.",
-      plan: "MNF: reduzir saturadas/trans, aumentar fibras, exercício. [ ] Manter [ ] Iniciar [ ] Ajustar estatina. Associar ezetimiba se meta não atingida. Repetir lipidograma em 3–6 meses.",
+      subjective:
+        "Adesão à estatina: [ ] Regular [ ] Irregular.\n" +
+        "Mialgia/dor muscular: [ ] Não [ ] Sim → CPK? ___.\n" +
+        "Dieta/exercício: [ ] Melhora [ ] Sem mudança.\n" +
+        "Sintomas novos: ___.",
+      assessment:
+        "LDL-c: ___ mg/dL | TG: ___ mg/dL | HDL: ___ mg/dL | Não-HDL: ___ mg/dL.\n" +
+        "Se TG ≥150 mg/dL → usar Não-HDL como meta (LDL isolado subestima carga aterogênica).\n" +
+        "Metas LDL-c por PREVENT (SBC 2025):\n" +
+        "  • PREVENT Baixo       → LDL <115 mg/dL\n" +
+        "  • PREVENT Moderado    → LDL <100 mg/dL\n" +
+        "  • PREVENT Alto        → LDL <70  mg/dL\n" +
+        "  • PREVENT Muito alto  → LDL <50  mg/dL\n" +
+        "  • Risco extremo      → LDL <40  mg/dL (DCV estabelecida)\n" +
+        "Meta Não-HDL = LDL + 30 mg/dL.\n" +
+        "Intensidade estatina:\n" +
+        "  [ ] Alta (rosuvastatina 20-40mg, atorvastatina 40-80mg)\n" +
+        "  [ ] Moderada (atorvastatina 10-20mg, rosuvastatina 5-10mg)\n" +
+        "  [ ] Baixa (sinvastatina, pravastatina, lovastatina)\n" +
+        "Meta atingida? [ ] Sim [ ] Não.\n" +
+        "TG ≥440? [ ] Sim → coletar jejum confirmatório.",
+      plan:
+        "Estatina: [ ] Manter [ ] Aumentar intensidade [ ] Reduzir.\n" +
+        "Se meta NÃO atingida com estatina máxima tolerada → associar ezetimiba 10mg/dia.\n" +
+        "Se TG ≥440 mg/dL jejum confirmado → referenciar ou iniciar fibrato.\n" +
+        "MNF: saturadas <7% calórico total, eliminar trans, fibra solúvel 10-25g/dia,\n" +
+        "      EPA/DHA 2g/dia se TG elevados, atividade física ≥150 min/sem.\n" +
+        "Repetir lipidograma em 4–12 semanas após ajuste; a cada 6–12 meses se estável.",
     },
-    exams: "Lipidograma completo (CT, HDL, LDL, TG, Não-HDL), glicemia jejum, creatinina+TFG, CPK (se mialgia), AST/ALT (se dose alta).",
-    guidance: "Reduzir gorduras saturadas (carnes gordas, laticínios integrais, frituras). Eliminar gordura trans. Aumentar fibras (aveia, leguminosas). Relatar dor ou fraqueza muscular ao médico. Não interromper estatina sem orientação.",
-    redFlags: ["Mialgia intensa com CPK elevada"],
-    followup: "Lipidograma em 3–6 meses após ajuste.",
+    exams:
+      "PAINEL BASE: lipidograma (jejum não obrigatório de rotina), creatinina+TFG, AST/ALT.\n" +
+      "EXAME DIRIGIDO: Jejum 12–14h — se TG ≥440 mg/dL na amostra casual (confirmação de pancreatite).\n" +
+      "EXAME DIRIGIDO: CPK — se mialgia.\n" +
+      "EXAME DIRIGIDO: Glicemia jejum + HbA1c — anualmente (rastreio de DM2 — risco sinérgico).\n" +
+      "EXAME DIRIGIDO: Lp(a) — considerar dosagem pelo menos uma vez na vida; priorizado se DAC familiar prematura.\n" +
+      "EXAME DIRIGIDO: ApoB — se TG elevados, discordância aterogênica ou risco aumentado.",
+    guidance:
+      "Tomar a estatina 1x/dia em horário fixo. Para sinvastatina, preferir à noite; para atorvastatina/rosuvastatina, manter horário regular conforme prescrição.\n" +
+      "Evitar grapefruit (aumenta concentração de estatina).\n" +
+      "Relatar imediatamente: dor muscular intensa, urina escura, fraqueza — pode ser miopatia.\n" +
+      "Dieta: carnes magras, laticínios desnatados, azeite, frutas, verduras, grãos integrais, peixe.\n" +
+      "Evitar: frituras, embutidos, biscoitos recheados, margarina hidrogenada.\n" +
+      "Atividade física ≥150 min/sem.\n" +
+      "Não interromper estatina sem orientação médica.",
+    redFlags: [
+      "Mialgia + CPK elevada ou urina escura (rabdomiólise — suspender estatina imediatamente)",
+      "TG ≥440 mg/dL confirmado em jejum (risco de pancreatite aguda)",
+      "LDL ≥190 mg/dL (indicação de estatina de alta intensidade sem necessidade de escore)",
+    ],
+    followup:
+      "Lipidograma 4–12 semanas após ajuste de estatina; a cada 6–12 meses se estável.\n" +
+      "AST/ALT + CPK: monitorar se sintomas musculares.",
     governance: {
-      source: "SBC. Diretriz Brasileira de Dislipidemias e Prevenção da Aterosclerose, 2025",
+      source: "SBC. Diretriz Brasileira de Dislipidemias e Prevenção da Aterosclerose, 2025 (PREVENT)",
       sourceUrl: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12674852/",
-      status: GV.ativo,
-      version: GV.v,
-      lastRevised: GV.dt,
+      status: "ativo",
+      version: "1.2.0",
+      lastRevised: "2026-04-17",
     },
   },
 
@@ -234,50 +465,170 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
     description: "Retorno de hipotireoidismo em uso de levotiroxina",
     category: "cronico",
     whenToUse: "Paciente em uso de levotiroxina — reavaliar TSH e ajustar dose se necessário.",
+    whenNotToUse: "Suspeita de hipotireoidismo central, gestação, ou necessidade de dose >2,5 mcg/kg/dia apesar de adesão/interações/absorção adequadamente revisadas — encaminhar endocrinologia.",
     minimumData: ["TSH recente", "Dose atual de levotiroxina"],
     tags: ["hipotireoidismo", "levotiroxina", "TSH", "tireoide"],
     soap: {
-      subjective: "Sintomas hipotireoidismo: fadiga, ganho peso, constipação, intolerance ao frio? [ ] Sim [ ] Não. Sintomas excesso: palpitações, tremor, insônia? [ ] Sim [ ] Não. Uso correto: [ ] Em jejum ≥30min [ ] Irregular. Dose: ___ mcg/dia.",
-      assessment: "TSH atual: ___ mUI/L. [ ] Compensado (TSH normal) | [ ] Descompensado. Encaminhar endocrino se dose >2,5 mcg/kg/dia após investigar adesão.",
+      subjective: "Sintomas hipotireoidismo: fadiga, ganho peso, constipação, intolerância ao frio? [ ] Sim [ ] Não. Sintomas excesso: palpitações, tremor, insônia? [ ] Sim [ ] Não. Uso correto: [ ] Em jejum ≥30min [ ] Irregular. Dose: ___ mcg/dia.",
+      assessment: "TSH atual: ___ mUI/L. [ ] Compensado (TSH normal) | [ ] Descompensado. Encaminhar endocrinologia se suspeita de hipotireoidismo central ou necessidade de dose >2,5 mcg/kg/dia após revisar adesão, interações e absorção.",
       plan: "[ ] Manter dose: ___ mcg/dia | [ ] Ajustar (incrementos 12,5–25 mcg). TSH 6–8 sem após ajuste. Se estável: TSH a cada 6–12 meses. Retorno em ___ meses.",
     },
-    exams: "TSH (6–12 meses se estável; 6–8 sem após ajuste). T4 livre se TSH alterado.",
-    guidance: "Tomar levotiroxina SEMPRE em jejum, 30min antes do café. Não tomar com cálcio, ferro ou antiácidos (intervalo 2–4h). Não interromper. Retornar se: palpitações, tremor, insônia (sinais de excesso).",
-    redFlags: ["Sintomas de hipertireoidismo iatrogênico"],
+    exams:
+      "PAINEL BASE: TSH (6–12 meses se estável; 6–8 sem após ajuste).\n" +
+      "EXAME DIRIGIDO: T4 livre — se TSH fora do alvo ou sintomas de disfunção tireoidiana.\n" +
+      "EXAME DIRIGIDO: Lipidograma — se dislipidemia, risco cardiovascular aumentado ou necessidade de reavaliação metabólica.",
+    guidance: "Tomar levotiroxina SEMPRE em jejum, 30min antes do café. Não tomar com cálcio, ferro ou antiácidos (intervalo mínimo 4h). Não interromper. Retornar se: palpitações, tremor, insônia (sinais de excesso).",
+    redFlags: ["Palpitações, tremor, insônia — possíveis sinais de hipertireoidismo iatrogênico"],
     followup: "TSH 6–8 semanas após ajuste de dose; a cada 6–12 meses se estável.",
     governance: {
-      source: "MS. Protocolos de Encaminhamento: Endocrinologia Adulto, 2022",
+      source: "MS. Protocolos de Encaminhamento: Endocrinologia Adulto, 2022; PCDT Hipotireoidismo como referência complementar.",
       sourceUrl: "https://bvsms.saude.gov.br/bvs/publicacoes/protocolos_encaminhamento_atencao_endocrinologia_adulto.pdf",
       status: GV.ativo,
-      version: GV.v,
-      lastRevised: GV.dt,
+      version: "1.0.1",
+      lastRevised: "2026-04-17",
     },
   },
 
   // ── Asma / DPOC ───────────────────────────────────────────────────────────
+  // STATUS: DESATUALIZADO (15/04/2026)
+  // Substituído por dois templates próprios:
+  //   - dpoc_retorno  (classificação GOLD 2024 ABE)
+  //   - asma_retorno  (classificação GINA/MS)
+  // Mantido para audit trail — não excluir.
   {
     id: "asma_dpoc_retorno",
     name: "Asma / DPOC — Retorno",
-    description: "Retorno de asma ou DPOC crônico — avaliação de controle e exacerbações",
+    description: "Template legado — usar dpoc_retorno ou asma_retorno.",
     category: "cronico",
-    whenToUse: "Paciente com asma ou DPOC — avaliar controle, técnica inalatória e exacerbações.",
-    minimumData: ["Sintomas atuais", "Uso de broncodilatador de resgate"],
-    tags: ["asma", "DPOC", "inalatório", "bronco", "exacerbação", "corticoide"],
+    whenToUse: undefined,
+    whenNotToUse: "DESATUALIZADO. Usar dpoc_retorno (DPOC) ou asma_retorno (Asma).",
+    minimumData: undefined,
+    tags: [],
     soap: {
-      subjective: "Sintomas: tosse, sibilância, dispneia, aperto torácico — frequência: [ ] diaria [ ] >2x/sem [ ] ≤2x/sem [ ] raro. Resgate última sem: ___ vezes. Exacerbações 12 meses: ___ (internações: ___). Tabagismo: [ ] Ativo [ ] Ex (___ anos) [ ] Nunca.",
-      assessment: "Asma: [ ] controlada [ ] parcialmente controlada [ ] não controlada. DPOC: [ ] baixo risco (<2 exacerbações/ano) [ ] alto risco (≥2 ou internação). Espirometria FEV1/CVF: ___.",
-      plan: "[ ] Manter terapia inalatória | [ ] Ajustar step. Técnica inalatória revisada: [ ] Adequada [ ] Corrigida. Cessação tabágica. DPOC: reabilitação pulmonar se indicado. Retorno em ___ meses ou se exacerbação.",
+      subjective: "DESATUALIZADO — usar dpoc_retorno ou asma_retorno.",
+      assessment: undefined,
+      plan: undefined,
     },
-    exams: "Espirometria (mínimo anual), oximetria, hemograma (se exacerbação), Rx tórax (se exacerbação/inicial).",
-    guidance: "Usar inalador corretamente — técnica é fundamental. Resgate >2x/sem = mau controle. Cessar tabagismo. Vacinar influenza anualmente. Buscar se: dispneia piora, escarro amarelo/verde, febre.",
-    redFlags: ["SpO2 <92%", "Exacerbação grave com necessidade de oxigênio"],
-    followup: "Retorno em 3–6 meses; antes se exacerbação.",
+    exams: undefined,
+    guidance: "DESATUALIZADO.",
+    redFlags: undefined,
+    followup: undefined,
     governance: {
       source: "MS. Linha de Cuidado Asma (2021); MS. Linha de Cuidado DPOC; MS. PCDT Asma, 2021",
       sourceUrl: "https://linhasdecuidado.saude.gov.br/portal/asma/",
-      status: GV.ativo,
-      version: GV.v,
-      lastRevised: GV.dt,
+      status: "desatualizado",
+      version: "1.0.0",
+      lastRevised: "2026-04-14",
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DPOC — Retorno
+  // Padrão mestre: seção 6, sessão 15 (15/04/2026)
+  // Fonte principal: GOLD 2024 — Global Strategy for Diagnosis, Management
+  //   and Prevention of COPD; goldcopd.org
+  // Fonte secundária: MS. Linha de Cuidado DPOC
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: "dpoc_retorno",
+    name: "DPOC — Retorno",
+    description:
+      "Doença Pulmonar Obstrutiva Crônica — acompanhamento de DPOC confirmado por espirometria.",
+    category: "cronico",
+    whenToUse:
+      "Paciente com DPOC confirmado por espirometria (VEF1/CVF pós-broncodilatador <0,70) — reavaliar controle, exacerbações, técnica inalatória e plano de manejo eletivo.",
+    whenNotToUse:
+      "Não usar para tosse ou sibilância sem espirometria confirmatória. Não usar em exacerbação aguda (manejo de crise). Não usar para asma sem componente obstrutivo de DPOC.",
+    minimumData: [
+      "Dispneia atual (escala mMRC)",
+      "Pontuação CAT",
+      "Uso de broncodilatador de resgate na última semana",
+      "Exacerbações e internações nos últimos 12 meses",
+    ],
+    tags: ["DPOC", "bronco", "LAMA", "LABA", "exacerbação", "tabagismo", "espiro", "mMRC", "CAT"],
+    soap: {
+      subjective:
+        "Dispneia (mMRC): [ ] 0 — só esforços grandes [ ] 1 — anda rápido no plano ou em subida leve [ ] 2 — mais devagar que pares no plano [ ] 3 — para após poucos minutos no plano [ ] 4 — ao vestir-se ou ao tomar banho. Escarro: volume/cor: ___. Resgate última sem: ___ vezes. Exacerbações 12 meses: ___ (internações: ___). Tabagismo: [ ] Ativo (___ maços-ano) [ ] Ex (___ anos) [ ] Nunca. Comorbidades: [ ] HAS [ ] DM2 [ ] ICC [ ] DRC.",
+      assessment:
+        "Grupo GOLD ABE: [ ] A — baixo risco, poucos sintomas (mMRC 0-1 ou CAT <10) | [ ] B — baixo risco, muitos sintomas (mMRC ≥2 e CAT ≥10) | [ ] E — alto risco (≥1 hospitalização ou ≥2 exacerbações moderadas no último ano). CAT: ___ / 40. Espirometria: VEF1: ___L (___% previsto). Exacerbação atual: [ ] não [ ] sim — gravidade: [ ] leve [ ] moderada [ ] grave. Eosinófilos (se disponível): ___ cél/µL.",
+      plan:
+        "Grupo A: [ ] broncodilatador conforme dispneia (preferencialmente longa ação se disponível e acessível — pode ser LAMA ou LABA; se indisponível, SABA/SAMA como alternativa). Grupo B: [ ] LAMA + LABA (dual therapy — mesmo sendo baixo risco, requer dois broncodilatadores por sintoma). Grupo E: [ ] LAMA + LABA + corticoide inalatório (avaliar se eosinófilos ≥300 cél/µL) [ ] ou LAMA + LABA + roflumilast (bronquite crônica + exacerbações). Resgate: [ ] SABA ou SAMA. Cessação tabágica: [ ] orientação breve [ ] TRN (adesivo/nicotina/goma) ou bupropiona — disponíveis via cuidado estruturado do SUS conforme protocolo local [ ] encaminhamento tabacologia. Reabilitação pulmonar se indicada (mMRC ≥2 ou CAT ≥10). Vacinação: influenza + pneumocócica (verificar PNI vigente). Retorno em ___ meses.",
+    },
+    exams:
+      "PAINEL BASE: Oximetria em todas as consultas.\n" +
+      "EXAME DIRIGIDO: Espirometria — a cada 1-3 anos se estável leve-moderado; antes se mudança clínica.\n" +
+      "EXAME DIRIGIDO: Hemograma — se suspeita de policitemia (SpO2 persistentemente baixa) OU exacerbação.\n" +
+      "EXAME DIRIGIDO: Rx tórax — se exacerbação grave, hemoptise ou diagnóstico diferencial.\n" +
+      "EXAME DIRIGIDO: Eosinófilos — guia para corticoide inalatório no grupo E.",
+    followup:
+      "Grupo A ou B estável: retorno em 6 meses. Grupo E ou instável: retorno em 1-3 meses. Ajustar antes se exacerbação ou piora clínica.",
+    guidance:
+      "Objetivo: reduzir exacerbações e mortalidade. Técnica inalatória é fundamental — revisar a cada consulta. Resgate >2x/dia = mau controle. Cessar tabagismo é a intervenção de maior impacto. Vacinar influenza anualmente. Verificar situação vacinal pneumocócica conforme PNI vigente. Buscar atendimento se: aumento da dispneia, escarro amarelo/verde, febre, resgate >4x/dia.",
+    redFlags: [
+      "SpO2 <88% em ar ambiente — avaliar necessidade de oxigentoterapia",
+      "Confusão mental ou sonolência diurna — hipercapnia/retensão de CO2",
+      "Perda de peso não intencional — enfisema avançado",
+      "Exacerbação grave: dispneia em repouso, uso de musculatura acessória, cianose",
+      "Hemoptise — investigar",
+    ],
+    governance: {
+      source:
+        "GOLD 2025 — Global Strategy for Diagnosis, Management and Prevention of COPD; goldcopd.org; MS. Linha de Cuidado DPOC (complementar).",
+      sourceUrl: "https://goldcopd.org/",
+      status: "ativo",
+      version: "2.2",
+      lastRevised: "2026-04-17",
+    },
+  },
+
+  {
+    id: "asma_retorno",
+    name: "Asma — Retorno",
+    description:
+      "Asma brônquica — acompanhamento de asma confirmada por história clínica (± espirometria).",
+    category: "cronico",
+    whenToUse:
+      "Paciente com asma diagnosticada — reavaliar controle, técnica inalatória, desencadeantes e plano de manejo eletivo.",
+    whenNotToUse:
+      "Não usar para DPOC sem componente asmático (usar dpoc_retorno). Não usar em crise asmática aguda (manejo de crise). Não usar para tosse sem diagnóstico de asma.",
+    minimumData: [
+      "Sintomas da última semana (dispneia, tosse, sibilância, aperto torácico)",
+      "Uso de broncodilatador de resgate (última semana)",
+      "Desencadeantes conhecidos",
+      "Exacerbações e internações nos últimos 12 meses",
+    ],
+    tags: ["asma", "inalatório", "bronco", "exacerbação", "corticoide", "ICS", "GINA"],
+    soap: {
+      subjective:
+        "Sintomas última semana: tosse [ ] s [ ] n | sibilância [ ] s [ ] n | dispneia [ ] s [ ] n | aperto torácico [ ] s [ ] n. Frequência: [ ] diária [ ] >2x/sem [ ] ≤2x/sem [ ] raro. Desencadeantes: [ ] ácaro [ ] pólens [ ] frio [ ] exercício [ ] infecção [ ] outros: ___. Resgate última sem: ___ vezes. Exacerbações 12 meses: ___ (internações: ___ / UTI: ___). Comorbidades: [ ] rinite [ ] sinusite [ ] DPOC [ ] pólipos nasais.",
+      assessment:
+        "Classificação GINA de controle: [ ] bem controlada [ ] parcialmente controlada (≥1 item abaixo) [ ] não controlada (≥3 itens abaixo). ACT: ___ / 25 (≤19 = não controlada — ferramenta de rastreio, não substitui classificação GINA). Sintomas: [ ] <2x/sem [ ] >2x/sem [ ] diários [ ] contínuos. Exacerbação atual: [ ] não [ ] sim — OC oral: [ ] não [ ] sim. Espirometria: VEF1: ___L (___% previsto) se disponível.",
+      plan:
+        "Track 1 (preferido — GINA 2025): Steps 1–2: baixa dose budesonida-formoterol ou beclometasona-formoterol sob demanda (reliever + controller simultâneo). Step 3: MART — manutenção diária budesonida-formoterol dose baixa + mesmo ICS-formoterol como reliever. Step 4: MART — manutenção diária budesonida-formoterol dose média + mesmo ICS-formoterol como reliever. Step 5: asma grave / difícil controle — encaminhar/reavaliar com especialista; considerar add-ons (anti-IgE, anti-IL5/IL4R, tiotropina) conforme avaliação especializada; manutenção com corticoide oral = último recurso — evitar uso crônico, nunca como solução de primeira linha. Track 2 (alternativo): Step 1: SABA como reliever — associar ICS a cada uso. Step 2: CI baixa dose manutenção diária + SABA PRN. Step 3: CI-LABA baixa dose manutenção + SABA PRN. Step 4: CI-LABA dose média manutenção + SABA PRN. ⚠️ LABA NUNCA em monoterapia na asma — risco de morte. Para PRN/MART: apenas budesonida-formoterol ou beclometasona-formoterol (ICS + formoterol) — nenhum outro LABA serve para resgate ou regime MART. Antagonista LT: [ ] sim [ ] não. Plano de ação escrito entregue: [ ] sim [ ] não. Técnica inalatória revisada: [ ] adequada [ ] corrigida. Retorno em ___ meses.",
+    },
+    exams:
+      "PAINEL BASE: nenhum — asma é diagnóstico e seguimento predominantemente clínicos.\n" +
+      "EXAME DIRIGIDO: Espirometria — a cada 1-2 anos ou antes se mudança clínica significativa.\n" +
+      "EXAME DIRIGIDO: Peak flow (PEF) — monitoramento domiciliar se asma moderada-grave.\n" +
+      "EXAME DIRIGIDO: Eosinófilos — marcador de resposta a corticoide inalatório.\n" +
+      "EXAME DIRIGIDO: IgE total/especial — se suspeita de atopia e qualificação para biológicos.",
+    followup:
+      "Asma controlada: retorno em 3-6 meses. Parcialmente controlada: retorno em 1-3 meses. Não controlada: reavaliar em 4-6 semanas. Crise: atendimento imediato.",
+    guidance:
+      "Técnica inalatória é o problema mais comum — revisar a cada consulta. Resgate >2x/sem = mau controle, não negligenciar. Plano de ação escrito reduz exacerbações. Vacinar influenza anualmente. Atividade física é recomendada. Buscar se: resgate >4x/dia, acordar à noite por asma, crise não melhora com resgate.",
+    redFlags: [
+      "Crise asmática: dispneia em repouso, sibilância intensa, dificuldade em completar frases",
+      "Peak flow <50% do melhor pessoal — risco de crise grave",
+      "Resgate não controla sintomas — necessidade de OC oral ou urgência",
+      "SpO2 <92% durante crise",
+    ],
+    governance: {
+      source:
+        "GINA 2025 — Global Strategy for Diagnosis, Management and Prevention of Asthma; ginacoalition.org; MS. Linha de Cuidado Asma, 2021 (complementar).",
+      sourceUrl: "https://ginacoalition.org/",
+      status: "ativo",
+      version: "2.6",
+      lastRevised: "2026-04-17",
     },
   },
 
@@ -285,26 +636,31 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
   {
     id: "obesidade_retorno",
     name: "Obesidade / S. Metabólica — Retorno",
-    description: "Retorno de obesidade e síndrome metabólica — metas e terapêutica",
+    description: "Retorno de obesidade — metas clínicas, adesão e seguimento",
     category: "cronico",
-    whenToUse: "Paciente com obesidade ou síndrome metabólica — reavaliar metas, adesão a mudança de estilo de vida e indicação de farmacoterapia.",
+    whenToUse: "Paciente com obesidade em seguimento — reavaliar metas, adesão, comorbidades e necessidade de escalonamento terapêutico.",
+    whenNotToUse: "Suspeita de causa secundária relevante, perda/ganho ponderal atípico importante, gestação ou necessidade de manejo especializado fora da APS — avaliar encaminhamento.",
     minimumData: ["Peso atual", "PA", "Perímetro abdominal"],
     tags: ["obesidade", "síndrome metabólica", "IMC", "peso", "meta"],
     soap: {
-      subjective: "Peso atual: ___ kg (anterior: ___ kg). Padrão alimentar: ___. Atividade física: ___. Complicidades: [ ] HAS [ ] DM2 [ ] Dislipidemia [ ] SAOS.",
-      assessment: "IMC: ___ kg/m². Obesidade Grau [ ] I (30–34,9) [ ] II (35–39,9) [ ] III (≥40). CA: ___ cm (alerta ≥80 mulher / ≥94 homem). Risco cardio-metabólico: [ ] baixo [ ] moderado [ ] alto.",
-      plan: "Meta: redução 5–10% do peso em 6 meses. [ ] Encaminhar nutricionista/NASF. [ ] Farmacoterapia se IMC ≥30 ou ≥35 com comorbidade. Retorno em ___ meses — controlar peso, CA, PA.",
+      subjective: "Peso atual: ___ kg (anterior: ___ kg). Padrão alimentar: ___. Atividade física: ___. Comorbidades: [ ] HAS [ ] DM2 [ ] Dislipidemia [ ] SAOS.",
+      assessment: "IMC: ___ kg/m². Obesidade Grau [ ] I (30–34,9) [ ] II (35–39,9) [ ] III (≥40). CA: ___ cm (aumentada conforme sexo e referência utilizada). Risco cardio-metabólico: [ ] baixo [ ] moderado [ ] alto.",
+      plan: "Meta: redução 5–10% do peso em 6 meses. [ ] Encaminhar nutricionista/NASF. [ ] Avaliar indicação de farmacoterapia conforme PCDT, disponibilidade e contexto clínico; considerar encaminhamento quando necessário. Retorno em ___ meses — controlar peso, CA, PA.",
     },
-    exams: "Glicemia/HbA1c, lipidograma, TSH, creatinina+TFG, AST/ALT, ácido úrico.",
-    guidance: "Meta: perder 5–10% do peso — já melhora comorbidades. Priorizar alimentos in natura. Reduzir ultraprocessados. Exercício: iniciar 150min/sem, progredir para 300min. Dormir 7–9h.",
+    exams:
+      "PAINEL BASE: Glicemia jejum, lipidograma, creatinina+TFG, AST/ALT.\n" +
+      "EXAME DIRIGIDO: HbA1c — se glicemia jejum ≥100 mg/dL OU diagnóstico de DM2.\n" +
+      "EXAME DIRIGIDO: TSH — se sinais de hipotireoidismo.\n" +
+      "EXAME DIRIGIDO: Ácido úrico — se antecedente de gota OU uso de tiazídico.",
+    guidance: "Meta: perder 5–10% do peso — já melhora comorbidades. Priorizar alimentos in natura. Reduzir ultraprocessados. Atividade física: iniciar ≥150 min/sem, progredir conforme tolerância. Dormir 7–9h. Não interromper tratamento por conta própria.",
     redFlags: ["Ganho de peso significativo não intencional"],
     followup: "Retorno em 3–6 meses.",
     governance: {
-      source: "MS. CAB nº 38 — Estratégias para o Cuidado da Pessoa com Obesidade, 2014; ABESO. Diretrizes Brasileiras de Obesidade, 2022",
+      source: "MS/Conitec. PCDT de Sobrepeso e Obesidade em Adultos; ABESO. Diretrizes Brasileiras de Obesidade, 2022.",
       sourceUrl: "https://bvsms.saude.gov.br/bvs/publicacoes/estrategias_cuidado_pessoa_doenca_cronica_obesidade_cab38.pdf",
       status: GV.ativo,
-      version: GV.v,
-      lastRevised: GV.dt,
+      version: "1.0.1",
+      lastRevised: "2026-04-17",
     },
   },
 
@@ -314,25 +670,63 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
     name: "Depressão — Retorno",
     description: "Retorno de Transtorno Depressivo Maior — resposta ao tratamento e adesão",
     category: "saude_mental",
-    whenToUse: "Paciente em uso de antidepressivo — avaliar resposta (PHQ-9), adesão e ideation suicida.",
-    whenNotToUse: "Ideação suicida ativa com plano — internação involuntária ou encaminhamento urgente ao CAPS.",
+    whenToUse: "Paciente em uso de antidepressivo — avaliar resposta (PHQ-9), adesão e ideação suicida.",
+    whenNotToUse: "Risco agudo / ideação suicida ativa com plano ou intenção / tentativa recente — encaminhar urgentemente para avaliação em serviço de urgência/emergência e articular CAPS/RAPS conforme rede local.",
     minimumData: ["PHQ-9 atual", "Adesão ao antidepressivo"],
     tags: ["depressão", "antidepressivo", "PHQ-9", "suicídio", "CAPS", "TCC"],
     soap: {
       subjective: "PHQ-9: ___/27 (0–4 remissão | 5–9 leve | 10–14 moderada | 15–19 mod-grave | 20–27 grave). Humor, sono, apetite, energia: ___. Ideação suicida (item 9): [ ] Ausente [ ] Presente — risco: ___. Adesão: [ ] Regular [ ] Irregular. Psicoterapia (TCC): [ ] Em curso [ ] Não.",
       assessment: "Depressão [ ] leve [ ] moderada [ ] grave. Resposta: [ ] remissão PHQ-9<5 [ ] parcial (≥50% redução) [ ] nenhuma. [ ] Ideação suicida — avaliar urgência.",
-      plan: "Aguardar 4–6 sem de dose terapêutica para avaliar resposta. [ ] Manter [ ] Ajustar [ ] Trocar (se 8 sem sem resposta). [ ] Encaminhar CAPS: grave, suicídio, refratariedade. Manter tratamento ≥6 meses pós-remissão.",
+      plan: "Reavaliar adesão, efeitos adversos e risco em 2–4 semanas na fase inicial; resposta terapêutica em 4–6 semanas; considerar ajuste ou troca se não houver resposta adequada após tempo suficiente em dose terapêutica. [ ] Manter [ ] Ajustar [ ] Trocar. [ ] Encaminhar conforme rede local (CAPS/RAPS/urgência): gravidade, risco suicida, refratariedade. Manter tratamento ≥6 meses pós-remissão.",
     },
-    exams: undefined,
-    guidance: "Antidepressivo leva 4–6 sem para fazer efeito — não parar. Não parar abruptamente. Atividade física ajuda. Manter rotina de sono. Se pensamentos de se machucar: CVV 188 ou UPA.",
+    exams: "PAINEL BASE: nenhum — avaliação predominantemente clínica.",
+    guidance: "Antidepressivo leva 4–6 sem para fazer efeito — não parar. Não parar abruptamente. Atividade física ajuda. Manter rotina de sono. Se surgirem pensamentos de autoagressão ou piora importante, procurar imediatamente suporte da rede de urgência / CVV 188 / serviço local.",
     redFlags: ["Ideação suicida ativa", "Tentativa de suicídio recente"],
-    followup: "Retorno em 4–6 semanas (avaliação inicial) ou 2–3 meses (follow-up).",
+    followup: "Retorno em 2–4 semanas na fase inicial; depois 4–8 semanas conforme gravidade, risco e resposta.",
     governance: {
-      source: "MS. Linha de Cuidado para Depressão na Atenção Básica, 2022; DSM-5-TR (APA, 2022)",
+      source: "MS. Linha de Cuidado da Depressão no Adulto, 2022; DSM-5-TR (APA, 2022) como referência complementar.",
       sourceUrl: "https://linhasdecuidado.saude.gov.br/portal/transtornos-de-humor-e-comportamento/",
       status: GV.ativo,
-      version: GV.v,
-      lastRevised: GV.dt,
+      version: "1.0.1",
+      lastRevised: "2026-04-17",
+    },
+  },
+
+  // ── Insônia ───────────────────────────────────────────────────────────────
+  {
+    id: "insonia",
+    name: "Insônia",
+    description: "Avaliação e manejo de insônia crônica em APS — higiene do sono e TCC-I como primeira linha",
+    category: "saude_mental",
+    whenToUse: "Paciente ≥18a com queixa de insônia crônica (≥3 meses, ≥3x/sem) com impacto funcional diurno, após exclusão de causas secundárias (médicas, psiquiátricas, medicamentosas).",
+    whenNotToUse: "Insônia aguda situacional (<1 mês); causa secundária não investigada; suspeita clínica forte de SAOS sem avaliação; risco agudo psiquiátrico (suicídio, psicose, mania); uso problemático atual de benzodiazepínico ou hipnótico que exija descontinuação supervisionada.",
+    minimumData: ["ISI ou PSQI pontuação", "Duração e frequência dos sintomas", "Impacto diurno", "Suspeita de causa secundária investigada", "Hábitos de sono", "Screening SAOS (Epworth, ronco, apneia)", "PHQ-2 / GAD-2"],
+    tags: ["insônia", "sono", "zolpidem", "TCC-I", "higiene do sono", "SAOS", "hipnótico"],
+    soap: {
+      subjective: "ISI: ___/28 (0–7 normal | 8–14 limítrofe | 15–21 moderada | 22–28 grave). Duração: ___ meses. Frequência: ≥3x/sem. Início do sono: ___min. Acordares noturnos: ___/noite. Despertar antecipado: [ ] Sim [ ] Não. Impacto diurno: [ ] Fadiga [ ] Sonolência [ ] Déficit cognitivo [ ] Irritabilidade. Epworth: ___/24. Ronco: [ ] Não [ ] Ocasional [ ] Frequente. Apneia testemunhada: [ ] Não [ ] Sim. IMC: ___kg/m². Caféína após 14h: [ ] Sim [ ] Não. Álcool: [ ] Sim [ ] Não. Telas antes de dormir: [ ] Sim [ ] Não. PHQ-2: ___. GAD-2: ___. Medicações atuais: ___. Tratamento prévio insônia: [ ] Não [ ] Sim — qual:___.",
+      objective: "IMC: ___kg/m². PA: ___/___mmHg. Cardio: ___. Pulmões: ___. Rinofaringe: ___. MMII: ___. Epworth: ___/24.",
+      assessment: "Insônia [ ] aguda [ ] crônica primária [ ] crônica secundária — impacto: [ ] leve [ ] moderado [ ] grave. CID-10: G47.0 / F51.0. Diagnóstico diferencial avaliado: [ ] SAOS [ ] SPI [ ] transtorno humor [ ] transtorno ansiedade [ ] uso substâncias [ ] medicações [ ] dor crônica.",
+      plan: "1) Primeira linha — Higiene do sono: horário fixo deitar/acordar, evitar telas 1h antes, cafeína após 14h, álcool 3h antes de dormir, exercício regular não após 20h, quarto escuro/fresco/silencioso. 2) TCC-I: orientar princípios na consulta; referenciar CAPS/seguimento se disponível. 3) Reavaliar em 2 sem — se falha de medidas não farmacológicas após 2 semanas: farmacoterapia na menor dose eficaz pelo menor tempo possível. 4) NÃO prescrever benzodiazepínicos como 1ª linha. 5) Investigar SAOS se suspeita clínica (Epworth ≥10 + ronco + IMC ≥30) — adiar hipnótico até investigar. 6) Reavaliar em 4 semanas — suspender ou manter (benefício > risco). Nunca manter por inércia. 7) Suspensão: reduzir gradualmente — não interromper abruptamente.",
+    },
+    exams:
+      "EXAME DIRIGIDO: Glicemia jejum, TSH, ureia/creatinina — investigar causas secundárias de insônia.\n" +
+      "EXAME DIRIGIDO: Hemograma — se fadiga diurna significativa ou suspeita de anemia.\n" +
+      "EXAME DIRIGIDO: Ferritina — se suspeita de déficit de ferro (SPI, fadiga).\n" +
+      "EXAME DIRIGIDO: Polissonografia — se Epworth ≥10 + ronco frequente + IMC ≥30.",
+    guidance: "TCC-I é o tratamento de escolha para insônia crônica — funciona melhor que hipnóticos a longo prazo e sem riscos de dependência. Medicação é adjuvante: menor dose eficaz, menor tempo possível. Zolpidem: máx 10mg/dia — qualquer concentração exige Notificação de Receita B (Anvisa/Portaria 344). Idosos >65a: iniciar 5mg. Sonolência residual pode ocorrer mesmo em doses terapêuticas — atenção ao dirigir. Nunca interromper abruptamente uso prolongado — risco de insônia rebound. Associar com álcool ou outros depressores do SNC é contraindicado — risco de depressão respiratória. CMAE (comportamentos complexos do sono): descontinuar imediatamente se ocorrer.",
+    redFlags: [
+      "Ronco + apneia testemunhada + sonolência diurna excessiva → INVESTIGAR SAOS ANTES DE INICIAR HIPNÓTICO (não é contraindicação absoluta, mas hipnótico pode mascarar sintomas e retardar diagnóstico)",
+      "Ideação suicida → CAPS/emergência",
+      "Insônia refractária após 8 semanas de tratamento adequado → encaminhamento psiquiatria",
+      "Sintomas de pernas inquietas → encaminhamento neurologia",
+    ],
+    followup: "2 semanas: higiene do sono sendo seguida? Resposta inicial se farmacoterapia iniciada? 4 semanas: reavaliar — suspender ou manter (benefício > risco). Nunca manter por inércia. >8 semanas: encaminhamento atenção especializada.",
+    governance: {
+      source: "ICSD-3 (AASM, 2014) — diagnóstico; AASM 2021 Behavioral Treatment of Chronic Insomnia — tratamento não farmacológico (TCC-I); AASM 2017 Pharmacologic Treatment of Chronic Insomnia — farmacoterapia; Portaria SVS/MS 344/1998; RDC/Anvisa 26/2012 — notificação Receita B para zolpidem.",
+      sourceUrl: "https://aasm.org/clinical-practice-guideline/pharmacologic-treatment-of-chronic-insomnia/",
+      status: GV.ativo,
+      version: "1.0.0",
+      lastRevised: "2026-04-17",
     },
   },
 
@@ -343,23 +737,32 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
     description: "Retorno de Transtorno de Ansiedade Generalizada",
     category: "saude_mental",
     whenToUse: "Paciente com TAG ou ansiedade — avaliar GAD-7, adesão e impacto funcional.",
+    whenNotToUse: "Risco agudo de suicídio, auto/heteroagressão, sintomas psicóticos ou maniformes, intoxicação/abstinência importante ou crise aguda que exija manejo de urgência — encaminhar para urgência/emergência e articular RAPS conforme rede local.",
     minimumData: ["GAD-7 atual", "Adesão ao tratamento"],
     tags: ["ansiedade", "TAG", "GAD-7", "ISRS", "pânico", "CAPS"],
     soap: {
       subjective: "GAD-7: ___/21 (0–4 mínima | 5–9 leve | 10–14 moderada | ≥15 grave). Preocupação, tensão, insônia, irritabilidade: ___. Crises de pânico: [ ] Ausentes [ ] Presentes freq:___. Adesão: [ ] Regular [ ] Irregular. Impacto funcional: ___.",
       assessment: "TAG [ ] leve [ ] moderada [ ] grave. Resposta: [ ] boa (GAD-7<5) [ ] parcial [ ] nenhuma. [ ] Afastar causas orgânicas: hipertireoidismo, arritmia, anemia.",
-      plan: "1ª linha: ISRS (sertralina 50–200mg ou escitalopram 10–20mg). Aguardar 4–6 sem. [ ] Manter [ ] Ajustar. [ ] Encaminhar psicoterapia (TCC). [ ] CAPS se grave/refratário. Evitar benzodiazepínicos como manutenção.",
+      plan: "1ª linha: ISRS (sertralina 50–200mg ou escitalopram 10–20mg). Aguardar 4–6 sem. [ ] Manter [ ] Ajustar. [ ] Encaminhar psicoterapia (TCC). [ ] Encaminhar/compartilhar cuidado com psicoterapia e RAPS/atenção especializada conforme gravidade, refratariedade, comorbidades relevantes ou risco. Evitar benzodiazepínicos como manutenção.",
     },
-    exams: undefined,
+    exams:
+      "PAINEL BASE: nenhum — avaliação predominantemente clínica.\n" +
+      "EXAME DIRIGIDO: TSH — se sintomas compatíveis com hiper/hipotireoidismo.\n" +
+      "EXAME DIRIGIDO: Hemograma — se suspeita de anemia ou fadiga desproporcional.\n" +
+      "EXAME DIRIGIDO: ECG — se palpitações, síncope, dor torácica ou forte dúvida de causa cardíaca.",
     guidance: "Técnicas de respiração e relaxamento ajudam. Reduzir cafeína e álcool — pioram ansiedade. Exercício regular reduz ansiedade. Manter rotina de sono. Tratamento funciona melhor com remédio + terapia.",
-    redFlags: ["Crise de pânico com sintomas vegetativos intensos"],
-    followup: "Retorno em 4–6 semanas (avaliação) ou 2–3 meses (follow-up).",
+    redFlags: [
+      "Risco agudo de suicídio ou auto/heteroagressão",
+      "Sintomas psicóticos ou maniformes",
+      "Crise com síncope, rebaixamento de nível de consciência ou importante dúvida de causa orgânica/cardíaca",
+    ],
+    followup: "Retorno em 2–4 semanas na fase inicial; depois 4–8 semanas conforme gravidade, risco e resposta.",
     governance: {
-      source: "MS. Linha de Cuidado para Transtornos de Ansiedade na Atenção Básica, 2022; DSM-5-TR (APA, 2022)",
+      source: "MS. Linha de Cuidado — Transtornos de Ansiedade no Adulto, 2022; DSM-5-TR (APA, 2022) como referência complementar.",
       sourceUrl: "https://linhasdecuidado.saude.gov.br/portal/transtornos-de-humor-e-comportamento/",
       status: GV.ativo,
-      version: GV.v,
-      lastRevised: GV.dt,
+      version: "1.0.1",
+      lastRevised: "2026-04-17",
     },
   },
 
@@ -370,23 +773,24 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
     description: "Retorno de Doença Renal Crônica — estadiamento KDIGO e nefroproteção",
     category: "cronico",
     whenToUse: "Paciente com DRC conhecida — estadiar, otimizar nefroproteção e monitorar progressão.",
+    whenNotToUse: "Suspeita de lesão renal aguda, queda rápida da função renal, síndrome nefrótica/nefrítica, hipercalemia grave ou sobrecarga volêmica importante — avaliar urgentemente/encaminhar.",
     minimumData: ["TFG atual", "RAC"],
     tags: ["DRC", "rim", "TFG", "KDIGO", "proteinúria", "nefroproteção", "iSGLT2"],
     soap: {
       subjective: "Sintomas urêmicos: edema, astenia, náusea, prurido? [ ] Sim [ ] Não. Adesão: [ ] Boa [ ] Irregular. PA: ___. Causa base: ___.",
       assessment: "TFG (CKD-EPI): ___ mL/min. RAC: ___ mg/g. Estágio: G[ ]1≥90 G2 60–89 G3a 45–59 G3b 30–44 G4 15–29 G5 <15. RAC: A1<30 A2 30–300 A3>300. [ ] Encaminhar nefrologia: TFG<30, RAC>300, queda progressiva.",
-      plan: "Nefroproteção: [ ] IECA/BRA (meta PA <130/80) | [ ] iSGLT2 (empagliflozina/dapagliflozina) se DM+DRC. Dieta: restrição sal. Vacinar: influenza, pneumocócica, hepatite B. TFG+RAC a cada 3–12 meses. Retorno em ___ meses.",
+      plan: "Nefroproteção: [ ] IECA/BRA (meta PA <130/80) | [ ] iSGLT2 — avaliar conforme indicação renal/cardiovascular, TFG e contexto clínico; não restringir automaticamente apenas a DM+DRC. Dieta: restrição sal. Vacinar: influenza, pneumocócica, hepatite B. TFG+RAC a cada 3–12 meses. Retorno em ___ meses.",
     },
     exams: "Creatinina+TFG, RAC, potássio (com IECA/BRA/iSGLT2), hemograma (anemia), sódio, bicarbonato. A partir de G3b: fósforo, PTH, vitamina D.",
     guidance: "Controlar PA rigorosamente — principal fator de proteção. Sal <5g/dia. Não usar anti-inflamatórios (ibuprofeno, diclofenaco). Vacinar gripe e pneumonia. Comunicar mudança no volume de urina ou inchaço.",
-    redFlags: ["TFG <30 (G4–G5)", "Proteinúria >300 mg/g em.progressão"],
+    redFlags: ["TFG <30 mL/min (G4–G5)", "Proteinúria >300 mg/g em progressão"],
     followup: "TFG+RAC a cada 3–12 meses conforme estágio.",
     governance: {
-      source: "KDIGO 2022 CKD Clinical Practice Guidelines; MS. Linha de Cuidado para DRC",
-      sourceUrl: "https://linhasdecuidado.saude.gov.br/portal/doenca-renal-cronica/",
+      source: "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of CKD; MS. Linha de Cuidado para DRC (complementar).",
+      sourceUrl: "https://kdigo.org/home/guidelines/ckd-evaluation-management/",
       status: GV.ativo,
-      version: GV.v,
-      lastRevised: GV.dt,
+      version: "1.0.1",
+      lastRevised: "2026-04-17",
     },
   },
 

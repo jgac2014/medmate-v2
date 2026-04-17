@@ -34,6 +34,9 @@ import { trackEvent } from "@/lib/analytics";
 export default function ConsultaPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Save status: sincronizado com autosave (localStorage) e save (banco)
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   // Guard contra re-entrada: so permite um timer-init por sessao
   const timerInitializedRef = useRef(false);
   const patientName = useConsultationStore((s) => s.patientName);
@@ -66,13 +69,22 @@ export default function ConsultaPage() {
     trackEvent("timer_started");
   }, [patientName, userId, timerState.started_at, timerState.finished_at, setTimerState]);
 
-  useDraftAutosave(userId);
+  // Draft autosave callback — marca "salvo local" quando autosave dispara
+  const handleDraftSaved = () => {
+    setSaveStatus("saved");
+    setLastSavedAt(new Date());
+    const t = setTimeout(() => setSaveStatus("idle"), 5000);
+  };
+
+  const patientId = useConsultationStore((s) => s.patientId);
+  useDraftAutosave(userId, patientId, handleDraftSaved);
 
   const router = useRouter();
   const { saving, save, modalOpen, esusTextSnapshot, closeModal } = useSaveConsultation(userId);
 
   const labsExtras = useConsultationStore((s) => s.labsExtras);
   const setLabsExtras = useConsultationStore((s) => s.setLabsExtras);
+  const pendingUploads = useConsultationStore((s) => s.pendingUploads);
   const [reviewModal, setReviewModal] = useState<{
     open: boolean;
     matched: Record<string, string>;
@@ -86,6 +98,18 @@ export default function ConsultaPage() {
     }
     await save();
   }
+
+  // Sync save status to button state
+  useEffect(() => {
+    if (saving) {
+      setSaveStatus("saving");
+    } else if (saving === false) {
+      setSaveStatus("saved");
+      setLastSavedAt(new Date());
+      const t = setTimeout(() => setSaveStatus("idle"), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [saving]);
 
   useHotkeys({ "mod+s": () => handleFinalize() });
 
@@ -134,10 +158,22 @@ export default function ConsultaPage() {
             >
               <span className="material-symbols-outlined text-[18px] text-on-surface-muted">menu</span>
             </button>
-            <div className="flex items-center gap-1 px-2 py-1 bg-[#e9eff2] rounded text-[10px] font-bold text-[#717973] uppercase tracking-tight">
-              <span className="w-1.5 h-1.5 rounded-full bg-secondary inline-block" />
-              Rascunho Salvo
-            </div>
+            {saveStatus === "saving" ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium uppercase tracking-tight text-secondary">
+                <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse inline-block" />
+                Salvando...
+              </div>
+            ) : saveStatus === "error" ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium uppercase tracking-tight text-[var(--error)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--error)] inline-block" />
+                Erro ao salvar
+              </div>
+            ) : saveStatus === "saved" && lastSavedAt ? (
+              <div className="flex items-center gap-1 px-2 py-1 bg-[#e9eff2] rounded text-[10px] font-bold text-[#717973] uppercase tracking-tight">
+                <span className="w-1.5 h-1.5 rounded-full bg-secondary inline-block" />
+                Salvo às {lastSavedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+              </div>
+            ) : null}
             <button
               onClick={handleFinalize}
               disabled={saving}
@@ -167,16 +203,15 @@ export default function ConsultaPage() {
         <div className="max-w-3xl mx-auto p-4 space-y-4">
 
           {/* Bloco 1: Identificação + Problemas */}
-          <details className="group">
-            <summary className="cursor-pointer text-[11px] font-medium text-[var(--on-surface-muted)] uppercase tracking-wide select-none list-none flex items-center gap-1 hover:text-[var(--on-surface)] transition-colors">
-              <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
+          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-4">
+            <div className="mb-3 flex items-center gap-1 text-[11px] font-medium text-[var(--on-surface-muted)] uppercase tracking-wide">
               Identificação e problemas
-            </summary>
-            <div className="mt-3 grid grid-cols-2 gap-4 p-4 rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)]">
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <PatientInfo />
               <ProblemList />
             </div>
-          </details>
+          </section>
 
           {/* Bloco 2: SOAP */}
           <section id="section-consulta" className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
@@ -190,15 +225,29 @@ export default function ConsultaPage() {
             <PrescriptionExamsSection />
           </div>
 
-          {/* Bloco 4: Dados Objetivos */}
-          <section id="section-exames" className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5 space-y-4">
-            <ExamUploadButton
-              onResult={({ matched, extras }) =>
-                setReviewModal({ open: true, matched, extras })
-              }
-            />
+          {/* Bloco 4a: Sinais Vitais e Cálculos */}
+          <section id="section-exames" className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5">
             <VitalsForm />
-            <div className="h-px bg-[var(--outline-variant)]" />
+          </section>
+
+          {/* Bloco 4b: Exames Complementares */}
+          <section className="rounded-xl bg-[var(--surface-lowest)] border border-[var(--outline-variant)] p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-[var(--on-surface-muted)] uppercase tracking-wide">
+                Exames Complementares
+              </span>
+              <ExamUploadButton
+                onResult={({ matched, extras }) =>
+                  setReviewModal({ open: true, matched, extras })
+                }
+              />
+            </div>
+            {pendingUploads > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--primary)]/5 border border-[var(--primary)]/15 text-[11px] text-[var(--primary)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse inline-block" />
+                {pendingUploads} upload{pendingUploads > 1 ? "s" : ""} processando...
+              </div>
+            )}
             <ExamGrid />
             {labsExtras && (
               <div className="space-y-1.5 pt-1">

@@ -40,6 +40,7 @@ export function dbRecordToState(record: any): ConsultationState {
     },
     copiesThisSession: 0, // session-only counter, resets to 0 on load
     customEsusText: record.custom_esus_text ?? null, // hidrata edições manuais do banco
+    pendingUploads: 0, // transient UI state, não persiste no banco
   };
 }
 

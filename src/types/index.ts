@@ -88,6 +88,8 @@ export interface ConsultationState {
   copiesThisSession: number;
   /** Texto eSUS editado manualmente — null = usar geração automática */
   customEsusText: string | null;
+  /** Contador de uploads de exame pendentes de processamento */
+  pendingUploads: number;
 }
 
 export interface ExamFieldDef {
@@ -255,6 +257,16 @@ export interface TimerState {
 // ── Template governance types ────────────────────────────────────────────────
 
 export type TemplateStatus = "ativo" | "em_revisao" | "desatualizado" | "rascunho";
+
+export interface TemplateGovernance {
+  source: string;
+  sourceUrl?: string;
+  status: TemplateStatus;
+  version: string;
+  lastRevised: string;
+  /** Mudanças vs versão anterior — campo descritivo para audit trail */
+  changes?: string;
+}
 
 export type TemplateCategory =
   | "cronico"

@@ -28,7 +28,10 @@ export function PatientInfo() {
           min={0}
           max={120}
           value={patient.age}
-          onChange={(e) => setPatient({ age: e.target.value })}
+          onChange={(e) => {
+            const raw = e.target.value.replace(/ anos$/, "").trim();
+            setPatient({ age: raw });
+          }}
         />
         <div className="mb-2">
           <label className="block text-[10.5px] text-on-surface-muted mb-0.5 font-medium">

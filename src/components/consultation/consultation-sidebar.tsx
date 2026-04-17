@@ -6,8 +6,11 @@ import { createClient } from "@/lib/supabase/client";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { getPatientProblems } from "@/lib/supabase/patient-problems";
 import { getPatientMedications } from "@/lib/supabase/patient-medications";
+import { usePatientMedications } from "@/hooks/usePatientMedications";
 import { getPatientAlerts } from "@/lib/supabase/alerts";
+import { parseAge } from "@/lib/clinical-rules";
 import { AlertList } from "@/components/consultation/alert-list";
+import { ComparisonPanel } from "@/components/consultation/comparison-panel";
 import type { PatientMedication, Alert } from "@/types";
 
 const NAV_ITEMS = [
@@ -42,7 +45,7 @@ interface ConsultationSidebarProps {
 }
 
 export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) {
-  const { patientId, patientName, patient, vitals } = useConsultationStore();
+  const { patientId, patientName, patient, vitals, currentConsultationId } = useConsultationStore();
   const [userId, setUserId] = useState<string | null>(null);
   const [patientData, setPatientData] = useState<PatientData>(EMPTY_DATA);
   const [loading, setLoading] = useState(false);
@@ -50,6 +53,7 @@ export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) 
   const isScrollingRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const router = useRouter();
+  const { medications: continuousMeds, loading: medsLoading } = usePatientMedications(patientId);
 
   useEffect(() => {
     createClient()
@@ -106,8 +110,8 @@ export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) 
       const dismissed = getDismissedAlerts();
       setPatientData({
         problems,
-        medications: meds.filter((m) => m.active),
-        alerts: newAlerts.filter((a) => !dismissed.has(a.id)),
+        medications: meds.filter((m: PatientMedication) => m.active),
+        alerts: newAlerts.filter((a: Alert) => !dismissed.has(a.id)),
       });
     } finally {
       setLoading(false);
@@ -137,7 +141,8 @@ export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) 
 
   const { problems: activeProblems, medications, alerts } = patientId ? patientData : EMPTY_DATA;
   const displayName = patientName ?? patient.name ?? null;
-  const age = patient.age ? `${patient.age}a` : null;
+  const ageNum = parseAge(patient.age);
+  const age = ageNum !== null ? `${ageNum}a` : null;
   const gender = patient.gender || null;
   const currentPA =
     vitals.pas && vitals.pad ? `${vitals.pas}/${vitals.pad} mmHg` : null;
@@ -230,6 +235,45 @@ export function ConsultationSidebar({ open = false }: ConsultationSidebarProps) 
                 {activeProblems.length > 3 && (
                   <span className="px-1 py-0.5 bg-gray-100 text-[#717973] text-[7px] rounded font-bold">
                     +{activeProblems.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        <ComparisonPanel
+          patientId={patientId}
+          currentConsultationId={currentConsultationId}
+          currentVitals={vitals}
+        />
+
+        {/* Medicação contínua — contexto longitudinal */}
+        {(medsLoading || continuousMeds.length > 0) && (
+          <div className="mt-2 pt-2 border-t border-primary/5">
+            <p className="font-label text-[7px] uppercase tracking-[0.12em] text-secondary font-bold flex items-center gap-1 mb-1">
+              <span className="material-symbols-outlined text-[9px]">medication</span>
+              Medicação contínua
+            </p>
+            {medsLoading ? (
+              <div className="space-y-1">
+                <div className="h-2 rounded bg-white/30 animate-pulse" />
+                <div className="h-2 rounded bg-white/30 animate-pulse w-3/4" />
+              </div>
+            ) : (
+              <div className="space-y-0.5">
+                {continuousMeds.slice(0, 5).map((med) => (
+                  <div key={med.id} className="flex items-center gap-1">
+                    <span className="w-1 h-1 rounded-full bg-secondary shrink-0" />
+                    <span className="text-[7px] text-secondary leading-tight truncate">
+                      {med.medication_name}
+                      {med.dosage ? ` ${med.dosage}` : ""}
+                    </span>
+                  </div>
+                ))}
+                {continuousMeds.length > 5 && (
+                  <span className="text-[7px] text-[#717973] italic">
+                    e mais {continuousMeds.length - 5}...
                   </span>
                 )}
               </div>

@@ -9,6 +9,7 @@ export interface Protocol {
   subtitle: string;
   icon: string;
   drugs: ProtocolDrug[];
+  clinicalNotes?: string[];
 }
 
 export const PROTOCOLS: Protocol[] = [
@@ -456,10 +457,20 @@ export const PROTOCOLS: Protocol[] = [
   {
     key: "insonia",
     label: "Insônia",
-    subtitle: "Tratamento de curto prazo",
+    subtitle: "Hipnótico — adjuvante à higiene do sono, curto prazo",
     icon: "🌙",
     drugs: [
-      { drugId: "zolpidem-10", posologyOverride: "Tomar 1 comprimido imediatamente antes de dormir por até 4 semanas" },
+      { drugId: "zolpidem-10", posologyOverride: "Tomar 1 comprimido imediatamente antes de dormir. Máx 10mg/dia. Idosos >65a: iniciar 5mg. Máximo 4 semanas." },
+    ],
+    clinicalNotes: [
+      "TCC-I é tratamento de primeira linha — farmacoterapia é adjuvante e de curto prazo",
+      "Máximo 10mg/dia. Idosos >65a ou debilidade: iniciar 5mg",
+      "Sonolência residual no dia seguinte possível — caution ao dirigir ou operar máquinas",
+      "Comportamentos complexos do sono (CMAE): cozinhar, dirigir, telefonear sem memória — raro, mas discontinue imediatamente se ocorrer",
+      "Associar com álcool ou outros depressores do SNC é contraindicado — risco de depressão respiratória",
+      "Não interromper abruptamente uso prolongado (>2 semanas) — risco de insônia rebound e ansiedade",
+      "No Brasil: toda apresentação de zolpidem requer Notificação de Receita B (Portaria SVS/MS 344/1998)",
+      "Investigar SAOS clinicamente antes de prescrever (Epworth, ronco, apneia testemunhada, IMC)",
     ],
   },
   {

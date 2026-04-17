@@ -8,6 +8,7 @@ import type { Patient } from "@/types";
 import { getFollowupFromLastConsultation } from "../supabase/followup";
 import { getPatientMedications } from "../supabase/patient-medications";
 import { getPatientProblems } from "../supabase/patient-problems";
+import { getPatientAllergies } from "../supabase/patient-allergies";
 
 interface PrepareConsultationInput {
   userId: string | null;
@@ -29,7 +30,7 @@ export async function prepareConsultationForPatient({
     name: patient.name,
     age:
       ageFromBirthDate(patient.birth_date) !== null
-        ? `${ageFromBirthDate(patient.birth_date)} anos`
+        ? String(ageFromBirthDate(patient.birth_date))
         : "",
     gender: (patient.gender as "Masculino" | "Feminino" | "Outro" | "") ?? "",
     race: (patient.race as "Branco" | "Pardo" | "Preto" | "Amarelo" | "Indígena" | "") ?? "",
@@ -42,15 +43,16 @@ export async function prepareConsultationForPatient({
   if (!userId) return;
 
   const selectedPatientId = patient.id;
-  const [followupResult, medicationsResult, problemsResult] = await Promise.allSettled([
+  const [followupResult, medicationsResult, problemsResult, allergiesResult] = await Promise.allSettled([
     getFollowupFromLastConsultation(userId, patient.id),
     getPatientMedications(patient.id),
     getPatientProblems(patient.id),
+    getPatientAllergies(patient.id),
   ]);
 
   // Surface failures explicitly — a silent empty list in a medical context may cause
   // the physician to incorrectly assume there are no active conditions or medications.
-  const anyFailed = [followupResult, medicationsResult, problemsResult].some(
+  const anyFailed = [followupResult, medicationsResult, problemsResult, allergiesResult].some(
     (result) => result.status === "rejected"
   );
   if (anyFailed) {
@@ -66,16 +68,15 @@ export async function prepareConsultationForPatient({
     useConsultationStore.getState().setFollowupItems(followupResult.value);
   }
 
-  if (medicationsResult.status === "fulfilled" && medicationsResult.value.length > 0) {
-    const prescription = medicationsResult.value
-      .map((medication) =>
-        medication.dosage
-          ? `${medication.medication_name} - ${medication.dosage}`
-          : medication.medication_name
-      )
-      .join("\n");
+  // Medications: lidos como contexto longitudinal — alimentam chips na sidebar, não prescription.
+  // Campo prescription é conduta de hoje, preenchido manualmente pelo médico.
 
-    useConsultationStore.getState().setPrescription(prescription);
+  if (allergiesResult.status === "fulfilled" && allergiesResult.value.length > 0) {
+    // Alergias como texto livre em history.allergies — campo crítico, puxado automaticamente.
+    const allergiesText = allergiesResult.value
+      .map((a) => a.allergy_text)
+      .join(", ");
+    useConsultationStore.getState().setHistory({ allergies: allergiesText });
   }
 
   if (problemsResult.status === "fulfilled" && problemsResult.value.length > 0) {
@@ -94,4 +95,15 @@ export async function prepareConsultationForPatient({
       useConsultationStore.getState().setProblemsOther(freeProblems.join(", "));
     }
   }
+
+  // Always clear transient consultation fields on patient change.
+  // These are per-consultation (not longitudinal), so they should never carry over.
+  useConsultationStore.getState().setRequestedExams("");
+  useConsultationStore.getState().setPatientInstructions("");
+  useConsultationStore.getState().setLabsExtras("");
+
+  // Reset triagens for the new patient — they are scale-specific.
+  Object.keys(useConsultationStore.getState().triagens).forEach((key) => {
+    useConsultationStore.getState().clearTriagemResult(key);
+  });
 }

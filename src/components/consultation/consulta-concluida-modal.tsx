@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { logAuditEvent } from "@/lib/supabase/audit";
 import { submitFeedback } from "@/lib/feedback";
+import { getDocumentationCompletion } from "@/components/consultation/documentation-checklist";
 
 interface ConsultaConcluidaModalProps {
   open: boolean;
@@ -31,6 +32,7 @@ export function ConsultaConcluidaModal({
 
   const timerState = useConsultationStore((s) => s.timerState);
   const copiesThisSession = useConsultationStore((s) => s.copiesThisSession);
+  const { doneCount, total, pct, missing } = getDocumentationCompletion();
 
   function calcElapsed(): number {
     if (timerState.finished_at) return timerState.active_seconds;
@@ -109,22 +111,43 @@ export function ConsultaConcluidaModal({
           </p>
         </header>
 
-        {/* Checklist */}
+        {/* Checklist de documentação */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-on-surface-muted mb-2 text-left">
-            Gerado automaticamente:
-          </p>
-          <div className="bg-surface-lowest p-6 rounded-xl space-y-3 text-left shadow-sm border border-outline-variant/20">
-            {["SOAP estruturado", "Conduta definida", "Pronto para o eSUS"].map((item) => (
-              <div key={item} className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
-                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                    <path d="M2 6l3 3 5-5" stroke="#416d5c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <span className="text-[14px] font-medium text-on-surface">{item}</span>
-              </div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-on-surface-muted">
+              Documentação
+            </p>
+            <span className={`text-[12px] font-black ${pct === 100 ? "text-[var(--status-ok)]" : "text-[var(--primary)]"}`}>
+              {doneCount}/{total} — {pct}%
+            </span>
+          </div>
+          <div className="w-full bg-[var(--surface-high)] h-1.5 rounded-full overflow-hidden mb-2">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${pct}%`,
+                backgroundColor: pct === 100
+                  ? "var(--status-ok)"
+                  : pct >= 50
+                  ? "var(--primary)"
+                  : "var(--status-warn)",
+              }}
+            />
+          </div>
+          <div className="flex gap-1.5 flex-wrap">
+            {missing.map((label) => (
+              <span
+                key={label}
+                className="px-2 py-0.5 rounded-full text-[10px] font-medium border border-[var(--status-warn)]/30 text-[var(--status-warn)] bg-[var(--status-warn)]/5"
+              >
+                ✗ {label}
+              </span>
             ))}
+            {doneCount === total && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--status-ok)]/10 text-[var(--status-ok)] border border-[var(--status-ok)]/20">
+                ✓ Tudo completo
+              </span>
+            )}
           </div>
         </div>
 

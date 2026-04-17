@@ -19,7 +19,7 @@ function TagGroup({ label, children }: { label: string; children: React.ReactNod
 }
 
 export function ClinicalSummary() {
-  const { patient, vitals, problems, preventions, labs, calculations } = useConsultationStore();
+  const { patient, vitals, labs } = useConsultationStore();
 
   // ── Exames alterados (warn/crit) ──────────────────────────────────────────
   const alteredExams: { label: string; value: string; status: StatusLevel }[] = [];
@@ -41,18 +41,9 @@ export function ClinicalSummary() {
     }
   }
 
-  // ── Vitais relevantes ─────────────────────────────────────────────────────
-  const hasVitals = Boolean(vitals.pas || vitals.peso || vitals.fc || vitals.spo2 || vitals.temp);
-  const hasCalculations = Boolean(calculations.tfg || calculations.fib4 || calculations.rcv || calculations.naoHdl ||
-    (calculations.imc && !Number.isNaN(calculations.imc.value)));
-
   // ── Has content for empty state ─────────────────────────────────────────
-  const hasSummaryContent =
-    hasVitals ||
-    problems.length > 0 ||
-    alteredExams.length > 0 ||
-    hasCalculations ||
-    preventions.length > 0;
+  const hasVitals = Boolean(vitals.pas || vitals.peso || vitals.fc || vitals.spo2 || vitals.temp);
+  const hasSummaryContent = hasVitals || alteredExams.length > 0;
 
   return (
     <div className="mb-3">
@@ -72,7 +63,6 @@ export function ClinicalSummary() {
           </p>
         </div>
       ) : (
-        /* Render order: alerts/altered → vitals → problems → calculations → preventions */
         <>
           {alteredExams.length > 0 && (
             <TagGroup label="Achados anormais">
@@ -88,78 +78,11 @@ export function ClinicalSummary() {
             <TagGroup label="Sinais vitais">
               {vitals.pas && vitals.pad && <Tag variant="info">PA {vitals.pas}/{vitals.pad}</Tag>}
               {vitals.peso && vitals.altura && (
-                <Tag variant={
-                  calculations.imc && !Number.isNaN(calculations.imc.value)
-                    ? calculations.imc.value >= 30 ? "warn"
-                    : calculations.imc.value < 18.5 ? "warn"
-                    : "info"
-                    : "info"
-                }>
-                  {vitals.peso} kg
-                </Tag>
+                <Tag variant="info">{vitals.peso} kg</Tag>
               )}
               {vitals.fc && <Tag variant="info">FC {vitals.fc}</Tag>}
               {vitals.spo2 && <Tag variant="info">SpO₂ {vitals.spo2}%</Tag>}
               {vitals.temp && <Tag variant="info">T {vitals.temp}°C</Tag>}
-              {calculations.imc && !Number.isNaN(calculations.imc.value) && (
-                <Tag variant={
-                  calculations.imc.value >= 35 ? "crit" :
-                  calculations.imc.value >= 30 ? "warn" :
-                  calculations.imc.value < 18.5 ? "warn" :
-                  "ok"
-                }>
-                  IMC {calculations.imc.value} — {calculations.imc.classification}
-                </Tag>
-              )}
-            </TagGroup>
-          )}
-
-          {problems.length > 0 && (
-            <TagGroup label="Problemas ativos">
-              {problems.map((p) => (
-                <Tag key={p} variant="warn">{p}</Tag>
-              ))}
-            </TagGroup>
-          )}
-
-          {hasCalculations && (
-            <TagGroup label="Cálculos">
-              {calculations.tfg && (
-                <Tag variant="calc">TFG {calculations.tfg.value} — {calculations.tfg.stage}</Tag>
-              )}
-              {calculations.tfg?.uacrCategory && (
-                <Tag variant="calc">{calculations.tfg.uacrCategory}</Tag>
-              )}
-              {calculations.fib4 && (
-                <Tag variant={
-                  calculations.fib4.lowValidity ? "info"
-                    : calculations.fib4.risk === "Alto risco" ? "crit"
-                    : calculations.fib4.risk === "Risco indeterminado" ? "warn"
-                    : "ok"
-                }>
-                  FIB-4 {calculations.fib4.value} — {calculations.fib4.risk}
-                </Tag>
-              )}
-              {calculations.rcv && !calculations.rcv.outOfRange && (
-                <Tag variant={
-                  calculations.rcv.risk === "Alto risco" ? "crit"
-                    : calculations.rcv.risk === "Risco intermediário" ? "warn"
-                    : "ok"
-                }>
-                  RCV {calculations.rcv.value}% — {calculations.rcv.risk}
-                </Tag>
-              )}
-              {calculations.naoHdl && (
-                <Tag variant="calc">Não-HDL {calculations.naoHdl.value} mg/dL</Tag>
-              )}
-            </TagGroup>
-          )}
-
-          {preventions.length > 0 && (
-            <TagGroup label="Prevenções em dia">
-              {preventions.map((p) => (
-                <Tag key={p} variant="ok">{p}</Tag>
-              ))}
             </TagGroup>
           )}
         </>

@@ -10,7 +10,11 @@ import { listPatients, searchPatients } from "@/lib/supabase/patients";
 import { listConsultationsByPatient } from "@/lib/supabase/consultations";
 import { getPatientMedications } from "@/lib/supabase/patient-medications";
 import { getPatientProblems } from "@/lib/supabase/patient-problems";
+import { getPatientAllergies } from "@/lib/supabase/patient-allergies";
+import type { PatientAllergy } from "@/lib/supabase/patient-allergies";
 import { prepareConsultationForPatient } from "@/lib/consultation/patient-context";
+import { deactivatePatientAllergy } from "@/lib/supabase/patient-allergies";
+import { AllergyPopover } from "./allergy-popover";
 import { ageFromBirthDate, formatDateBR } from "@/lib/utils";
 import { BRAND } from "@/lib/branding";
 import { markOnboardingStep } from "@/hooks/useOnboarding";
@@ -25,13 +29,16 @@ export function PatientsShell() {
   const [query, setQuery] = useState("");
   const [patients, setPatients] = useState<Patient[]>([]);
   const [activePatientId, setActivePatientId] = useState<string | null>(null);
-  const [recentConsultations, setRecentConsultations] = useState<ConsultationItem[]>([]);
+  const [lastConsultation, setLastConsultation] = useState<ConsultationItem | null>(null);
   const [activeProblems, setActiveProblems] = useState<string[]>([]);
   const [medications, setMedications] = useState<PatientMedication[]>([]);
+  const [allergies, setAllergies] = useState<PatientAllergy[]>([]);
   const [loadingPatients, setLoadingPatients] = useState(true);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [editingAllergy, setEditingAllergy] = useState<PatientAllergy | undefined>(undefined);
 
   const activePatient = useMemo(
     () => patients.find((patient) => patient.id === activePatientId) ?? null,
@@ -83,23 +90,27 @@ export function PatientsShell() {
 
   useEffect(() => {
     if (!activePatientId) {
-      setRecentConsultations([]);
+      setLastConsultation(null);
       setActiveProblems([]);
       setMedications([]);
       return;
     }
 
     setLoadingDetails(true);
+    setAllergies([]);
 
     Promise.all([
       listConsultationsByPatient(activePatientId),
       getPatientProblems(activePatientId),
       getPatientMedications(activePatientId),
+      getPatientAllergies(activePatientId),
     ])
-      .then(([consultationsResult, problemsResult, medicationsResult]) => {
-        setRecentConsultations((consultationsResult.data ?? []) as unknown as ConsultationItem[]);
+      .then(([consultationsResult, problemsResult, medicationsResult, allergiesResult]) => {
+        const allConsultations = (consultationsResult.data ?? []) as unknown as ConsultationItem[];
+        setLastConsultation(allConsultations[0] ?? null);
         setActiveProblems(problemsResult);
         setMedications(medicationsResult);
+        setAllergies((allergiesResult as PatientAllergy[]) ?? []);
       })
       .catch(() => {
         showToast("Erro ao carregar prontuário do paciente", "error");
@@ -124,6 +135,24 @@ export function PatientsShell() {
     setFormOpen(true);
   }
 
+  async function handleDeactivate(allergyId: string) {
+    if (!userId) return;
+    try {
+      await deactivatePatientAllergy(userId, allergyId);
+      setAllergies((prev) => prev.filter((a) => a.id !== allergyId));
+      showToast("Alergia desativada", "success");
+    } catch {
+      showToast("Erro ao desativar alergia", "error");
+    }
+  }
+
+  async function handleAllergySaved() {
+    if (!activePatientId) return;
+    const { getPatientAllergies } = await import("@/lib/supabase/patient-allergies");
+    const fresh = await getPatientAllergies(activePatientId);
+    setAllergies(fresh);
+  }
+
   async function handleSaved(patient: Patient) {
     if (!userId) return;
 
@@ -144,6 +173,15 @@ export function PatientsShell() {
         patient={editingPatient}
         onClose={() => setFormOpen(false)}
         onSaved={handleSaved}
+      />
+
+      <AllergyPopover
+        open={popoverOpen}
+        initialAllergy={editingAllergy}
+        userId={userId ?? ""}
+        patientId={activePatientId ?? ""}
+        onSaved={handleAllergySaved}
+        onClose={() => { setPopoverOpen(false); setEditingAllergy(undefined); }}
       />
 
       <div className="grid min-h-[calc(100vh-3.5rem)] grid-cols-[340px_minmax(0,1fr)] bg-surface-lowest">
@@ -240,35 +278,80 @@ export function PatientsShell() {
 
           {activePatient && (
             <div className="space-y-8">
-              <section className="flex flex-col gap-5 rounded-2xl border border-outline-variant bg-surface p-6 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-on-surface-muted">
-                    Cadastro do paciente
-                  </p>
-                  <h2 className="mt-2 font-headline text-4xl font-medium text-primary">
-                    {activePatient.name}
-                  </h2>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {[
-                      ageFromBirthDate(activePatient.birth_date) !== null ? `${ageFromBirthDate(activePatient.birth_date)} anos` : null,
-                      activePatient.gender,
-                      activePatient.race,
-                      activePatient.phone,
-                      activePatient.cpf,
-                    ]
-                      .filter(Boolean)
-                      .map((item) => (
-                        <span
-                          key={item}
-                          className="rounded-full border border-outline-variant/50 bg-surface-lowest px-3 py-1.5 text-[12px] text-on-surface-variant"
+              {/* Alergias — bloco crítico, sempre visível quando existir */}
+              {allergies.length > 0 && (
+                <div className="rounded-xl border border-[var(--error)]/30 bg-[var(--error-container)] px-4 py-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--error)]">
+                        ⚠ Alergias ({allergies.length})
+                      </span>
+                      <span className="text-[10px] text-[var(--error)] opacity-70">
+                        {allergies.filter((a) => a.severity === "grave").length > 0
+                          ? "· Contém alergia grave"
+                          : null}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => { setEditingAllergy(undefined); setPopoverOpen(true); }}
+                      className="flex items-center gap-1 px-2 py-1 rounded-md border border-[var(--error)]/30 bg-[var(--error)]/5 text-[11px] font-semibold text-[var(--error)] hover:bg-[var(--error)]/10 transition-colors cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[13px]">add</span>
+                      Adicionar
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {allergies.map((allergy) => (
+                      <div
+                        key={allergy.id}
+                        className={`group relative rounded-full px-3 py-1 text-[12px] font-semibold border cursor-pointer transition-colors ${
+                          allergy.severity === "grave"
+                            ? "bg-[var(--error)] text-white border-[var(--error)]"
+                            : allergy.severity === "moderada"
+                            ? "bg-[var(--error-container)] text-[var(--error)] border-[var(--error)]/30"
+                            : "bg-[var(--surface-highest)] text-on-surface-variant border-[var(--outline-variant)]"
+                        }`}
+                        onClick={() => { setEditingAllergy(allergy); setPopoverOpen(true); }}
+                        title="Clique para editar"
+                      >
+                        <span>{allergy.allergy_text}</span>
+                        {allergy.severity !== "moderada" ? (
+                          <span className="ml-0.5 text-[10px] opacity-75">({allergy.severity})</span>
+                        ) : null}
+                        <button
+                          className="ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity w-4 h-4 rounded-full bg-black/20 flex items-center justify-center hover:bg-black/30 cursor-pointer"
+                          onClick={(e) => { e.stopPropagation(); handleDeactivate(allergy.id); }}
+                          title="Desativar"
                         >
-                          {item}
-                        </span>
-                      ))}
+                          <span className="text-white text-[11px] leading-none">×</span>
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
+              )}
 
-                <div className="flex flex-wrap gap-3">
+              {allergies.length === 0 && activePatient && (
+                <button
+                  onClick={() => { setEditingAllergy(undefined); setPopoverOpen(true); }}
+                  className="w-full rounded-xl border border-dashed border-[var(--error)]/20 bg-[var(--error)]/5 px-4 py-3 text-left text-[12px] text-[var(--error)] hover:bg-[var(--error)]/10 transition-colors cursor-pointer flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                  Adicionar alergia
+                </button>
+              )}
+
+              {/* Ações principais — nome visível como título da área */}
+              <div className="rounded-2xl border border-outline-variant bg-surface p-5">
+                <h2 className="font-headline text-2xl font-medium text-primary mb-4">
+                  {activePatient.name}
+                  {ageFromBirthDate(activePatient.birth_date) !== null && (
+                    <span className="ml-3 text-base font-normal text-on-surface-muted">
+                      · {ageFromBirthDate(activePatient.birth_date)}a
+                    </span>
+                  )}
+                </h2>
+                <div className="flex flex-wrap gap-2">
                   <Button onClick={() => handleStartConsultation(activePatient)}>
                     Nova consulta
                   </Button>
@@ -282,146 +365,99 @@ export function PatientsShell() {
                     Editar cadastro
                   </Button>
                 </div>
-              </section>
+              </div>
 
-              <section className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]">
-                <div className="rounded-2xl border border-outline-variant bg-surface p-6">
-                  <div className="mb-5 flex items-center justify-between">
-                    <div>
-                      <h3 className="font-headline text-2xl font-medium text-primary">Consultas recentes</h3>
-                      <p className="mt-1 text-[13px] text-on-surface-muted">
-                        Últimos atendimentos salvos para retomada rápida.
-                      </p>
-                    </div>
-                  </div>
+              {/* Contexto Longitudinal */}
+              <section className="space-y-5">
 
-                  {loadingDetails && (
-                    <div className="rounded-xl border border-outline-variant/40 bg-surface-lowest px-4 py-6 text-[13px] text-on-surface-muted">
-                      Carregando prontuário...
-                    </div>
-                  )}
-
-                  {!loadingDetails && recentConsultations.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-outline-variant bg-surface-lowest px-4 py-8 text-center">
-                      <p className="text-[14px] font-medium text-on-surface">Sem consultas registradas</p>
-                      <p className="mt-1 text-[12px] text-on-surface-muted">
-                        Inicie a primeira consulta para construir o histórico longitudinal.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-3">
-                    {recentConsultations.map((consultation) => {
-                      const problems = [
-                        ...(consultation.problems ?? []),
-                        ...(consultation.problems_other
-                          ? consultation.problems_other.split(",").map((s) => s.trim()).filter(Boolean)
-                          : []),
-                      ];
-                      const pa =
-                        consultation.vitals?.pas && consultation.vitals?.pad
-                          ? `${consultation.vitals.pas}/${consultation.vitals.pad}`
-                          : null;
-
-                      return (
-                        <div
-                          key={consultation.id}
-                          className="rounded-xl border border-outline-variant/40 bg-surface-lowest overflow-hidden"
+                {/* 2. Problemas ativos */}
+                <div className="rounded-2xl border border-outline-variant bg-surface p-5">
+                  <h3 className="font-headline text-lg font-medium text-primary mb-3">Problemas ativos</h3>
+                  {activeProblems.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {activeProblems.map((problem) => (
+                        <span
+                          key={problem}
+                          className="rounded-full bg-status-crit-bg px-3 py-1.5 text-[12px] font-medium text-status-crit"
                         >
-                          {/* Card header */}
-                          <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-outline-variant/30">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-[12px] font-bold text-primary">{formatDateBR(consultation.date)}</span>
-                              {problems.slice(0, 2).map((p) => (
-                                <span key={p} className="rounded-full bg-secondary-container/50 border border-secondary/20 px-2 py-0.5 text-[9px] font-semibold text-secondary">
-                                  {p}
-                                </span>
-                              ))}
-                            </div>
-                            <button
-                              onClick={() => router.push(`/historico?patientId=${activePatient.id}`)}
-                              className="text-[11px] font-medium text-secondary transition-colors hover:text-primary shrink-0"
-                            >
-                              Ver histórico →
-                            </button>
-                          </div>
+                          {problem}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[13px] text-on-surface-muted">Nenhum problema ativo.</p>
+                  )}
+                </div>
 
-                          {/* SOAP summary */}
-                          <div className="px-4 py-3 grid grid-cols-2 gap-3">
-                            {consultation.subjective && (
-                              <div>
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">Subjetivo</p>
-                                <p className="text-[11px] text-on-surface leading-snug line-clamp-2">{consultation.subjective}</p>
-                              </div>
-                            )}
-                            {consultation.assessment && (
-                              <div>
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">Avaliação</p>
-                                <p className="text-[11px] text-on-surface leading-snug line-clamp-2">{consultation.assessment}</p>
-                              </div>
-                            )}
-                            {pa && (
-                              <div>
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">PA</p>
-                                <p className="text-[11px] font-bold text-on-surface">{pa} mmHg</p>
-                              </div>
-                            )}
-                            {consultation.plan && (
-                              <div>
-                                <p className="text-[9px] font-bold uppercase tracking-widest text-on-surface-muted mb-1">Plano</p>
-                                <p className="text-[11px] text-on-surface leading-snug line-clamp-2">{consultation.plan}</p>
-                              </div>
+                {/* 3. Medicação contínua */}
+                <div className="rounded-2xl border border-outline-variant bg-surface p-5">
+                  <h3 className="font-headline text-lg font-medium text-primary mb-3">Medicação contínua</h3>
+                  {medications.length > 0 ? (
+                    <div className="space-y-2">
+                      {medications.map((medication) => (
+                        <div key={medication.id} className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-secondary shrink-0" />
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-[13px] font-semibold text-on-surface">{medication.medication_name}</span>
+                            {medication.dosage && (
+                              <span className="text-[12px] text-on-surface-muted">{medication.dosage}</span>
                             )}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[13px] text-on-surface-muted">Nenhum medicamento contínuo cadastrado.</p>
+                  )}
                 </div>
 
-                <div className="space-y-6">
-                  <section className="rounded-2xl border border-outline-variant bg-surface p-6">
-                    <h3 className="font-headline text-xl font-medium text-primary">Problemas ativos</h3>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {activeProblems.length > 0 ? (
-                        activeProblems.map((problem) => (
-                          <span
-                            key={problem}
-                            className="rounded-full bg-status-crit-bg px-3 py-1.5 text-[12px] text-status-crit"
-                          >
-                            {problem}
+                {/* 4. Última consulta */}
+                <div className="rounded-2xl border border-outline-variant bg-surface p-5">
+                  <h3 className="font-headline text-lg font-medium text-primary mb-3">Última consulta</h3>
+                  {loadingDetails ? (
+                    <div className="space-y-2">
+                      <div className="h-4 bg-surface-lowest rounded animate-pulse w-1/3" />
+                      <div className="h-3 bg-surface-lowest rounded animate-pulse w-2/3" />
+                    </div>
+                  ) : lastConsultation ? (
+                    <div>
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <span className="text-[12px] font-bold text-primary">{formatDateBR(lastConsultation.date)}</span>
+                        <button
+                          onClick={() => router.push(`/historico?patientId=${activePatient.id}`)}
+                          className="text-[11px] font-medium text-secondary hover:text-primary transition-colors"
+                        >
+                          Ver histórico completo →
+                        </button>
+                      </div>
+                      {/* Resumo compacto de 1 linha */}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        {lastConsultation.vitals?.pas && lastConsultation.vitals?.pad && (
+                          <span className="text-[11px] text-on-surface-muted">
+                            PA {lastConsultation.vitals.pas}/{lastConsultation.vitals.pad} mmHg
                           </span>
-                        ))
-                      ) : (
-                        <p className="text-[13px] text-on-surface-muted">Nenhum problema longitudinal ativo.</p>
-                      )}
+                        )}
+                        {lastConsultation.assessment && (
+                          <span className="text-[11px] text-on-surface-muted line-clamp-1">
+                            {lastConsultation.assessment.slice(0, 120)}
+                            {lastConsultation.assessment.length > 120 ? "..." : ""}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </section>
-
-                  <section className="rounded-2xl border border-outline-variant bg-surface p-6">
-                    <h3 className="font-headline text-xl font-medium text-primary">Medicamentos contínuos</h3>
-                    <div className="mt-4 space-y-3">
-                      {medications.length > 0 ? (
-                        medications.map((medication) => (
-                          <div
-                            key={medication.id}
-                            className="rounded-xl border border-outline-variant/40 bg-surface-lowest px-4 py-3"
-                          >
-                            <p className="text-[13px] font-semibold text-on-surface">
-                              {medication.medication_name}
-                            </p>
-                            <p className="mt-1 text-[12px] text-on-surface-muted">
-                              {medication.dosage || "Dose não informada"}
-                            </p>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-[13px] text-on-surface-muted">Nenhum medicamento contínuo cadastrado.</p>
-                      )}
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-outline-variant bg-surface-lowest px-4 py-5 text-center">
+                      <p className="text-[13px] text-on-surface-muted">
+                        Nenhuma consulta registrada. Inicie a primeira consulta para construir o histórico longitudinal.
+                      </p>
                     </div>
-                  </section>
+                  )}
                 </div>
+
               </section>
+
+              {/* TODO(P3): preventivos pendentes — requer query de datas de últimos preventivos por paciente + lógica INCA/MS de elegibilidade */}
+
             </div>
           )}
         </main>

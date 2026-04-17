@@ -66,7 +66,8 @@ export function Topbar() {
 
   // Autosave: debounced local save + DB save indicator
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useDraftAutosave(userId);
+  const patientId = useConsultationStore((s) => s.patientId);
+  useDraftAutosave(userId, patientId);
 
   useEffect(() => {
     // Track changes to trigger "Salvando..." feedback
