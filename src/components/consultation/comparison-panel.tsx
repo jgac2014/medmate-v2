@@ -6,10 +6,30 @@ import type { Vitals } from "@/types";
 
 type Trend = "up" | "down" | "stable" | "unknown";
 
-function getTrend(current: number, previous: number): Trend {
+/** Retorna a tendência entre dois valores numéricos.
+ *  Threshold de 1 unidade para evitar falso "subiu/caiu" em diferenças irrisórias. */
+export function getTrend(current: number, previous: number): Trend {
   const diff = current - previous;
   if (Math.abs(diff) < 1) return "stable";
   return diff > 0 ? "up" : "down";
+}
+
+/** Seleciona os vitals da consulta anterior válida dentro de uma lista ordenada
+ *  por data decrescente. Exclui a consulta atual quando ela já estiver salva,
+ *  evitando que o painel compare o paciente com ele mesmo.
+ *
+ *  @param data        Lista retornada por listConsultationsByPatient (desc por data)
+ *  @param currentId   ID da consulta em edição no momento (null = nova consulta)
+ *  @returns           Vitals da consulta anterior, ou null se não houver
+ */
+export function getPreviousVitals(
+  data: { id: string; vitals: Vitals | null }[],
+  currentId: string | null
+): Vitals | null {
+  const previous = currentId
+    ? data.find((c) => c.id !== currentId)
+    : data[0];
+  return previous?.vitals ?? null;
 }
 
 function TrendArrow({ trend }: { trend: Trend }) {
@@ -17,6 +37,12 @@ function TrendArrow({ trend }: { trend: Trend }) {
   if (trend === "up") return <span className="text-[9px] text-[#c77a20] font-semibold">↑ subiu</span>;
   if (trend === "down") return <span className="text-[9px] text-[#1b7a4a] font-semibold">↓ caiu</span>;
   return null;
+}
+
+/** Verifica se um valor é numérico válido (não vazio, não NaN). */
+function isValidNumber(v: string | number | null | undefined): boolean {
+  if (v === null || v === undefined || v === "") return false;
+  return !Number.isNaN(Number(v));
 }
 
 function ComparisonRow({
@@ -47,10 +73,15 @@ function ComparisonRow({
 
 interface ComparisonPanelProps {
   patientId: string | null;
+  currentConsultationId: string | null;
   currentVitals: Vitals;
 }
 
-export function ComparisonPanel({ patientId, currentVitals }: ComparisonPanelProps) {
+export function ComparisonPanel({
+  patientId,
+  currentConsultationId,
+  currentVitals,
+}: ComparisonPanelProps) {
   const [previousVitals, setPreviousVitals] = useState<Vitals | null>(null);
   const [hasPrevious, setHasPrevious] = useState(false);
   const [open, setOpen] = useState(false);
@@ -67,25 +98,16 @@ export function ComparisonPanel({ patientId, currentVitals }: ComparisonPanelPro
     listConsultationsByPatient(patientId)
       .then((result) => {
         const data = result.data ?? [];
-        if (data.length < 1) {
-          setPreviousVitals(null);
-          setHasPrevious(false);
-          return;
-        }
-        // data[0] = mais recente — queremos a ANTES da mais recente para comparar
-        // Se currentConsultationId existir e data[0] for a consulta atual, pulamos para data[1]
-        // Sem esse filtro, compara a consulta atual consigo mesma
-        const prev = data[0]?.vitals ?? null;
+        const prev = getPreviousVitals(data, currentConsultationId);
         setPreviousVitals(prev);
         setHasPrevious(prev !== null);
       })
       .catch(() => {
-        // Supabase unreachable — network error, return null gracefully
         setPreviousVitals(null);
         setHasPrevious(false);
       })
       .finally(() => setLoading(false));
-  }, [patientId]);
+  }, [patientId, currentConsultationId]);
 
   if (!hasPrevious && !loading) return null;
 
@@ -96,21 +118,16 @@ export function ComparisonPanel({ patientId, currentVitals }: ComparisonPanelPro
   const prevPAD = previousVitals ? parseFloat(previousVitals.pad) : null;
   const prevPeso = previousVitals ? parseFloat(previousVitals.peso) : null;
 
-  const hasPA =
-    (currentPAS || currentPAD) &&
-    (prevPAS || prevPAD);
+  const hasPA = (currentPAS || currentPAD) && (prevPAS || prevPAD);
   const hasWeight =
-    currentPeso && prevPeso;
+    isValidNumber(currentVitals.peso) && previousVitals !== null && isValidNumber(previousVitals.peso);
 
   if (!hasPA && !hasWeight) return null;
 
-  const paTrend = hasPA && prevPAS && currentPAS
-    ? getTrend(currentPAS, prevPAS)
-    : "unknown";
-
-  const pesoTrend = hasWeight && prevPeso && currentPeso
-    ? getTrend(currentPeso, prevPeso)
-    : "unknown";
+  const paTrend =
+    hasPA && prevPAS && currentPAS ? getTrend(currentPAS, prevPAS) : "unknown";
+  const pesoTrend =
+    hasWeight && prevPeso && currentPeso ? getTrend(currentPeso, prevPeso) : "unknown";
 
   const summaryLabel = () => {
     if (hasPA && hasWeight) return "PA · peso";
@@ -145,7 +162,7 @@ export function ComparisonPanel({ patientId, currentVitals }: ComparisonPanelPro
               trend={paTrend}
             />
           )}
-          {hasWeight && (
+          {hasWeight && isValidNumber(currentVitals.peso) && (
             <ComparisonRow
               label="Peso"
               current={`${currentPeso}`}
