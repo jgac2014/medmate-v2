@@ -106,11 +106,21 @@ function getCategory(t: ClinicalTemplate): TemplateCategory {
   return t.metadata?.category ?? t.category ?? "cronico";
 }
 
-function getSource(t: ClinicalTemplate): string {
+function getPrimarySource(t: ClinicalTemplate) {
+  const sources = t.governance?.sources;
+  if (!sources || sources.length === 0) return null;
+  return sources.find((s) => s.type === "primary") ?? sources[0] ?? null;
+}
+
+function getSourceLabel(t: ClinicalTemplate): string {
+  const primary = getPrimarySource(t);
+  if (primary?.label) return primary.label;
   return t.governance?.source ?? t.source ?? "—";
 }
 
 function getSourceUrl(t: ClinicalTemplate): string | undefined {
+  const primary = getPrimarySource(t);
+  if (primary?.url) return primary.url;
   return t.governance?.sourceUrl ?? t.sourceUrl;
 }
 
@@ -726,7 +736,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                       "Fonte"
                     )}
                   </p>
-                  <p className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed mb-2">{getSource(selected)}</p>
+                  <p className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed mb-2">{getSourceLabel(selected)}</p>
                   <div className="flex items-center gap-3 text-[10px] text-[var(--on-surface-muted)]">
                     <span>v{getVersion(selected)}</span>
                     {getLastRevised(selected) && <span>· {formatDate(getLastRevised(selected))}</span>}
