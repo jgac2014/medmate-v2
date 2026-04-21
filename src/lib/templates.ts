@@ -28,29 +28,27 @@ export type { TemplateCategory, TemplateStatus, TemplateGovernance } from "@/typ
 // whenToUse é obrigatório em novos templates; governance deve acompanhar.
 
 export interface ClinicalTemplate {
-  // Identificação
+  // ── Identificação ─────────────────────────────────────────────────────────
   id: string;
-  name: string;
-  description: string;
-  category: TemplateCategory;
 
-  // Uso Clínico
+  // ── Formato legado (v1.0.x) — migration completa em 2026-04 ──────────────
+  name?: string;
+  description?: string;
+  category?: TemplateCategory;
+
+  /** Tags para busca por palavra-chave */
+  tags?: string[];
   /** Quando aplicar — cenário clínico específico */
   whenToUse?: string;
   /** Quando NÃO usar — contraindicações ou cenários inapropriados */
   whenNotToUse?: string;
   /** Dados mínimos necessários antes de aplicar */
   minimumData?: string[];
-
-  // Conteúdo
-  /** Tags para busca por palavra-chave */
-  tags?: string[];
   /** SOAP — guides a documentação, não substitui julgamento clínico */
   soap?: {
     subjective?: string;
     assessment?: string;
     plan?: string;
-    /** Campos extras (objective, etc.) do schema antigo */
     [key: string]: string | undefined;
   };
   /** Orientações ao paciente */
@@ -62,14 +60,56 @@ export interface ClinicalTemplate {
   /** Retorno / seguimento recomendado */
   followup?: string;
 
-  // Governança
+  // ── Formato v1.3.1 — padrão oficial de templates clínicos ────────────────
+  metadata?: {
+    name: string;
+    description: string;
+    category: TemplateCategory;
+    tags: string[];
+    status: TemplateStatus;
+  };
+  indications?: string[];
+  dataRequirements?: {
+    useNow: string[];
+    idealForAdjustment?: string[];
+  };
+  ui?: {
+    subjectivePrompt?: string;
+    objectivePrompt?: string;
+    quickNotes?: string[];
+  };
+  clinical?: {
+    soap?: {
+      subjectiveOutputBlocks?: string[];
+      objectiveOutputBlocks?: string[];
+      assessmentBlocks: string[];
+      planBlocks: string[];
+    };
+    exams?: {
+      panelBase?: string[];
+      directed?: string[];
+      monitoring?: string[];
+    };
+    guidance?: string[];
+    followup?: string[];
+    specialSituations?: string[];
+    longitudinalFocus?: string[];
+  };
+  apply?: {
+    problems?: Array<{ key: string; label: string }>;
+  };
+
+  // ── Governança ─────────────────────────────────────────────────────────────
   governance?: TemplateGovernance;
 
-  // Retrocompatibilidade com templates legados (pré-migração)
+  // ── Retrocompatibilidade (pré-migração) ──────────────────────────────────
+  /** @deprecated Use governance.sources */
   source?: string;
+  /** @deprecated Use governance.sources */
   sourceUrl?: string;
+  /** @deprecated Use governance.sources */
   sourceYear?: number;
-  /** @deprecated Use soap, exams, guidance, followup, redFlags */
+  /** @deprecated Use clinical, ui, apply */
   fill?: {
     problems?: string[];
     preventions?: string[];
@@ -114,82 +154,310 @@ const GV = {
 // Template acelera — não substitui julgamento clínico.
 
 export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
-  // ── HAS ──────────────────────────────────────────────────────────────────
+  // ── HAS — Retorno v1.3.1 ───────────────────────────────────────────────
   {
     id: "has_retorno",
-    name: "HAS — Retorno",
-    description: "Seguimento de hipertensão arterial sistêmica na APS — controle pressórico, adesão, segurança e ajuste terapêutico",
-    category: "cronico",
-    whenToUse: "Adulto com HAS já diagnosticada, em seguimento ambulatorial/APS, para reavaliar controle pressórico, adesão, efeitos adversos, risco cardiovascular e necessidade de ajuste do tratamento.",
-    whenNotToUse: "Primeira avaliação diagnóstica de HAS. Urgência/emergência hipertensiva ou suspeita de lesão aguda de órgão-alvo. Gestante com hipertensão.",
-    minimumData: [
-      "PA atual",
-      "Medicamentos em uso e adesão",
-      "Efeitos adversos ou sintomas de hipotensão",
-      "PA domiciliar/MRPA, se houver",
-    ],
-    tags: ["HAS", "hipertensão", "anti-hipertensivo", "adesão", "retorno"],
-    soap: {
-      subjective: "PA atual: ___ | PA domiciliar/MRPA: ___ | Adesão: [ ] boa [ ] irregular | Efeitos adversos/hipotensão: ___ | Uso de AINEs, álcool ou outros fatores que elevam PA: ___",
-      assessment: "HAS [ ] no alvo terapêutico | [ ] fora do alvo. Risco cardiovascular: [ ] baixo [ ] moderado [ ] alto [ ] muito alto | Lesão de órgão-alvo/comorbidades: ___",
-      plan: "Reforçar medidas não farmacológicas. [ ] Manter esquema atual | [ ] Ajustar tratamento | [ ] Reforçar adesão e técnica de medida da PA | [ ] Solicitar/atualizar exames | Retorno conforme controle.",
+
+    metadata: {
+      name: "HAS — Retorno",
+      description: "Retorno ambulatorial de paciente com hipertensão arterial sistêmica em seguimento na APS.",
+      category: "cronico",
+      tags: ["HAS", "hipertensão", "anti-hipertensivo", "adesão", "retorno"],
+      status: "ativo"
     },
-    exams:
-      "PAINEL BASE: creatinina com TFGe, potássio, glicemia de jejum ou HbA1c, perfil lipídico, urinálise/EAS, eletrocardiograma; sódio se uso de diurético tiazídico.\n" +
-      "EXAME DIRIGIDO: MRPA/MAPA se suspeita de avental branco, hipertensão mascarada, discordância entre PA do consultório e domiciliar, ou sintomas de hipotensão.\n" +
-      "EXAME DIRIGIDO: albuminúria/relação albumina-creatinina, ecocardiograma ou outros exames conforme DRC, DM, lesão de órgão-alvo, suspeita de HAS secundária ou comorbidades.",
-    guidance: "Não interromper medicação por conta própria. Levar registro de PA domiciliar quando disponível. Reduzir sal e ultraprocessados, manter atividade física regular e retornar antes se PA muito elevada ou sintomas de alarme.",
-    redFlags: [
-      "PAS ≥180 mmHg ou PAD ≥120 mmHg, especialmente se persistente ou sintomática",
-      "Dor torácica, dispneia, déficit neurológico focal, alteração visual importante, rebaixamento do sensório ou oligúria",
+
+    indications: [
+      "Paciente com hipertensão arterial sistêmica já diagnosticada, em seguimento ambulatorial na APS.",
+      "Consulta de retorno para reavaliação do controle pressórico, adesão, efeitos adversos, risco cardiovascular e necessidade de ajuste terapêutico."
     ],
-    followup: "Reavaliar em 1 mês após início ou mudança do tratamento, até atingir o alvo terapêutico. Depois acompanhar 2–4 vezes no primeiro ano, idealmente a cada 3–6 meses; após controle, seguimento semestral. Exames laboratoriais anuais ou pelo menos a cada 2 anos; ECG conforme indicação clínica.",
+
+    dataRequirements: {
+      useNow: [
+        "PA atual aferida corretamente",
+        "Medicamentos em uso",
+        "Adesão ao tratamento",
+        "Efeitos adversos ou sintomas de hipotensão",
+        "Contexto clínico da consulta atual"
+      ],
+      idealForAdjustment: [
+        "Registros domiciliares de PA ou MRPA/MAPA, se disponíveis",
+        "Resultados de exames laboratoriais recentes",
+        "Comorbidades e lesões de órgão-alvo",
+        "Estratificação de risco cardiovascular"
+      ]
+    },
+
+    ui: {
+      subjectivePrompt: "Revisar PA atual, adesão ao tratamento, efeitos adversos, medidas domiciliares/MRPA e evolução desde a última consulta.",
+      objectivePrompt: "Registrar PA, FC, peso e outros achados relevantes do exame físico.",
+      quickNotes: [
+        "Comparar com aferições anteriores, quando disponíveis.",
+        "Revisar fatores que pioram controle pressórico, como AINEs, álcool e baixa adesão.",
+        "Considerar MRPA/MAPA quando houver discrepância entre consultório e domicílio ou suspeita de avental branco/hipertensão mascarada."
+      ]
+    },
+
+    clinical: {
+      soap: {
+        subjectiveOutputBlocks: [
+          "Paciente em seguimento por hipertensão arterial sistêmica, em uso de terapia anti-hipertensiva.",
+          "Na consulta, reavaliados controle pressórico, adesão ao tratamento e possíveis efeitos adversos.",
+          "Revisados registros domiciliares de pressão arterial ou MRPA, quando disponíveis, e fatores que possam interferir no controle da PA."
+        ],
+        objectiveOutputBlocks: [
+          "PA e sinais vitais registrados conforme consulta."
+        ],
+        assessmentBlocks: [
+          "Hipertensão arterial sistêmica em seguimento na APS.",
+          "Controle pressórico reavaliado com base na aferição atual e, quando disponíveis, em medidas fora do consultório.",
+          "Meta terapêutica individualizada; em consultório, geralmente <140/90 mmHg e, se o tratamento for bem tolerado, considerar 130/80 mmHg em pessoas com menos de 65 anos, especialmente com comorbidades.",
+          "Reavaliar necessidade de intensificação terapêutica após reforço de adesão, técnica de aferição e medidas não farmacológicas."
+        ],
+        planBlocks: [
+          "Mantenho ou ajusto o esquema anti-hipertensivo conforme avaliação clínica, tolerância e controle pressórico.",
+          "Oriento medidas não farmacológicas, com redução de sal e ultraprocessados, controle de peso, atividade física regular e moderação de álcool.",
+          "Reforço adesão ao tratamento e técnica correta de medida da pressão arterial.",
+          "Estratifico risco cardiovascular quando houver dados suficientes e integro o resultado à meta terapêutica e à intensidade do seguimento.",
+          "Solicito ou atualizo exames laboratoriais e complementares conforme protocolo, comorbidades, medicações em uso e suspeita de lesão de órgão-alvo.",
+          "Programo retorno em 1 mês após início ou mudança do tratamento, até atingir a meta pressórica; após estabilização, mantenho acompanhamento periódico."
+        ]
+      },
+
+      exams: {
+        panelBase: [
+          "Creatinina com TFGe",
+          "Potássio",
+          "Glicemia de jejum ou HbA1c",
+          "Perfil lipídico",
+          "Urinálise/EAS",
+          "Eletrocardiograma"
+        ],
+        directed: [
+          "Sódio sérico se uso de diurético tiazídico.",
+          "MRPA ou MAPA se suspeita de efeito do avental branco, hipertensão mascarada, discordância entre PA de consultório e domiciliar ou sintomas de hipotensão.",
+          "Relação albumina-creatinina urinária se diabetes, doença renal ou suspeita de lesão renal.",
+          "Ecocardiograma ou outros exames complementares se suspeita de lesão de órgão-alvo, HAS secundária ou comorbidades que justifiquem investigação."
+        ],
+        monitoring: [
+          "Exames laboratoriais periódicos conforme protocolo e contexto clínico.",
+          "Eletrocardiograma conforme indicação clínica."
+        ]
+      },
+
+      guidance: [
+        "Oriento não interromper a medicação anti-hipertensiva por conta própria.",
+        "Oriento levar registro de pressão arterial domiciliar quando disponível.",
+        "Oriento reduzir consumo de sal e alimentos ultraprocessados.",
+        "Oriento manter atividade física regular, adaptada à condição clínica.",
+        "Oriento procurar atendimento imediato se pressão arterial muito elevada ou sintomas de alarme."
+      ],
+
+      followup: [
+        "Reavalio em 1 mês após início ou mudança do tratamento, até atingir a meta pressórica.",
+        "Após controle estável, acompanho de 2 a 4 vezes no primeiro ano, idealmente a cada 3 a 6 meses.",
+        "Com controle sustentado, mantenho seguimento periódico, em geral semestral, conforme risco cardiovascular e comorbidades."
+      ],
+
+      specialSituations: [
+        "PAS ≥180 mmHg e PAD ≥120 mmHg persistente, especialmente se associadas a sintomas ou suspeita de lesão aguda de órgão-alvo.",
+        "Dor torácica, dispneia, déficit neurológico focal, alteração visual importante, rebaixamento do sensório ou oligúria.",
+        "Gestação ou suspeita de gestação — requer manejo específico conforme protocolo vigente.",
+        "Suspeita de hipertensão secundária ou resistência anti-hipertensiva."
+      ],
+
+      longitudinalFocus: [
+        "Comparar PA atual com aferições anteriores e com a meta terapêutica individualizada.",
+        "Revisar evolução do risco cardiovascular desde a última consulta.",
+        "Verificar adesão, barreiras ao tratamento e possíveis interações medicamentosas.",
+        "Registrar se houve necessidade de ajuste terapêutico e resposta clínica obtida.",
+        "Revisar comorbidades associadas e seu impacto no manejo da hipertensão."
+      ]
+    },
+
+    apply: {
+      problems: [
+        { key: "has", label: "Hipertensão arterial sistêmica" }
+      ]
+    },
+
     governance: {
-      source: "MS/Conitec. PCDT de Hipertensão Arterial Sistêmica, 2025; Linha de Cuidado da HAS no Adulto, 2021; CAB nº 37 como referência complementar.",
-      sourceUrl: "https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-hipertensao-arterial-sistemica.pdf",
       status: "ativo",
-      version: "1.1.0",
-      lastRevised: "2026-04-17",
-    },
+      version: "1.1.1",
+      schemaVersion: "1.3.1",
+      lastRevised: "2026-04-21",
+      changes: "Migração do legado para o padrão v1.3.1. Remoção de SOAP com placeholders e checkboxes. Estruturação de exams em panelBase, directed e monitoring. Conversão de guidance e followup em arrays. Inclusão de ui, longitudinalFocus e apply.problems. Revisão clínica do assessment, plano e situações especiais para APS/MFC. Correção de governança com URLs reais distintas.",
+      sources: [
+        {
+          label: "CONITEC — PCDT de Hipertensão Arterial Sistêmica",
+          url: "https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-hipertensao-arterial-sistemica.pdf/view",
+          type: "primary",
+          year: "2025"
+        },
+        {
+          label: "Linha de Cuidado — Hipertensão Arterial Sistêmica (HAS) no Adulto",
+          url: "https://linhasdecuidado.saude.gov.br/portal/hipertensao-arterial-sistemica-%28HAS%29-no-adulto/",
+          type: "secondary",
+          year: "2020"
+        },
+        {
+          label: "Caderno de Atenção Básica nº 37 — Hipertensão Arterial Sistêmica",
+          url: "https://bvsms.saude.gov.br/bvs/publicacoes/hipertensao_arterial_sistemica_cab37.pdf",
+          type: "secondary",
+          year: "2010"
+        }
+      ]
+    }
   },
 
-  // ── HAS — Início ────────────────────────────────────────────────────────
+  // ── HAS — Início v1.3.1 ─────────────────────────────────────────────────
   {
     id: "has_inicial",
-    name: "HAS — Início",
-    description: "Avaliação inicial de pressão arterial elevada/suspeita de HAS na APS — confirmação diagnóstica, estratificação de risco e definição da conduta inicial",
-    category: "cronico",
-    whenToUse: "Adulto com PA elevada no consultório ou fora dele, sem diagnóstico fechado de HAS, para confirmar o diagnóstico, estratificar risco cardiovascular e definir seguimento ou início de tratamento.",
-    whenNotToUse: "Urgência/emergência hipertensiva ou suspeita de lesão aguda de órgão-alvo. Gestante com hipertensão. Paciente já com HAS confirmada em seguimento regular.",
-    minimumData: [
-      "PA aferida corretamente em ≥2 medidas na consulta",
-      "Aferições prévias e/ou MRPA/MAPA, se houver",
-      "Risco cardiovascular, comorbidades e lesão de órgão-alvo",
-      "Medicamentos/substâncias que possam elevar PA",
-    ],
-    tags: ["HAS", "hipertensão", "diagnóstico", "MRPA", "MAPA", "risco cardiovascular"],
-    soap: {
-      subjective: "PA consultório: ___/___ mmHg em ___ medidas | Aferições prévias: ___ | MRPA/MAPA: ___ | Comorbidades/lesão de órgão-alvo: ___ | Medicamentos/substâncias que elevam PA: ___ | Sintomas de alarme: ___",
-      assessment: "Classificação: [ ] ótima (<120/<80) | [ ] normal (120-129/80-84) | [ ] normal alta (130-139/85-89) | [ ] HAS grau 1 (140-159/90-99) | [ ] HAS grau 2 (160-179/100-109) | [ ] HAS grau 3 (≥180/≥110). Confirmação diagnóstica: [ ] pendente | [ ] confirmada. Risco cardiovascular: [ ] baixo | [ ] moderado | [ ] alto | [ ] muito alto | Suspeita de HAS secundária: ___",
-      plan: "Confirmar diagnóstico com medidas seriadas e, quando indicado, MAPA ou, se indisponível, MRPA. Medidas não farmacológicas para todos. [ ] PA normal alta com muito alto risco: considerar tratamento medicamentoso | [ ] HAS grau 1 com RCV baixo: reavaliar em 3–6 meses | [ ] HAS grau 1 com RCV moderado/alto ou lesão de órgão-alvo: iniciar tratamento medicamentoso | [ ] HAS grau 2/3: iniciar tratamento medicamentoso | [ ] Solicitar exames iniciais e fundo de olho.",
+
+    metadata: {
+      name: "HAS — Inicial",
+      description: "Avaliação inicial de pressão arterial elevada ou suspeita de hipertensão arterial sistêmica na APS.",
+      category: "cronico",
+      tags: ["HAS", "hipertensão", "diagnóstico", "MRPA", "MAPA", "risco cardiovascular"],
+      status: "ativo"
     },
-    exams:
-      "PAINEL BASE: creatinina com TFGe, potássio, sódio, ácido úrico, albuminúria, glicemia de jejum, perfil lipídico, urinálise/EAS e eletrocardiograma.\n" +
-      "EXAME DIRIGIDO: MAPA ou, se indisponível, MRPA, para confirmação diagnóstica quando indicado.\n" +
-      "EXAME DIRIGIDO: TSH/T4 livre, relação aldosterona-renina, ecocardiograma, Doppler de artérias renais ou outros exames conforme suspeita de HAS secundária, lesão de órgão-alvo ou comorbidades.",
-    guidance: "Explicar que o diagnóstico de HAS deve ser confirmado com medidas seriadas e, quando indicado, MAPA/MRPA. Orientar técnica correta de medida da PA, redução de sal e ultraprocessados, controle de peso, atividade física regular, redução de álcool e cessação do tabagismo.",
-    redFlags: [
-      "PAS ≥180 mmHg ou PAD ≥120 mmHg, especialmente se houver sintomas ou suspeita de lesão aguda de órgão-alvo",
-      "Dor torácica, dispneia, déficit neurológico focal, alteração visual importante, rebaixamento do sensório ou edema agudo de pulmão",
+
+    indications: [
+      "Adulto com pressão arterial elevada no consultório ou fora dele, sem diagnóstico previamente confirmado de hipertensão arterial sistêmica.",
+      "Consulta inicial para confirmação diagnóstica, estratificação de risco cardiovascular e definição de seguimento ou conduta terapêutica inicial."
     ],
-    followup: "Se iniciar ou modificar tratamento, reavaliar em 1 mês. Se PA normal alta ou HAS grau 1 com baixo risco sem tratamento medicamentoso inicial, reavaliar PA e risco cardiovascular em 3–6 meses. Após confirmação diagnóstica e estabilização, seguir monitoramento periódico conforme controle pressórico.",
+
+    dataRequirements: {
+      useNow: [
+        "PA aferida corretamente em pelo menos 2 medidas na consulta",
+        "Aferições prévias ou medidas fora do consultório, se disponíveis",
+        "Contexto clínico atual",
+        "Medicamentos e substâncias que possam elevar PA",
+        "Sintomas de alarme"
+      ],
+      idealForAdjustment: [
+        "MRPA ou MAPA, quando indicados",
+        "Estratificação de risco cardiovascular",
+        "Comorbidades e lesão de órgão-alvo",
+        "Exames laboratoriais iniciais"
+      ]
+    },
+
+    ui: {
+      subjectivePrompt: "Revisar níveis pressóricos disponíveis, comorbidades, risco cardiovascular, substâncias/medicações que elevam PA e sintomas de alarme.",
+      objectivePrompt: "Registrar PA com técnica adequada, número de medidas, sinais vitais e achados relevantes do exame físico.",
+      quickNotes: [
+        "Confirmar diagnóstico com medidas seriadas e, quando indicado, MAPA ou, se indisponível, MRPA.",
+        "Revisar possibilidade de avental branco, hipertensão mascarada e causas secundárias.",
+        "Diferenciar situação ambulatorial de urgência/emergência hipertensiva."
+      ]
+    },
+
+    clinical: {
+      soap: {
+        subjectiveOutputBlocks: [
+          "Paciente em avaliação inicial por pressão arterial elevada / suspeita de hipertensão arterial sistêmica.",
+          "Na consulta, revisados níveis pressóricos disponíveis, comorbidades, fatores de risco, medicamentos ou substâncias que possam elevar a pressão arterial e sintomas de alarme.",
+          "Consideradas aferições prévias e medidas fora do consultório, quando disponíveis."
+        ],
+        objectiveOutputBlocks: [
+          "Pressão arterial aferida corretamente em medidas seriadas na consulta, com registro de sinais vitais e demais achados relevantes conforme contexto clínico."
+        ],
+        assessmentBlocks: [
+          "Pressão arterial elevada / suspeita de hipertensão arterial sistêmica em avaliação diagnóstica na APS.",
+          "A definição diagnóstica deve considerar medidas repetidas e, quando indicado, confirmação fora do consultório com MAPA ou, se indisponível, MRPA.",
+          "A decisão terapêutica inicial deve considerar nível pressórico, risco cardiovascular, lesão de órgão-alvo, comorbidades e possibilidade de hipertensão secundária.",
+          "Na HAS confirmada, a meta terapêutica em consultório é geralmente <140/90 mmHg; se o tratamento for bem tolerado, pode-se considerar 130/80 mmHg em pessoas com menos de 65 anos, especialmente com comorbidades."
+        ],
+        planBlocks: [
+          "Confirmo o diagnóstico com medidas seriadas e, quando indicado, MAPA ou, se indisponível, MRPA.",
+          "Oriento medidas não farmacológicas para todos, com redução de sal e ultraprocessados, controle de peso, atividade física regular, moderação de álcool e cessação do tabagismo.",
+          "Considero tratamento medicamentoso conforme nível pressórico, risco cardiovascular, presença de lesão de órgão-alvo e comorbidades.",
+          "Solicito exames iniciais para estratificação de risco e investigação de repercussões ou causas secundárias quando indicado.",
+          "Programo reavaliação conforme nível pressórico, risco cardiovascular e necessidade de confirmação diagnóstica."
+        ]
+      },
+
+      exams: {
+        panelBase: [
+          "Creatinina com TFGe",
+          "Potássio",
+          "Sódio",
+          "Ácido úrico",
+          "Albuminúria ou relação albumina-creatinina",
+          "Glicemia de jejum",
+          "Perfil lipídico",
+          "Urinálise/EAS",
+          "Eletrocardiograma"
+        ],
+        directed: [
+          "MAPA ou, se indisponível, MRPA, para confirmação diagnóstica quando indicado.",
+          "TSH/T4 livre, relação aldosterona-renina, ecocardiograma, Doppler de artérias renais ou outros exames conforme suspeita de hipertensão secundária, lesão de órgão-alvo ou comorbidades."
+        ],
+        monitoring: [
+          "Repetir avaliação pressórica e exames conforme confirmação diagnóstica, risco cardiovascular e conduta instituída."
+        ]
+      },
+
+      guidance: [
+        "Oriento que o diagnóstico de hipertensão arterial sistêmica deve ser confirmado com medidas seriadas e, quando indicado, MAPA ou, se indisponível, MRPA.",
+        "Oriento técnica correta de medida da pressão arterial.",
+        "Oriento redução de sal e ultraprocessados, controle de peso, atividade física regular, moderação de álcool e cessação do tabagismo."
+      ],
+
+      followup: [
+        "Reavalio em 1 mês se iniciar tratamento medicamentoso ou se houver necessidade de confirmação diagnóstica em curto prazo.",
+        "Se pressão arterial normal-alta ou HAS grau 1 com baixo risco sem tratamento medicamentoso inicial, reavalio pressão arterial e risco cardiovascular em 3 a 6 meses.",
+        "Após confirmação diagnóstica e estabilização, programo seguimento periódico conforme controle pressórico e risco cardiovascular."
+      ],
+
+      specialSituations: [
+        "PAS ≥180 mmHg ou PAD ≥120 mmHg persistente, especialmente se associadas a sintomas ou suspeita de lesão aguda de órgão-alvo.",
+        "Dor torácica, dispneia, déficit neurológico focal, alteração visual importante, rebaixamento do sensório ou edema agudo de pulmão.",
+        "Gestação ou suspeita de gestação — requer manejo específico conforme protocolo vigente.",
+        "Suspeita de hipertensão secundária."
+      ],
+
+      longitudinalFocus: [
+        "Comparar medidas pressóricas atuais com aferições anteriores e com resultados de MRPA/MAPA, quando disponíveis.",
+        "Revisar evolução do risco cardiovascular desde a avaliação inicial.",
+        "Registrar confirmação diagnóstica, início ou não de tratamento medicamentoso e resposta às medidas não farmacológicas.",
+        "Reavaliar comorbidades, lesão de órgão-alvo e necessidade de investigação complementar."
+      ]
+    },
+
+    apply: {
+      problems: [
+        { key: "suspeita_has", label: "Suspeita de HAS / PA elevada em avaliação" }
+      ]
+    },
+
     governance: {
-      source: "MS/Conitec. PCDT de Hipertensão Arterial Sistêmica, 2025; Linha de Cuidado da HAS no Adulto, 2021; CAB nº 37 como referência complementar.",
-      sourceUrl: "https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-hipertensao-arterial-sistemica.pdf",
       status: "ativo",
-      version: "1.0.0",
-      lastRevised: "2026-04-17",
-    },
+      version: "1.1.0",
+      schemaVersion: "1.3.1",
+      lastRevised: "2026-04-21",
+      changes: "Migração do legado para o padrão v1.3.1. Remoção de SOAP com placeholders e checkboxes. Estruturação de exams em panelBase, directed e monitoring. Conversão de guidance e followup em arrays. Inclusão de metadata, ui, longitudinalFocus e apply.problems com foco em suspeita diagnóstica, sem marcar HAS confirmada automaticamente. Revisão clínica para APS/MFC. Correção de governança com URLs reais distintas.",
+      sources: [
+        {
+          label: "CONITEC — PCDT de Hipertensão Arterial Sistêmica",
+          url: "https://www.gov.br/conitec/pt-br/midias/protocolos/pcdt-hipertensao-arterial-sistemica.pdf/view",
+          type: "primary",
+          year: "2025"
+        },
+        {
+          label: "Linha de Cuidado — Hipertensão Arterial Sistêmica (HAS) no Adulto",
+          url: "https://linhasdecuidado.saude.gov.br/portal/hipertensao-arterial-sistemica-%28HAS%29-no-adulto/",
+          type: "secondary",
+          year: "2020"
+        },
+        {
+          label: "Caderno de Atenção Básica nº 37 — Hipertensão Arterial Sistêmica",
+          url: "https://bvsms.saude.gov.br/bvs/publicacoes/hipertensao_arterial_sistemica_cab37.pdf",
+          type: "secondary",
+          year: "2014"
+        }
+      ]
+    }
   },
 
   // ── DM2 ──────────────────────────────────────────────────────────────────
@@ -210,19 +478,19 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
     soap: {
       subjective: "Sintomas de hiperglicemia: ___ | Hipoglicemias: [ ] não [ ] sim, frequência/gravidade: ___ | Adesão: [ ] boa [ ] irregular | Medicações em uso: ___ | Glicemias capilares/automonitorização: ___ | Lesão nos pés, parestesias ou piora visual: ___",
       assessment: "DM2 [ ] no alvo glicêmico | [ ] fora do alvo. Meta HbA1c: [ ] <7,0% (adulto geral) | [ ] <7,5% (idoso saudável) | [ ] <8,0% (idoso comprometido) | [ ] evitar sintomas de hiper/hipoglicemia (idoso muito comprometido). Complicações/comorbidades: ___",
-      plan: "Reforçar medidas não farmacológicas e educação em autocuidado. [ ] Manter tratamento atual | [ ] Ajustar esquema medicamentoso | [ ] Rever risco de hipoglicemia e técnica de uso das medicações/insulina | [ ] Solicitar/atualizar rastreio de nefropatia, retinopatia e pé diabético | Retorno conforme controle.",
+      plan: "Reforço medidas não farmacológicas e educação em autocuidado. [ ] Mantenho tratamento atual | [ ] Ajusto esquema medicamentoso | [ ] Reavalio risco de hipoglicemia e técnica de uso das medicações/insulina | [ ] Solicito/atualizo rastreio de nefropatia, retinopatia e pé diabético | Programo retorno conforme controle.",
     },
     exams:
       "PAINEL BASE: hemoglobina glicada, glicemia de jejum, creatinina com TFGe, albuminúria/relação albumina-creatinina e perfil lipídico.\n" +
       "EXAME DIRIGIDO: fundoscopia para rastreio de retinopatia diabética, ao diagnóstico e anualmente.\n" +
       "EXAME DIRIGIDO: avaliação do pé diabético/neuropatia, ao diagnóstico e anualmente, com maior frequência conforme estratificação de risco.\n" +
       "EXAME DIRIGIDO: urinálise/EAS, urocultura ou outros exames conforme sintomas, suspeita de infecção, descompensação clínica ou complicações.",
-    guidance: "Manter alimentação adequada, atividade física regular e uso correto das medicações. A frequência da automonitorização glicêmica deve ser individualizada. Não pular refeições se houver risco de hipoglicemia. Inspecionar os pés diariamente e procurar atendimento se houver lesão, sinais de infecção, piora visual, vômitos persistentes ou glicemias muito elevadas com sintomas.",
+    guidance: "Oriento manter alimentação adequada, atividade física regular e uso correto das medicações. Oriento que a frequência da automonitorização glicêmica deve ser individualizada. Oriento não pular refeições se houver risco de hipoglicemia. Oriento inspeção diária dos pés e retorno imediato se houver lesão, sinais de infecção, piora visual, vômitos persistentes ou glicemias muito elevadas com sintomas.",
     redFlags: [
       "Glicemia muito elevada com sintomas importantes, desidratação, vômitos persistentes, sonolência ou suspeita de cetoacidose/síndrome hiperosmolar",
       "Hipoglicemia grave, confusão, convulsão, rebaixamento do sensório, infecção importante no pé ou sinais de isquemia"
     ],
-    followup: "Peso e pressão arterial em cada consulta. Hemoglobina glicada e glicemia de jejum a cada 6 meses, podendo antecipar conforme controle. Rastreio de nefropatia, retinopatia e pé diabético ao menos anualmente. Retorno em 3–6 meses se estável, ou antes após ajuste terapêutico ou descontrole.",
+    followup: "Acompanho peso e pressão arterial em cada consulta. Solicito hemoglobina glicada e glicemia de jejum a cada 6 meses, podendo antecipar conforme controle. Solicito rastreio de nefropatia, retinopatia e pé diabético ao menos anualmente. Programo retorno em 3–6 meses se estável, ou antes após ajuste terapêutico ou descontrole.",
     governance: {
       source: "MS/Conitec. PCDT de Diabete Melito Tipo 2, 2026; CAB nº 36 como referência complementar.",
       sourceUrl: "https://www.gov.br/saude/pt-br/assuntos/pcdt/d/diabete-melito-tipo-2.pdf/view",
@@ -250,7 +518,7 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
     soap: {
       subjective: "Sintomas de hiperglicemia: ___ | Perda de peso, infecções de repetição ou candidíase: ___ | Exames prévios: HbA1c ___ / glicemia ___ | História familiar/comorbidades: ___ | Medicamentos que alteram glicemia: ___ | Sinais de alerta ou suspeita de outro tipo de diabetes: ___",
       assessment: "DM2 [ ] confirmado | [ ] em confirmação. Critério laboratorial: [ ] HbA1c ≥6,5% | [ ] glicemia de jejum ≥126 mg/dL | [ ] TTGO 2h ≥200 mg/dL | [ ] glicemia aleatória ≥200 mg/dL com sintomas. Gravidade/complicações iniciais: ___ | Risco cardiovascular: [ ] baixo | [ ] moderado | [ ] alto | [ ] muito alto",
-      plan: "Medidas não farmacológicas para todos. [ ] Iniciar metformina, se não houver contraindicação | [ ] Considerar terapia de combinação se HbA1c >7,5% ao diagnóstico | [ ] Solicitar avaliação basal de complicações e exames iniciais | [ ] Orientar automonitorização quando indicada | [ ] Reavaliar resposta clínica e laboratorial após início do tratamento.",
+      plan: "Reforço medidas não farmacológicas para todos. [ ] Inicio metformina, se não houver contraindicação | [ ] Considero terapia de combinação se HbA1c >7,5% ao diagnóstico | [ ] Solicito avaliação basal de complicações e exames iniciais | [ ] Oriento automonitorização quando indicada | [ ] Reavalio resposta clínica e laboratorial após início do tratamento.",
     },
     exams:
       "PAINEL BASE: hemoglobina glicada, glicemia de jejum, creatinina com TFGe, albuminúria/relação albumina-creatinina e perfil lipídico.\n" +
@@ -258,12 +526,12 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
       "EXAME DIRIGIDO: fundoscopia para rastreio de retinopatia, ao diagnóstico e anualmente.\n" +
       "EXAME DIRIGIDO: avaliação do pé diabético/neuropatia, ao diagnóstico e anualmente, com maior frequência conforme estratificação de risco.\n" +
       "EXAME DIRIGIDO: investigação adicional se suspeita de DM1/LADA, diabetes secundário ou condição que distorça a HbA1c.",
-    guidance: "Explicar o diagnóstico e o caráter crônico do DM2. Reforçar alimentação adequada, atividade física regular, redução de peso quando indicado e uso correto das medicações. A automonitorização glicêmica deve ser individualizada. Orientar cuidado diário com os pés e procurar atendimento se houver vômitos persistentes, desidratação, sonolência, glicemias muito elevadas com sintomas ou lesões/infecção nos pés.",
+    guidance: "Oriento o diagnóstico e o caráter crônico do DM2. Oriento alimentação adequada, atividade física regular, redução de peso quando indicada e uso correto das medicações. Oriento que a automonitorização glicêmica deve ser individualizada. Oriento cuidado diário com os pés e retorno imediato se houver vômitos persistentes, desidratação, sonolência, glicemias muito elevadas com sintomas ou lesões/infecção nos pés.",
     redFlags: [
       "Hiperglicemia aguda sintomática, especialmente com glicemia aleatória ≥250 mg/dL, desidratação, vômitos persistentes ou rebaixamento do sensório",
       "Suspeita de cetoacidose, síndrome hiperosmolar, hipoglicemia grave ou fenótipo compatível com DM1/LADA"
     ],
-    followup: "Peso e pressão arterial em cada consulta. Hemoglobina glicada e glicemia de jejum ao diagnóstico e a cada 6 meses, podendo antecipar conforme necessidade clínica. Rastreio de pé diabético, nefropatia, dislipidemia e retinopatia ao diagnóstico e anualmente. Reavaliar mais cedo após início do tratamento ou se houver descontrole/sintomas.",
+    followup: "Acompanho peso e pressão arterial em cada consulta. Solicito hemoglobina glicada e glicemia de jejum ao diagnóstico e a cada 6 meses, podendo antecipar conforme necessidade clínica. Solicito rastreio de pé diabético, nefropatia, dislipidemia e retinopatia ao diagnóstico e anualmente. Reavalio mais cedo após início do tratamento ou se houver descontrole/sintomas.",
     governance: {
       source: "MS/Conitec. PCDT de Diabete Melito Tipo 2, 2026; CAB nº 36 como referência complementar.",
       sourceUrl: "https://www.gov.br/saude/pt-br/assuntos/pcdt/d/diabete-melito-tipo-2.pdf/view",
@@ -291,20 +559,20 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
     soap: {
       subjective: "PA atual: ___ | PA domiciliar/MRPA: ___ | HbA1c/glicemias recentes: ___ | Hipoglicemias: [ ] não [ ] sim, frequência/gravidade: ___ | Adesão: [ ] boa [ ] irregular | Medicações em uso: ___ | Sintomas de alarme, lesão nos pés, parestesias ou piora visual: ___",
       assessment: "HAS [ ] no alvo terapêutico | [ ] fora do alvo. DM2 [ ] no alvo glicêmico | [ ] fora do alvo. Meta HbA1c: [ ] <7,0% (adulto geral) | [ ] <7,5% (idoso saudável) | [ ] <8,0% (idoso comprometido) | [ ] evitar sintomas de hiper/hipoglicemia (idoso muito comprometido). Risco cardiovascular: [ ] alto | [ ] muito alto | DRC/albuminúria/lesão de órgão-alvo/DCV estabelecida: ___",
-      plan: "Reforçar medidas não farmacológicas e autocuidado. [ ] Manter tratamento atual | [ ] Ajustar anti-hipertensivos | [ ] Ajustar esquema antidiabético/insulina | [ ] Rever risco de hipoglicemia e adesão | [ ] Atualizar rastreio de nefropatia, retinopatia e pé diabético | [ ] Reavaliar função renal e albuminúria | Retorno conforme controle.",
+      plan: "Reforço medidas não farmacológicas e autocuidado. [ ] Mantenho tratamento atual | [ ] Ajusto anti-hipertensivos | [ ] Ajusto esquema antidiabético/insulina | [ ] Reavalio risco de hipoglicemia e adesão | [ ] Solicito/atualizo rastreio de nefropatia, retinopatia e pé diabético | [ ] Reavalio função renal e albuminúria | Programo retorno conforme controle.",
     },
     exams:
       "PAINEL BASE: hemoglobina glicada, glicemia de jejum, creatinina com TFGe, albuminúria/relação albumina-creatinina, perfil lipídico e potássio.\n" +
       "EXAME DIRIGIDO: fundoscopia para rastreio de retinopatia diabética, ao menos anualmente.\n" +
       "EXAME DIRIGIDO: avaliação do pé diabético/neuropatia, ao menos anualmente, com maior frequência conforme estratificação de risco.\n" +
       "EXAME DIRIGIDO: eletrocardiograma, urinálise/EAS, urocultura, MRPA/MAPA ou outros exames conforme sintomas, controle pressórico, suspeita de infecção, descompensação clínica ou complicações.",
-    guidance: "Reduzir sal, açúcar e ultraprocessados, manter atividade física regular e uso correto das medicações. A automonitorização glicêmica deve ser individualizada. Levar registros de PA domiciliar quando disponíveis. Inspecionar os pés diariamente e procurar atendimento se houver lesão, infecção, piora visual, glicemias muito elevadas com sintomas, vômitos persistentes, desidratação ou PA muito elevada com sintomas.",
+    guidance: "Oriento reduzir sal, açúcar e ultraprocessados, manter atividade física regular e uso correto das medicações. Oriento que a automonitorização glicêmica deve ser individualizada. Oriento levar registros de PA domiciliar quando disponíveis. Oriento inspeção diária dos pés e retorno imediato se houver lesão, infecção, piora visual, glicemias muito elevadas com sintomas, vômitos persistentes, desidratação ou PA muito elevada com sintomas.",
     redFlags: [
       "PAS ≥180 mmHg ou PAD ≥120 mmHg, especialmente se persistente ou acompanhada de sintomas/lesão aguda de órgão-alvo",
       "Glicemia muito elevada com sintomas importantes, desidratação, vômitos persistentes, sonolência ou suspeita de cetoacidose/síndrome hiperosmolar",
       "Hipoglicemia grave, dor torácica, dispneia, déficit neurológico focal, rebaixamento do sensório, infecção importante no pé ou sinais de isquemia"
     ],
-    followup: "Peso e pressão arterial em cada consulta. Hemoglobina glicada e glicemia de jejum a cada 6 meses, podendo antecipar conforme controle. Rastreio de nefropatia, retinopatia e pé diabético ao menos anualmente. Reavaliar em 1–3 meses se descontrole ou ajuste terapêutico; 3–6 meses se estável.",
+    followup: "Acompanho peso e pressão arterial em cada consulta. Solicito hemoglobina glicada e glicemia de jejum a cada 6 meses, podendo antecipar conforme controle. Solicito rastreio de nefropatia, retinopatia e pé diabético ao menos anualmente. Programo reavaliação em 1–3 meses se houver descontrole ou ajuste terapêutico; 3–6 meses se estável.",
     governance: {
       source: "MS/Conitec. PCDT de Hipertensão Arterial Sistêmica, 2025; MS/Conitec. PCDT de Diabete Melito Tipo 2, 2026.",
       sourceUrl: "https://www.gov.br/saude/pt-br/assuntos/pcdt/d/diabete-melito-tipo-2.pdf/view",
@@ -324,65 +592,42 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
   {
     id: "dislipidemia_inicial",
     name: "Dislipidemia — Início",
-    description: "Avaliação inicial de dislipidemia — estratificação PREVENT e decisão de tratamento",
+    description: "Avaliação inicial de dislipidemia na APS — estratificação de risco cardiovascular e definição do tratamento inicial",
     category: "cronico",
-    whenToUse: "Adulto com lipidograma alterado ou em avaliação de prevenção primária — estratificar risco cardiovascular PREVENT e definir conduta.",
-    whenNotToUse: "Gestação, lactação, hepatopatia ativa descompensada — referenciar. LDL ≥190 mg/dL: iniciar estatina alta intensidade SEM calcular escore — direto ao plano.",
-    minimumData: ["Lipidograma completo", "PA", "Creatinina+TFG", "Glicemia jejum ou HbA1c"],
-    tags: ["dislipidemia", "estatina", "LDL", "PREVENT", "prevenção primária", "risco cardiovascular", "ezetimiba"],
+    whenToUse: "Adulto com lipidograma alterado ou suspeita de dislipidemia em prevenção primária, sem DCVA conhecida, para estratificar risco cardiovascular e definir tratamento inicial.",
+    whenNotToUse: "Gestação, lactação, hepatopatia ativa descompensada, pancreatite aguda ou hipertrigliceridemia grave sintomática. DCVA estabelecida, hipercolesterolemia familiar já definida ou intolerância grave a estatina podem exigir condução específica.",
+    minimumData: [
+      "Lipidograma completo",
+      "Comorbidades e fatores de risco cardiovascular",
+      "Creatinina com TFGe e glicemia de jejum ou HbA1c",
+      "História de hepatopatia, hipotireoidismo, miopatia e medicações em uso",
+    ],
+    tags: ["dislipidemia", "LDL", "estatina", "PREVENT", "risco cardiovascular", "ezetimiba"],
     soap: {
-      subjective:
-        "Fatores de risco cardiovascular: [ ] HAS [ ] DM2 [ ] Tabagismo [ ] Obesidade [ ] Dislipidemia familiar.\n" +
-        "Antecedente familiar: DAC prematura <55a (homem) / <65a (mulher)? [ ] Sim [ ] Não.\n" +
-        "Sintomas de DCV: dispneia aos esforços, dor torácica atípica? [ ] Sim [ ] Não.\n" +
-        "Interações medicamentosas: ciclosporina, gemfibrozil, azólicos, macrolídeos? [ ] Sim [ ] Não.\n" +
-        "Hepatopatia prévia, miopatia, hipotireoidismo não controlado? ___",
-      assessment:
-        "LDL-c: ___ mg/dL | TG: ___ mg/dL | HDL: ___ mg/dL | Não-HDL: ___ mg/dL.\n" +
-        "Se LDL ≥190 mg/dL → iniciar estatina ALTA intensidade, SEM escore PREVENT.\n" +
-        "Se LDL <190 mg/dL → calcular escore PREVENT 10 anos (SBC 2025).\n" +
-        "  • PREVENT Baixo       → LDL meta <115 mg/dL — MNF isolado 3–6 meses.\n" +
-        "  • PREVENT Moderado    → LDL meta <100 mg/dL — considerar estatina moderada.\n" +
-        "  • PREVENT Alto        → LDL meta <70  mg/dL — estatina moderada a alta.\n" +
-        "  • PREVENT Muito alto  → LDL meta <50  mg/dL — estatina alta + ezetimiba.\n" +
-        "Se TG ≥150 mg/dL → Não-HDL = meta coprimária (LDL + 30 mg/dL).\n" +
-        "Avaliar função renal/TFG para escolha e ajuste de dose de estatina quando necessário.",
-      plan:
-        "[ ] LDL ≥190 mg/dL → iniciar rosuvastatina 20mg OU atorvastatina 40mg 1x/dia.\n" +
-        "[ ] LDL <190 + PREVENT moderado-alto → estatina moderada intensidade.\n" +
-        "[ ] TG ≥440 mg/dL jejum confirmado → referenciar ou iniciar fibrato.\n" +
-        "MNF: dieta hipolipídica, exercício, cessação tabágica.\n" +
-        "Reavaliar lipidograma em 4–12 semanas e função hepática (AST/ALT).",
+      subjective: "Fatores de risco cardiovascular: ___ | História familiar de DCVA prematura/dislipidemia familiar: ___ | Uso de fármacos que elevam lipídios ou interagem com estatinas: ___ | Hepatopatia, miopatia, hipotireoidismo ou uso de álcool: ___ | Sintomas de pancreatite ou doença cardiovascular: ___",
+      assessment: "LDL-c: ___ mg/dL | TG: ___ mg/dL | HDL-c: ___ mg/dL | Não-HDL-c: ___ mg/dL. [ ] LDL-c ≥190 mg/dL (alto risco) | [ ] LDL-c <190 mg/dL sem DCVA conhecida: estratifico risco com PREVENT 10 anos. Meta de LDL-c: [ ] <115 mg/dL (baixo) | [ ] <100 mg/dL (intermediário) | [ ] <70 mg/dL (alto) | [ ] <50 mg/dL (muito alto). Não-HDL-c como meta coprimária, especialmente se TG ≥150 mg/dL. Considero causas secundárias/agravantes: ___",
+      plan: "Reforço medidas não farmacológicas. [ ] Inicio estatina como primeira opção terapêutica | [ ] Inicio terapia de alta intensidade e considero associação com ezetimiba se LDL-c ≥190 mg/dL ou se a meta exigir redução ≥50% | [ ] Considero fibrato se TG persistentes ≥500 mg/dL | [ ] Solicito investigação de causas secundárias e biomarcadores complementares quando indicados | [ ] Programo reavaliação clínica e laboratorial.",
     },
     exams:
-      "PAINEL BASE: lipidograma (jejum não obrigatório na rotina), creatinina+TFG, AST/ALT, glicemia jejum.\n" +
-      "EXAME DIRIGIDO: Jejum 12–14h apenas se TG >440 mg/dL para confirmação.\n" +
-      "EXAME DIRIGIDO: TSH — se sinais de hipotireoidismo OU dislipidemia sem fator de risco claro.\n" +
-      "EXAME DIRIGIDO: HbA1c — se glicemia jejum ≥100 mg/dL OU diagnóstico prévio de DM2.\n" +
-      "EXAME DIRIGIDO: ApoB — se TG elevados, discordância aterogênica ou risco aumentado.\n" +
-      "EXAME DIRIGIDO: Lp(a) — considerar dosagem pelo menos uma vez na vida; priorizar se DAC familiar prematura.\n" +
-      "EXAME DIRIGIDO: ECG — se >40a OU com fatores de risco cardiovascular.",
-    guidance:
-      "Tomar a estatina 1x/dia em horário fixo. Para sinvastatina, preferir uso noturno; para atorvastatina/rosuvastatina, manter horário regular conforme prescrição.\n" +
-      "Não suspender sem orientação — o efeito é cumulativo.\n" +
-      "Relatar dor muscular intensa ou urina escura — pode ser miopatia.\n" +
-      "Dieta: preferir in natura, evitar ultraprocessados, frituras, embutidos.\n" +
-      "Atividade física ≥150 min/sem.\n" +
-      "Se LDL ≥190 mg/dL, risco cardiovascular já é alto — controle rigoroso.",
+      "PAINEL BASE: lipidograma, creatinina com TFGe, ALT/AST, glicemia de jejum ou HbA1c.\n" +
+      "EXAME DIRIGIDO: TSH se suspeita de hipotireoidismo ou dislipidemia sem causa clara.\n" +
+      "EXAME DIRIGIDO: ApoB se triglicerídeos elevados, discordância entre LDL-c e não-HDL-c ou risco aterogênico aumentado.\n" +
+      "EXAME DIRIGIDO: Lp(a) pelo menos uma vez na vida, quando disponível, especialmente se história familiar de DCVA prematura.\n" +
+      "EXAME DIRIGIDO: Repetir triglicerídeos em jejum se hipertrigliceridemia importante.\n" +
+      "EXAME DIRIGIDO: CK basal se alto risco de evento muscular, antecedente de miopatia/intolerância ou interação medicamentosa relevante.",
+    guidance: "Oriento alimentação com menor carga de gorduras saturadas e ultraprocessados, cessação do tabagismo e atividade física regular. Oriento uso da medicação em horário regular e sem suspensão por conta própria. Oriento retorno se houver dor muscular importante, fraqueza, urina escura, dor abdominal importante ou vômitos persistentes. Oriento que LDL-c muito elevado e triglicerídeos altos exigem seguimento mais próximo.",
     redFlags: [
-      "LDL ≥190 mg/dL — indicação absoluta de estatina de alta intensidade",
-      "TG ≥440 mg/dL em jejum confirmado — risco de pancreatite aguda",
-      "Mialgia + CPK elevada em uso de estatina — risco de rabdomiólise",
+      "LDL-c ≥190 mg/dL — alto risco e necessidade de intensificação terapêutica",
+      "TG persistentes ≥500 mg/dL ou quadro compatível com pancreatite aguda",
+      "Mialgia importante, fraqueza ou urina escura em uso de estatina",
     ],
-    followup:
-      "Lipidograma e AST/ALT + CPK em 4–12 semanas após início.\n" +
-      "Depois estável: lipidograma a cada 6–12 meses.",
+    followup: "Solicito lipidograma em 6–12 semanas após início ou ajuste da terapia. Reavalio ALT/AST e CK apenas se houver sintomas, alto risco de toxicidade ou alteração relevante da terapêutica. Depois de estabilização, programo acompanhamento com lipidograma a cada 6–12 meses.",
     governance: {
-      source: "SBC. Diretriz Brasileira de Dislipidemias e Prevenção da Aterosclerose, 2025 (PREVENT)",
-      sourceUrl: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12674852/",
+      source: "SBC. Diretriz Brasileira de Dislipidemias e Prevenção da Aterosclerose, 2025.",
+      sourceUrl: "https://abccardiol.org/wp-content/uploads/articles_xml/0066-782X-abc-122-09-e20250640/0066-782X-abc-122-09-e20250640.x66747.pdf",
       status: "ativo",
-      version: "1.2.0",
-      lastRevised: "2026-04-17",
+      version: "1.3.0",
+      lastRevised: "2026-04-21",
     },
   },
 
@@ -390,102 +635,167 @@ export const CLINICAL_TEMPLATES: ClinicalTemplate[] = [
   {
     id: "dislipidemia_retorno",
     name: "Dislipidemia — Retorno",
-    description: "Retorno de dislipidemia em uso de estatina — metas LDL/não-HDL por PREVENT",
+    description: "Seguimento de dislipidemia em uso de estatina na APS — adesão, metas lipídicas e necessidade de intensificação terapêutica",
     category: "cronico",
-    whenToUse: "Paciente em uso de estatina — reavaliar adesão, metas conforme PREVENT e necessidade de escalonar terapia.",
-    whenNotToUse: "Gestação, lactação, hepatopatia ativa descompensada, miopatia em uso de estatina — referenciar ou suspender e encaminhar.",
-    minimumData: ["Lipidograma atual", "Estatina e dose em uso", "PA", "Creatinina+TFG"],
-    tags: ["dislipidemia", "estatina", "LDL", "não-HDL", "PREVENT", "risco cardiovascular", "ezetimiba"],
+    whenToUse: "Pessoa em seguimento por dislipidemia, em uso de estatina, sem DCVA conhecida, para reavaliar adesão, resposta terapêutica, metas lipídicas e segurança do tratamento.",
+    whenNotToUse: "Gestação, lactação, hepatopatia ativa descompensada, pancreatite aguda, hipertrigliceridemia grave sintomática ou intolerância grave à estatina. DCVA estabelecida ou hipercolesterolemia familiar já definida podem exigir condução específica.",
+    minimumData: [
+      "Lipidograma atual",
+      "Estatina e dose em uso",
+      "Adesão e sintomas musculares",
+      "Creatinina com TFGe e exames prévios relevantes, se houver",
+    ],
+    tags: ["dislipidemia", "estatina", "LDL", "não-HDL", "PREVENT", "risco cardiovascular"],
     soap: {
-      subjective:
-        "Adesão à estatina: [ ] Regular [ ] Irregular.\n" +
-        "Mialgia/dor muscular: [ ] Não [ ] Sim → CPK? ___.\n" +
-        "Dieta/exercício: [ ] Melhora [ ] Sem mudança.\n" +
-        "Sintomas novos: ___.",
-      assessment:
-        "LDL-c: ___ mg/dL | TG: ___ mg/dL | HDL: ___ mg/dL | Não-HDL: ___ mg/dL.\n" +
-        "Se TG ≥150 mg/dL → usar Não-HDL como meta (LDL isolado subestima carga aterogênica).\n" +
-        "Metas LDL-c por PREVENT (SBC 2025):\n" +
-        "  • PREVENT Baixo       → LDL <115 mg/dL\n" +
-        "  • PREVENT Moderado    → LDL <100 mg/dL\n" +
-        "  • PREVENT Alto        → LDL <70  mg/dL\n" +
-        "  • PREVENT Muito alto  → LDL <50  mg/dL\n" +
-        "  • Risco extremo      → LDL <40  mg/dL (DCV estabelecida)\n" +
-        "Meta Não-HDL = LDL + 30 mg/dL.\n" +
-        "Intensidade estatina:\n" +
-        "  [ ] Alta (rosuvastatina 20-40mg, atorvastatina 40-80mg)\n" +
-        "  [ ] Moderada (atorvastatina 10-20mg, rosuvastatina 5-10mg)\n" +
-        "  [ ] Baixa (sinvastatina, pravastatina, lovastatina)\n" +
-        "Meta atingida? [ ] Sim [ ] Não.\n" +
-        "TG ≥440? [ ] Sim → coletar jejum confirmatório.",
-      plan:
-        "Estatina: [ ] Manter [ ] Aumentar intensidade [ ] Reduzir.\n" +
-        "Se meta NÃO atingida com estatina máxima tolerada → associar ezetimiba 10mg/dia.\n" +
-        "Se TG ≥440 mg/dL jejum confirmado → referenciar ou iniciar fibrato.\n" +
-        "MNF: saturadas <7% calórico total, eliminar trans, fibra solúvel 10-25g/dia,\n" +
-        "      EPA/DHA 2g/dia se TG elevados, atividade física ≥150 min/sem.\n" +
-        "Repetir lipidograma em 4–12 semanas após ajuste; a cada 6–12 meses se estável.",
+      subjective: "Adesão à estatina: [ ] boa [ ] irregular | Sintomas musculares: [ ] não [ ] sim, quais: ___ | Mudanças em dieta/atividade física: ___ | Novos sintomas ou intercorrências: ___ | Medicações que possam interagir com estatinas: ___",
+      assessment: "LDL-c: ___ mg/dL | TG: ___ mg/dL | HDL-c: ___ mg/dL | Não-HDL-c: ___ mg/dL. Estratificação de risco em prevenção primária: [ ] baixo | [ ] intermediário | [ ] alto | [ ] muito alto. Meta de LDL-c: [ ] <115 mg/dL | [ ] <100 mg/dL | [ ] <70 mg/dL | [ ] <50 mg/dL. Não-HDL-c como meta coprimária, especialmente se TG ≥150 mg/dL. Meta atingida? [ ] sim | [ ] não. Considero causas secundárias/agravantes: ___",
+      plan: "Reforço adesão, medidas não farmacológicas e técnica de uso da medicação. [ ] Mantenho estatina atual | [ ] Aumento intensidade da estatina | [ ] Associo ezetimiba se meta não atingida com estatina na dose tolerada | [ ] Considero fibrato se triglicerídeos persistentes ≥500 mg/dL | [ ] Solicito investigação complementar quando indicada | [ ] Programo reavaliação clínica e laboratorial.",
     },
     exams:
-      "PAINEL BASE: lipidograma (jejum não obrigatório de rotina), creatinina+TFG, AST/ALT.\n" +
-      "EXAME DIRIGIDO: Jejum 12–14h — se TG ≥440 mg/dL na amostra casual (confirmação de pancreatite).\n" +
-      "EXAME DIRIGIDO: CPK — se mialgia.\n" +
-      "EXAME DIRIGIDO: Glicemia jejum + HbA1c — anualmente (rastreio de DM2 — risco sinérgico).\n" +
-      "EXAME DIRIGIDO: Lp(a) — considerar dosagem pelo menos uma vez na vida; priorizado se DAC familiar prematura.\n" +
-      "EXAME DIRIGIDO: ApoB — se TG elevados, discordância aterogênica ou risco aumentado.",
-    guidance:
-      "Tomar a estatina 1x/dia em horário fixo. Para sinvastatina, preferir à noite; para atorvastatina/rosuvastatina, manter horário regular conforme prescrição.\n" +
-      "Evitar grapefruit (aumenta concentração de estatina).\n" +
-      "Relatar imediatamente: dor muscular intensa, urina escura, fraqueza — pode ser miopatia.\n" +
-      "Dieta: carnes magras, laticínios desnatados, azeite, frutas, verduras, grãos integrais, peixe.\n" +
-      "Evitar: frituras, embutidos, biscoitos recheados, margarina hidrogenada.\n" +
-      "Atividade física ≥150 min/sem.\n" +
-      "Não interromper estatina sem orientação médica.",
+      "PAINEL BASE: lipidograma, creatinina com TFGe e ALT/AST.\n" +
+      "EXAME DIRIGIDO: CK se houver sintomas musculares, alto risco de evento muscular ou interação medicamentosa relevante.\n" +
+      "EXAME DIRIGIDO: triglicerídeos em jejum se hipertrigliceridemia importante.\n" +
+      "EXAME DIRIGIDO: ApoB se triglicerídeos elevados, discordância entre LDL-c e não-HDL-c ou risco aterogênico aumentado.\n" +
+      "EXAME DIRIGIDO: Lp(a) pelo menos uma vez na vida, quando disponível, especialmente se história familiar de DCVA prematura.\n" +
+      "EXAME DIRIGIDO: glicemia de jejum ou HbA1c conforme risco metabólico e contexto clínico.",
+    guidance: "Oriento uso regular da estatina e não suspensão por conta própria. Oriento alimentação com menor carga de gorduras saturadas e ultraprocessados, além de atividade física regular. Oriento retorno se houver dor muscular importante, fraqueza, urina escura, dor abdominal importante ou vômitos persistentes. Oriento que triglicerídeos muito elevados e LDL-c persistentemente alto exigem seguimento mais próximo.",
     redFlags: [
-      "Mialgia + CPK elevada ou urina escura (rabdomiólise — suspender estatina imediatamente)",
-      "TG ≥440 mg/dL confirmado em jejum (risco de pancreatite aguda)",
-      "LDL ≥190 mg/dL (indicação de estatina de alta intensidade sem necessidade de escore)",
+      "Triglicerídeos persistentes ≥500 mg/dL ou quadro compatível com pancreatite aguda",
+      "Mialgia importante, fraqueza ou urina escura em uso de estatina",
+      "LDL-c muito elevado com necessidade de intensificação terapêutica",
     ],
-    followup:
-      "Lipidograma 4–12 semanas após ajuste de estatina; a cada 6–12 meses se estável.\n" +
-      "AST/ALT + CPK: monitorar se sintomas musculares.",
+    followup: "Solicito lipidograma em 6–12 semanas após início ou ajuste da terapia. Reavalio ALT/AST e CK apenas se houver sintomas, alto risco de toxicidade ou mudança relevante da terapêutica. Depois de estabilização, programo acompanhamento com lipidograma a cada 6–12 meses.",
     governance: {
-      source: "SBC. Diretriz Brasileira de Dislipidemias e Prevenção da Aterosclerose, 2025 (PREVENT)",
-      sourceUrl: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12674852/",
+      source: "SBC. Diretriz Brasileira de Dislipidemias e Prevenção da Aterosclerose, 2025.",
+      sourceUrl: "https://abccardiol.org/wp-content/uploads/articles_xml/0066-782X-abc-122-09-e20250640/0066-782X-abc-122-09-e20250640.x66747.pdf",
       status: "ativo",
-      version: "1.2.0",
-      lastRevised: "2026-04-17",
+      version: "1.3.0",
+      lastRevised: "2026-04-21",
     },
   },
 
-  // ── Hipotireoidismo ───────────────────────────────────────────────────────
+  // ── Hipotireoidismo — Retorno ────────────────────────────────────────────
+  // STATUS: MIGRADO v1.3.1 (21/04/2026)
   {
     id: "hipotireoidismo_retorno",
-    name: "Hipotireoidismo — Retorno",
-    description: "Retorno de hipotireoidismo em uso de levotiroxina",
-    category: "cronico",
-    whenToUse: "Paciente em uso de levotiroxina — reavaliar TSH e ajustar dose se necessário.",
-    whenNotToUse: "Suspeita de hipotireoidismo central, gestação, ou necessidade de dose >2,5 mcg/kg/dia apesar de adesão/interações/absorção adequadamente revisadas — encaminhar endocrinologia.",
-    minimumData: ["TSH recente", "Dose atual de levotiroxina"],
-    tags: ["hipotireoidismo", "levotiroxina", "TSH", "tireoide"],
-    soap: {
-      subjective: "Sintomas hipotireoidismo: fadiga, ganho peso, constipação, intolerância ao frio? [ ] Sim [ ] Não. Sintomas excesso: palpitações, tremor, insônia? [ ] Sim [ ] Não. Uso correto: [ ] Em jejum ≥30min [ ] Irregular. Dose: ___ mcg/dia.",
-      assessment: "TSH atual: ___ mUI/L. [ ] Compensado (TSH normal) | [ ] Descompensado. Encaminhar endocrinologia se suspeita de hipotireoidismo central ou necessidade de dose >2,5 mcg/kg/dia após revisar adesão, interações e absorção.",
-      plan: "[ ] Manter dose: ___ mcg/dia | [ ] Ajustar (incrementos 12,5–25 mcg). TSH 6–8 sem após ajuste. Se estável: TSH a cada 6–12 meses. Retorno em ___ meses.",
+
+    metadata: {
+      name: "Hipotireoidismo — Retorno",
+      description: "Retorno ambulatorial de paciente em uso de levotiroxina na APS.",
+      category: "cronico",
+      tags: ["hipotireoidismo", "levotiroxina", "TSH", "tireoide"],
+      status: "ativo" as const,
     },
-    exams:
-      "PAINEL BASE: TSH (6–12 meses se estável; 6–8 sem após ajuste).\n" +
-      "EXAME DIRIGIDO: T4 livre — se TSH fora do alvo ou sintomas de disfunção tireoidiana.\n" +
-      "EXAME DIRIGIDO: Lipidograma — se dislipidemia, risco cardiovascular aumentado ou necessidade de reavaliação metabólica.",
-    guidance: "Tomar levotiroxina SEMPRE em jejum, 30min antes do café. Não tomar com cálcio, ferro ou antiácidos (intervalo mínimo 4h). Não interromper. Retornar se: palpitações, tremor, insônia (sinais de excesso).",
-    redFlags: ["Palpitações, tremor, insônia — possíveis sinais de hipertireoidismo iatrogênico"],
-    followup: "TSH 6–8 semanas após ajuste de dose; a cada 6–12 meses se estável.",
+
+    indications: [
+      "Paciente com hipotireoidismo em seguimento ambulatorial na APS.",
+      "Consulta de retorno para revisão clínica, adesão e controle laboratorial.",
+    ],
+
+    dataRequirements: {
+      useNow: [
+        "Dose atual de levotiroxina",
+        "Contexto clínico da consulta atual",
+      ],
+      idealForAdjustment: [
+        "TSH recente",
+        "Peso atual",
+        "Medicações em uso",
+      ],
+    },
+
+    ui: {
+      subjectivePrompt: "Revisar sintomas atuais, adesão, modo de uso da levotiroxina, dose atual e evolução desde a última consulta.",
+      objectivePrompt: "Registrar peso, PA, FC e outros achados relevantes.",
+      quickNotes: [
+        "Comparar com TSH anterior se disponível.",
+        "Revisar interação com cálcio, ferro e antiácidos.",
+      ],
+    },
+
+    clinical: {
+      soap: {
+        subjectiveOutputBlocks: [
+          "Paciente em seguimento por hipotireoidismo, em uso de levotiroxina.",
+          "Na consulta, reavaliados sintomas relacionados ao controle clínico do quadro.",
+          "Revisados adesão ao tratamento, modo de uso da medicação e dose atual.",
+        ],
+        objectiveOutputBlocks: [
+          "Peso e sinais vitais registrados conforme consulta.",
+        ],
+        assessmentBlocks: [
+          "Hipotireoidismo em seguimento na APS.",
+          "Controle clínico e laboratorial reavaliado com base em sintomas, adesão e exames disponíveis.",
+        ],
+        planBlocks: [
+          "Mantenho ou ajusto a dose de levotiroxina conforme avaliação clínica e laboratorial.",
+          "Oriento uso correto da medicação em jejum e afastada de cálcio, ferro e antiácidos.",
+          "Solicito controle laboratorial quando indicado.",
+          "Programo retorno conforme evolução clínica e exames.",
+        ],
+      },
+
+      exams: {
+        panelBase: ["TSH"],
+        directed: [
+          "T4 livre — se TSH fora do alvo ou suspeita de disfunção tireoidiana.",
+          "Lipidograma — se dislipidemia, risco cardiovascular aumentado ou necessidade de reavaliação metabólica.",
+        ],
+        monitoring: [
+          "Repetir TSH em 6 a 8 semanas após ajuste de dose.",
+          "Se estável, seguir controle periódico em 6 a 12 meses.",
+        ],
+      },
+
+      guidance: [
+        "Oriento uso da levotiroxina em jejum, 30 minutos antes do café.",
+        "Oriento intervalo mínimo de 4 horas entre levotiroxina e cálcio, ferro ou antiácidos.",
+        "Oriento retorno se palpitações, tremor ou insônia.",
+      ],
+
+      followup: [
+        "Reavaliar TSH em 6 a 8 semanas após ajuste de dose.",
+        "Se estável, seguir controle periódico em 6 a 12 meses.",
+      ],
+
+      specialSituations: [
+        "Gestação ou suspeita de gestação — requer manejo específico conforme protocolo vigente.",
+        "Suspeita de hipotireoidismo central — encaminhar endocrinologia.",
+        "Dificuldade persistente de controle apesar de boa adesão e revisão de interações/absorção — encaminhar endocrinologia.",
+      ],
+
+      longitudinalFocus: [
+        "Comparar TSH atual com resultado anterior.",
+        "Revisar resposta clínica desde a última consulta ou ajuste de dose.",
+        "Verificar adesão, barreiras de uso e possíveis interações medicamentosas.",
+        "Registrar se houve necessidade de mudança de conduta desde o último acompanhamento.",
+      ],
+    },
+
+    apply: {
+      problems: [{ key: "hipotireoidismo", label: "Hipotireoidismo" }],
+    },
+
     governance: {
-      source: "MS. Protocolos de Encaminhamento: Endocrinologia Adulto, 2022; PCDT Hipotireoidismo como referência complementar.",
-      sourceUrl: "https://bvsms.saude.gov.br/bvs/publicacoes/protocolos_encaminhamento_atencao_endocrinologia_adulto.pdf",
-      status: GV.ativo,
-      version: "1.0.1",
-      lastRevised: "2026-04-17",
+      status: "ativo" as TemplateStatus,
+      version: "1.0.2",
+      schemaVersion: "1.3.1",
+      lastRevised: "2026-04-21",
+      changes: "Migração para padrão v1.3.1. Remoção de checkboxes e placeholders do SOAP. Conversão de exams para objeto estruturado. Inclusão de ui, longitudinalFocus e specialSituations. Adição de apply.problems. TSH em idealForAdjustment — não bloqueia fluxo de APS. Fontes reordenadas com PCDT CONITEC como primary. Ajuste de conteúdo em subjective e objective — remoção de frases que presumiam negativas não verificadas.",
+      sources: [
+        {
+          label: "CONITEC — PCDT Resumido do Hipotireoidismo",
+          url: "https://www.gov.br/conitec/pt-br/midias/protocolos/resumidos/pcdt_resumido_do_hipotireoidismo.pdf/view",
+          type: "primary" as const,
+          year: "2023",
+        },
+        {
+          label: "MS — Protocolos de Encaminhamento: Endocrinologia Adulto",
+          url: "https://bvsms.saude.gov.br/bvs/publicacoes/protocolos_encaminhamento_atencao_endocrinologia_adulto.pdf",
+          type: "secondary" as const,
+          year: "2022",
+        },
+      ],
     },
   },
 

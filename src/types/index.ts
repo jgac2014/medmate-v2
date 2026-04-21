@@ -258,14 +258,25 @@ export interface TimerState {
 
 export type TemplateStatus = "ativo" | "em_revisao" | "desatualizado" | "rascunho";
 
+export interface TemplateSource {
+  label: string;
+  url: string;
+  type: "primary" | "secondary" | "local";
+  year?: string;
+}
+
 export interface TemplateGovernance {
-  source: string;
+  source?: string;
   sourceUrl?: string;
   status: TemplateStatus;
   version: string;
   lastRevised: string;
   /** Mudanças vs versão anterior — campo descritivo para audit trail */
   changes?: string;
+  /** Versão do contrato estrutural — apenas em templates v1.3.1+ */
+  schemaVersion?: string;
+  /** Fontes — apenas em templates v1.3.1+ */
+  sources?: TemplateSource[];
 }
 
 export type TemplateCategory =

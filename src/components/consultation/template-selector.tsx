@@ -94,6 +94,18 @@ function getStatus(t: ClinicalTemplate): TemplateStatus {
   return t.governance?.status ?? "ativo";
 }
 
+function getName(t: ClinicalTemplate): string {
+  return t.metadata?.name ?? t.name ?? "—";
+}
+
+function getDescription(t: ClinicalTemplate): string {
+  return t.metadata?.description ?? t.description ?? "—";
+}
+
+function getCategory(t: ClinicalTemplate): TemplateCategory {
+  return t.metadata?.category ?? t.category ?? "cronico";
+}
+
 function getSource(t: ClinicalTemplate): string {
   return t.governance?.source ?? t.source ?? "—";
 }
@@ -239,8 +251,8 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
       const q = search.trim().toLowerCase();
       list = list.filter(
         (t) =>
-          t.name.toLowerCase().includes(q) ||
-          t.description.toLowerCase().includes(q) ||
+          (t.name ?? "").toLowerCase().includes(q) ||
+          (t.description ?? "").toLowerCase().includes(q) ||
           (t.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
       );
     }
@@ -498,10 +510,10 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                         <StatusBadge status={status} />
                       </div>
                       {/* Description */}
-                      <p className="text-[11px] text-[var(--on-surface-muted)] leading-relaxed mb-2">{t.description}</p>
+                      <p className="text-[11px] text-[var(--on-surface-muted)] leading-relaxed mb-2">{getDescription(t)}</p>
                       {/* Tags */}
                       <div className="flex flex-wrap gap-1">
-                        <CategoryPill category={t.category} />
+                        <CategoryPill category={getCategory(t)} />
                         {t.tags?.slice(0, 3).map((tag) => <Tag key={tag}>{tag}</Tag>)}
                       </div>
                       {/* Meta row */}
@@ -540,12 +552,12 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                 {/* Header compacto */}
                 <div className="pb-3 border-b border-[var(--outline-variant)]">
                   <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <h2 className="text-[15px] font-headline font-semibold text-[var(--on-surface)] leading-snug">{selected.name}</h2>
+                    <h2 className="text-[15px] font-headline font-semibold text-[var(--on-surface)] leading-snug">{getName(selected)}</h2>
                     <StatusBadge status={getStatus(selected)} />
                   </div>
-                  <p className="text-[11.5px] text-[var(--on-surface-muted)] leading-relaxed mb-2">{selected.description}</p>
+                  <p className="text-[11.5px] text-[var(--on-surface-muted)] leading-relaxed mb-2">{getDescription(selected)}</p>
                   <div className="flex flex-wrap gap-1">
-                    <CategoryPill category={selected.category} />
+                    <CategoryPill category={getCategory(selected)} />
                     {selected.tags?.map((tag) => <Tag key={tag}>{tag}</Tag>)}
                   </div>
                 </div>
