@@ -307,14 +307,6 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
   const [selected, setSelected] = useState<ClinicalTemplate | null>(null);
   const [showWhenNotToUse, setShowWhenNotToUse] = useState(false);
-  const [showMinData, setShowMinData] = useState(true);
-  const [showRedFlags, setShowRedFlags] = useState(true);
-  const [showSoap, setShowSoap] = useState(false);
-  const [showSoapFull, setShowSoapFull] = useState(false);
-  const [showExams, setShowExams] = useState(false);
-  const [showGuidance, setShowGuidance] = useState(false);
-  const [showFollowup, setShowFollowup] = useState(false);
-  const [showSource, setShowSource] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(() => getFavorites());
 
   const store = useConsultationStore();
@@ -592,7 +584,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                   return (
                     <button
                       key={t.id}
-                      onClick={() => { setSelected(t); setShowWhenNotToUse(false); setShowSoap(false); setShowSoapFull(false); setShowExams(false); setShowGuidance(false); setShowFollowup(false); setShowSource(false); }}
+                      onClick={() => { setSelected(t); setShowWhenNotToUse(false); }}
                       className={`w-full text-left rounded-xl border transition-all cursor-pointer p-3.5 ${
                         isSelected
                           ? "border-[var(--primary)]/40 bg-[var(--surface-container)] shadow-sm"
@@ -636,7 +628,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
           </div>
 
           {/* ═══ COLUNA DIREITA — Preview Lean ════════════════════════════════ */}
-          <aside className="w-[380px] shrink-0 border-l border-[var(--outline-variant)] bg-[var(--surface-low)] overflow-y-auto">
+          <aside className="w-[420px] shrink-0 border-l border-[var(--outline-variant)] bg-[var(--surface-low)] overflow-y-auto">
             {!selected ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[260px] px-6">
                 <span className="material-symbols-outlined text-4xl text-[var(--primary)]/10 mb-3">assignment_ind</span>
@@ -648,13 +640,13 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
             ) : (
               <div className="flex flex-col divide-y divide-[var(--outline-variant)]/40">
                 {/* ── Header ── */}
-                <div className="px-4 pt-4 pb-3 shrink-0">
+                <div className="px-5 pt-5 pb-4 shrink-0">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h2 className="text-[15px] font-headline font-semibold text-[var(--on-surface)] leading-snug">{getName(selected)}</h2>
                     <StatusBadge status={getStatus(selected)} />
                   </div>
-                  <p className="text-[11.5px] text-[var(--on-surface-muted)] leading-relaxed mb-2">{getDescription(selected)}</p>
-                  <div className="flex flex-wrap gap-1">
+                  <p className="text-[12px] text-[var(--on-surface-muted)] leading-[1.6] mb-3">{getDescription(selected)}</p>
+                  <div className="flex flex-wrap gap-1.5">
                     <CategoryPill category={getCategory(selected)} />
                     {getTags(selected).slice(0, 4).map((tag) => <Tag key={tag}>{tag}</Tag>)}
                     {getTags(selected).length > 4 && (
@@ -664,17 +656,17 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                 </div>
 
                 {/* ── Scroll body ── */}
-                <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
+                <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
                   {/* Quando usar — OPEN by default */}
                   {getWhenToUse(selected) && (
-                    <div className="py-2">
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--status-ok)] mb-2 flex items-center gap-1.5">
+                    <section>
+                      <h3 className="text-[11px] font-medium text-[var(--status-ok)] mb-2 flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-[12px]">play_circle</span>
                         Quando usar
-                      </p>
-                      <p className="text-[11.5px] text-[var(--on-surface-variant)] leading-[1.6]">{getWhenToUse(selected)}</p>
-                    </div>
+                      </h3>
+                      <p className="text-[12px] text-[var(--on-surface-variant)] leading-[1.6]">{getWhenToUse(selected)}</p>
+                    </section>
                   )}
 
                   {/* Quando NÃO usar — collapsed, low-key */}
@@ -684,7 +676,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                       icon="block"
                       color="text-[var(--status-crit)]"
                     >
-                      <p className="text-[11px] text-[var(--on-surface-variant)] leading-[1.6]">{selected.whenNotToUse}</p>
+                      <p className="text-[12px] text-[var(--on-surface-variant)] leading-[1.6]">{selected.whenNotToUse}</p>
                     </CollapsibleSection>
                   )}
 
@@ -692,20 +684,20 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                   {(() => {
                     const md = getMinimumData(selected);
                     return md.length > 0 ? (
-                      <div className="py-2">
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--status-info)] mb-2 flex items-center gap-1.5">
+                      <section>
+                        <h3 className="text-[11px] font-medium text-[var(--status-info)] mb-2 flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[12px]">checklist</span>
                           Dados mínimos
-                        </p>
-                        <ul className="space-y-1.5">
+                        </h3>
+                        <ul className="space-y-2">
                           {md.map((d, i) => (
                             <li key={i} className="flex items-start gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-info)] shrink-0 mt-2" />
-                              <span className="text-[11px] text-[var(--on-surface-variant)] leading-[1.5]">{d}</span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-info)] shrink-0 mt-[5px]" />
+                              <span className="text-[12px] text-[var(--on-surface-variant)] leading-[1.5]">{d}</span>
                             </li>
                           ))}
                         </ul>
-                      </div>
+                      </section>
                     ) : null;
                   })()}
 
@@ -713,92 +705,144 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                   {(() => {
                     const rfs = getRedFlags(selected);
                     return rfs.length > 0 ? (
-                      <div className="py-2">
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--status-crit)] mb-2 flex items-center gap-1.5">
+                      <section>
+                        <h3 className="text-[11px] font-medium text-[var(--status-crit)] mb-2 flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[12px]">warning</span>
                           Red flags
-                        </p>
-                        <ul className="space-y-1.5">
+                        </h3>
+                        <ul className="space-y-2">
                           {rfs.map((rf, i) => (
                             <li key={i} className="flex items-start gap-2">
-                              <span className="material-symbols-outlined text-[11px] text-[var(--status-crit)] shrink-0 mt-0.5">warning</span>
-                              <span className="text-[11px] text-[var(--on-surface-variant)] leading-[1.5]">{rf}</span>
+                              <span className="material-symbols-outlined text-[11px] text-[var(--status-crit)] shrink-0 mt-[2px]">warning</span>
+                              <span className="text-[12px] text-[var(--on-surface-variant)] leading-[1.5]">{rf}</span>
                             </li>
                           ))}
                         </ul>
-                      </div>
+                      </section>
                     ) : null;
                   })()}
 
-                  {/* Seguimento — collapsed by default */}
-                  {getFollowup(selected) && (
-                    <CollapsibleSection label="Seguimento" icon="calendar_month" color="text-[var(--on-surface-muted)]">
-                      <p className="text-[11px] text-[var(--on-surface-variant)] leading-[1.6]">{getFollowup(selected)}</p>
-                    </CollapsibleSection>
-                  )}
-
-                  {/* SOAP — collapsed, preview mode */}
+                  {/* SOAP — 3 seções simultâneas, cada uma com preview curto */}
                   {(() => {
                     const soap = getSoapPreview(selected);
                     if (!soap) return null;
-                    const hasMultiple = [soap.subjective, soap.assessment, soap.plan].filter(Boolean).length > 1;
-                    const previewAssessment = soap.assessment?.split("\n").slice(0, 2).join("\n") ?? "";
-                    const previewPlan = soap.plan?.split("\n").slice(0, 2).join("\n") ?? "";
+
+                    const toBullets = (text: string | undefined, max: number): string[] => {
+                      if (!text) return [];
+                      const lines = text.split("\n").filter((l) => l.trim());
+                      return lines.slice(0, max);
+                    };
+
+                    const sBullets = toBullets(soap.subjective, 3);
+                    const aBullets = toBullets(soap.assessment, 3);
+                    const pBullets = toBullets(soap.plan, 4);
+
+                    const hasAny = sBullets.length > 0 || aBullets.length > 0 || pBullets.length > 0;
+                    if (!hasAny) return null;
+
                     return (
-                      <CollapsibleSection label="SOAP" icon="medical_information" color="text-[var(--status-info)]">
-                        {soap.subjective && (
-                          <div className="mb-3">
-                            <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Subjetivo (S)</p>
-                            <pre className="text-[10.5px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{soap.subjective}</pre>
-                          </div>
-                        )}
-                        {soap.assessment && (
-                          <div className="mb-3">
-                            <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Avaliação (A)</p>
-                            <pre className="text-[10.5px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{soap.assessment}</pre>
-                          </div>
-                        )}
-                        {soap.plan && (
-                          <div>
-                            <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Plano (P)</p>
-                            <pre className="text-[10.5px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{soap.plan}</pre>
-                          </div>
-                        )}
-                      </CollapsibleSection>
+                      <section className="bg-[var(--surface-lowest)] rounded-xl p-4 border border-[var(--outline-variant)]">
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <span className="material-symbols-outlined text-[12px] text-[var(--status-info)]">medical_information</span>
+                          <p className="text-[11px] font-medium text-[var(--status-info)]">SOAP</p>
+                        </div>
+
+                        <div className="space-y-3">
+                          {/* S */}
+                          {sBullets.length > 0 && (
+                            <div>
+                              <p className="text-[9.5px] font-medium text-[var(--on-surface-muted)] mb-1.5">Subjetivo (S)</p>
+                              <ul className="space-y-1">
+                                {sBullets.map((b, i) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="w-1 h-1 rounded-full bg-[var(--status-info)] shrink-0 mt-[6px]" />
+                                    <span className="text-[12px] text-[var(--on-surface-variant)] leading-[1.5]">{b}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* A */}
+                          {aBullets.length > 0 && (
+                            <div>
+                              <p className="text-[9.5px] font-medium text-[var(--on-surface-muted)] mb-1.5">Avaliação (A)</p>
+                              <ul className="space-y-1">
+                                {aBullets.map((b, i) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="w-1 h-1 rounded-full bg-[var(--status-info)] shrink-0 mt-[6px]" />
+                                    <span className="text-[12px] text-[var(--on-surface-variant)] leading-[1.5]">{b}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* P */}
+                          {pBullets.length > 0 && (
+                            <div>
+                              <p className="text-[9.5px] font-medium text-[var(--on-surface-muted)] mb-1.5">Plano (P)</p>
+                              <ul className="space-y-1">
+                                {pBullets.map((b, i) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="w-1 h-1 rounded-full bg-[var(--status-info)] shrink-0 mt-[6px]" />
+                                    <span className="text-[12px] text-[var(--on-surface-variant)] leading-[1.5]">{b}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </section>
                     );
                   })()}
 
                   {/* Exames — collapsed */}
                   {getExams(selected) && (
-                    <CollapsibleSection label="Exames" icon="science" color="text-[var(--status-calc)]">
-                      <pre className="text-[11px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{getExams(selected)}</pre>
+                    <CollapsibleSection label="Exames solicitados" icon="science" color="text-[var(--status-calc)]">
+                      <pre className="text-[12px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{getExams(selected)}</pre>
                     </CollapsibleSection>
                   )}
 
                   {/* Orientações — collapsed */}
                   {getGuidance(selected) && (
-                    <CollapsibleSection label="Orientações" icon="patient_info" color="text-[var(--status-warn)]">
-                      <pre className="text-[11px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{getGuidance(selected)}</pre>
+                    <CollapsibleSection label="Orientações ao paciente" icon="patient_info" color="text-[var(--status-warn)]">
+                      <pre className="text-[12px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{getGuidance(selected)}</pre>
                     </CollapsibleSection>
                   )}
 
-                  {/* Fonte — collapsed, low priority */}
-                  <CollapsibleSection label="Fonte" icon="link" color="text-[var(--on-surface-muted)]" muted>
-                    <div className="pt-1">
+                  {/* Seguimento — OPEN by default, natural look */}
+                  {getFollowup(selected) && (
+                    <section>
+                      <h3 className="text-[11px] font-medium text-[var(--on-surface-muted)] mb-2 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[12px]">calendar_month</span>
+                        Seguimento
+                      </h3>
+                      <p className="text-[12px] text-[var(--on-surface-variant)] leading-[1.6]">{getFollowup(selected)}</p>
+                    </section>
+                  )}
+
+                  {/* Fonte — OPEN by default */}
+                  <section className="pb-4">
+                    <h3 className="text-[11px] font-medium text-[var(--on-surface-muted)] mb-2 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[12px]">link</span>
+                      Fonte
+                    </h3>
+                    <div className="space-y-1.5">
                       {getSourceUrl(selected) ? (
-                        <a href={getSourceUrl(selected)!} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[var(--status-info)] hover:underline flex items-center gap-1 mb-2">
+                        <a href={getSourceUrl(selected)!} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[var(--status-info)] hover:underline flex items-center gap-1.5">
                           {getSourceLabel(selected)}
                           <span className="material-symbols-outlined text-[11px]">open_in_new</span>
                         </a>
                       ) : (
-                        <p className="text-[11px] text-[var(--on-surface-muted)] mb-2">{getSourceLabel(selected)}</p>
+                        <p className="text-[12px] text-[var(--on-surface-muted)]">{getSourceLabel(selected)}</p>
                       )}
-                      <div className="flex items-center gap-2 text-[10px] text-[var(--on-surface-muted)]">
+                      <div className="flex items-center gap-2 text-[11px] text-[var(--on-surface-muted)]">
                         <span>v{getVersion(selected)}</span>
                         {getLastRevised(selected) && <span>· {formatDate(getLastRevised(selected))}</span>}
                       </div>
                     </div>
-                  </CollapsibleSection>
+                  </section>
                 </div>
               </div>
             )}
