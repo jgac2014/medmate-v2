@@ -190,6 +190,45 @@ function getGuidance(t: ClinicalTemplate) {
   return t.guidance ?? t.fill?.patientInstructions;
 }
 
+// Collapsible section for panel
+function CollapsibleSection({
+  label,
+  icon,
+  color,
+  muted = false,
+  children,
+}: {
+  label: string;
+  icon: string;
+  color: string;
+  muted?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className={`rounded-lg border transition-colors ${muted ? "border-[var(--outline-variant)]/50 bg-[var(--surface-low)]" : "border-[var(--outline-variant)] bg-[var(--surface-lowest)]"}`}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[var(--surface-container)]/50 transition-colors rounded-lg"
+      >
+        <div className="flex items-center gap-1.5">
+          <span className={`material-symbols-outlined text-[12px] ${color}`}>{icon}</span>
+          <p className={`text-[10px] font-semibold uppercase tracking-widest ${color}`}>{label}</p>
+        </div>
+        <span className={`material-symbols-outlined text-[14px] text-[var(--on-surface-muted)] transition-transform ${open ? "rotate-180" : ""}`}>
+          expand_more
+        </span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 pt-1">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Sub-Components ───────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: TemplateStatus }) {
@@ -268,6 +307,14 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
   const [selected, setSelected] = useState<ClinicalTemplate | null>(null);
   const [showWhenNotToUse, setShowWhenNotToUse] = useState(false);
+  const [showMinData, setShowMinData] = useState(true);
+  const [showRedFlags, setShowRedFlags] = useState(true);
+  const [showSoap, setShowSoap] = useState(false);
+  const [showSoapFull, setShowSoapFull] = useState(false);
+  const [showExams, setShowExams] = useState(false);
+  const [showGuidance, setShowGuidance] = useState(false);
+  const [showFollowup, setShowFollowup] = useState(false);
+  const [showSource, setShowSource] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(() => getFavorites());
 
   const store = useConsultationStore();
@@ -545,7 +592,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                   return (
                     <button
                       key={t.id}
-                      onClick={() => { setSelected(t); setShowWhenNotToUse(false); }}
+                      onClick={() => { setSelected(t); setShowWhenNotToUse(false); setShowSoap(false); setShowSoapFull(false); setShowExams(false); setShowGuidance(false); setShowFollowup(false); setShowSource(false); }}
                       className={`w-full text-left rounded-xl border transition-all cursor-pointer p-3.5 ${
                         isSelected
                           ? "border-[var(--primary)]/40 bg-[var(--surface-container)] shadow-sm"
@@ -558,11 +605,14 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                         <StatusBadge status={status} />
                       </div>
                       {/* Description */}
-                      <p className="text-[11px] text-[var(--on-surface-muted)] leading-relaxed mb-2">{getDescription(t)}</p>
-                      {/* Tags */}
+                      <p className="text-[11px] text-[var(--on-surface-muted)] leading-relaxed mb-2 line-clamp-2">{getDescription(t)}</p>
+                      {/* Tags — max 4 visible */}
                       <div className="flex flex-wrap gap-1">
                         <CategoryPill category={getCategory(t)} />
                         {getTags(t).slice(0, 3).map((tag) => <Tag key={tag}>{tag}</Tag>)}
+                        {getTags(t).length > 3 && (
+                          <span className="text-[10px] text-[var(--on-surface-muted)] px-1 py-0.5">+{getTags(t).length - 3}</span>
+                        )}
                       </div>
                       {/* Meta row */}
                       <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[var(--outline-variant)]/50">
@@ -596,154 +646,159 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                 </p>
               </div>
             ) : (
-              <div className="p-4 space-y-3">
-                {/* Header compacto */}
-                <div className="pb-3 border-b border-[var(--outline-variant)]">
-                  <div className="flex items-start justify-between gap-2 mb-1.5">
+              <div className="flex flex-col divide-y divide-[var(--outline-variant)]/40">
+                {/* ── Header ── */}
+                <div className="px-4 pt-4 pb-3 shrink-0">
+                  <div className="flex items-start justify-between gap-2 mb-2">
                     <h2 className="text-[15px] font-headline font-semibold text-[var(--on-surface)] leading-snug">{getName(selected)}</h2>
                     <StatusBadge status={getStatus(selected)} />
                   </div>
                   <p className="text-[11.5px] text-[var(--on-surface-muted)] leading-relaxed mb-2">{getDescription(selected)}</p>
                   <div className="flex flex-wrap gap-1">
                     <CategoryPill category={getCategory(selected)} />
-                    {getTags(selected).map((tag) => <Tag key={tag}>{tag}</Tag>)}
+                    {getTags(selected).slice(0, 4).map((tag) => <Tag key={tag}>{tag}</Tag>)}
+                    {getTags(selected).length > 4 && (
+                      <span className="text-[10px] text-[var(--on-surface-muted)] px-1.5 py-0.5">+{getTags(selected).length - 4}</span>
+                    )}
                   </div>
                 </div>
 
-                {/* Quando usar — sempre visível, verde */}
-                {getWhenToUse(selected) && (
-                  <PreviewBlock icon="play_circle" label="Quando usar" color="green">
-                    <p className="text-[11.5px] text-[var(--on-surface-variant)] leading-relaxed whitespace-pre-wrap">{getWhenToUse(selected)}</p>
-                  </PreviewBlock>
-                )}
+                {/* ── Scroll body ── */}
+                <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
 
-                {/* Quando não usar — colapsável, secundário */}
-                {selected.whenNotToUse && (
-                  <div className="rounded-lg border border-[var(--outline-variant)] border-l-[3px] border-l-[var(--status-crit)]/30 bg-[var(--status-crit)]/5 overflow-hidden">
-                    <button
-                      onClick={() => setShowWhenNotToUse(!showWhenNotToUse)}
-                      className="w-full flex items-center justify-between px-3 py-2.5 cursor-pointer"
+                  {/* Quando usar — OPEN by default */}
+                  {getWhenToUse(selected) && (
+                    <div className="py-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--status-ok)] mb-2 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[12px]">play_circle</span>
+                        Quando usar
+                      </p>
+                      <p className="text-[11.5px] text-[var(--on-surface-variant)] leading-[1.6]">{getWhenToUse(selected)}</p>
+                    </div>
+                  )}
+
+                  {/* Quando NÃO usar — collapsed, low-key */}
+                  {selected.whenNotToUse && (
+                    <CollapsibleSection
+                      label="Quando NÃO usar"
+                      icon="block"
+                      color="text-[var(--status-crit)]"
                     >
-                      <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[12px] text-[var(--status-crit)]">block</span>
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--status-crit)]">Quando NÃO usar</p>
-                      </div>
-                      <span className={`material-symbols-outlined text-[14px] text-[var(--on-surface-muted)] transition-transform ${showWhenNotToUse ? "rotate-180" : ""}`}>
-                        expand_more
-                      </span>
-                    </button>
-                    {showWhenNotToUse && (
-                      <div className="px-3 pb-2.5">
-                        <p className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed whitespace-pre-wrap">
-                          {selected.whenNotToUse}
+                      <p className="text-[11px] text-[var(--on-surface-variant)] leading-[1.6]">{selected.whenNotToUse}</p>
+                    </CollapsibleSection>
+                  )}
+
+                  {/* Dados mínimos — OPEN by default */}
+                  {(() => {
+                    const md = getMinimumData(selected);
+                    return md.length > 0 ? (
+                      <div className="py-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--status-info)] mb-2 flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[12px]">checklist</span>
+                          Dados mínimos
                         </p>
+                        <ul className="space-y-1.5">
+                          {md.map((d, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-info)] shrink-0 mt-2" />
+                              <span className="text-[11px] text-[var(--on-surface-variant)] leading-[1.5]">{d}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                    )}
-                  </div>
-                )}
+                    ) : null;
+                  })()}
 
-                {/* Dados mínimos */}
-                {(() => {
-                  const md = getMinimumData(selected);
-                  return md.length > 0 ? (
-                    <PreviewBlock icon="checklist" label="Dados mínimos" color="blue">
-                      <ul className="space-y-1">
-                        {md.map((d, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-info)] shrink-0 mt-1.5" />
-                            <span className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed">{d}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </PreviewBlock>
-                  ) : null;
-                })()}
+                  {/* Red flags — OPEN by default */}
+                  {(() => {
+                    const rfs = getRedFlags(selected);
+                    return rfs.length > 0 ? (
+                      <div className="py-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--status-crit)] mb-2 flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[12px]">warning</span>
+                          Red flags
+                        </p>
+                        <ul className="space-y-1.5">
+                          {rfs.map((rf, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="material-symbols-outlined text-[11px] text-[var(--status-crit)] shrink-0 mt-0.5">warning</span>
+                              <span className="text-[11px] text-[var(--on-surface-variant)] leading-[1.5]">{rf}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null;
+                  })()}
 
-                {/* SOAP — plano sempre visível, subjetivo colapsável */}
-                {(() => {
-                  const soap = getSoapPreview(selected);
-                  if (!soap) return null;
-                  return (
-                    <PreviewBlock icon="medical_information" label="SOAP" color="blue">
-                      {soap.subjective && (
-                        <div className="mb-2.5">
-                          <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Subjetivo (S) — perguntas guia</p>
-                          <pre className="text-[10.5px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{soap.subjective}</pre>
-                        </div>
+                  {/* Seguimento — collapsed by default */}
+                  {getFollowup(selected) && (
+                    <CollapsibleSection label="Seguimento" icon="calendar_month" color="text-[var(--on-surface-muted)]">
+                      <p className="text-[11px] text-[var(--on-surface-variant)] leading-[1.6]">{getFollowup(selected)}</p>
+                    </CollapsibleSection>
+                  )}
+
+                  {/* SOAP — collapsed, preview mode */}
+                  {(() => {
+                    const soap = getSoapPreview(selected);
+                    if (!soap) return null;
+                    const hasMultiple = [soap.subjective, soap.assessment, soap.plan].filter(Boolean).length > 1;
+                    const previewAssessment = soap.assessment?.split("\n").slice(0, 2).join("\n") ?? "";
+                    const previewPlan = soap.plan?.split("\n").slice(0, 2).join("\n") ?? "";
+                    return (
+                      <CollapsibleSection label="SOAP" icon="medical_information" color="text-[var(--status-info)]">
+                        {soap.subjective && (
+                          <div className="mb-3">
+                            <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Subjetivo (S)</p>
+                            <pre className="text-[10.5px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{soap.subjective}</pre>
+                          </div>
+                        )}
+                        {soap.assessment && (
+                          <div className="mb-3">
+                            <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Avaliação (A)</p>
+                            <pre className="text-[10.5px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{soap.assessment}</pre>
+                          </div>
+                        )}
+                        {soap.plan && (
+                          <div>
+                            <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Plano (P)</p>
+                            <pre className="text-[10.5px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{soap.plan}</pre>
+                          </div>
+                        )}
+                      </CollapsibleSection>
+                    );
+                  })()}
+
+                  {/* Exames — collapsed */}
+                  {getExams(selected) && (
+                    <CollapsibleSection label="Exames" icon="science" color="text-[var(--status-calc)]">
+                      <pre className="text-[11px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{getExams(selected)}</pre>
+                    </CollapsibleSection>
+                  )}
+
+                  {/* Orientações — collapsed */}
+                  {getGuidance(selected) && (
+                    <CollapsibleSection label="Orientações" icon="patient_info" color="text-[var(--status-warn)]">
+                      <pre className="text-[11px] text-[var(--on-surface-variant)] leading-[1.5] whitespace-pre-wrap">{getGuidance(selected)}</pre>
+                    </CollapsibleSection>
+                  )}
+
+                  {/* Fonte — collapsed, low priority */}
+                  <CollapsibleSection label="Fonte" icon="link" color="text-[var(--on-surface-muted)]" muted>
+                    <div className="pt-1">
+                      {getSourceUrl(selected) ? (
+                        <a href={getSourceUrl(selected)!} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[var(--status-info)] hover:underline flex items-center gap-1 mb-2">
+                          {getSourceLabel(selected)}
+                          <span className="material-symbols-outlined text-[11px]">open_in_new</span>
+                        </a>
+                      ) : (
+                        <p className="text-[11px] text-[var(--on-surface-muted)] mb-2">{getSourceLabel(selected)}</p>
                       )}
-                      {soap.assessment && (
-                        <div className="mb-2.5">
-                          <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Avaliação (A)</p>
-                          <pre className="text-[10.5px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{soap.assessment}</pre>
-                        </div>
-                      )}
-                      {soap.plan && (
-                        <div>
-                          <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Plano (P) — conduta</p>
-                          <pre className="text-[10.5px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{soap.plan}</pre>
-                        </div>
-                      )}
-                    </PreviewBlock>
-                  );
-                })()}
-
-                {/* Exames */}
-                {getExams(selected) && (
-                  <PreviewBlock icon="science" label="Exames" color="cyan">
-                    <pre className="text-[11px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{getExams(selected)}</pre>
-                  </PreviewBlock>
-                )}
-
-                {/* Orientações */}
-                {getGuidance(selected) && (
-                  <PreviewBlock icon="patient_info" label="Orientações" color="amber">
-                    <pre className="text-[11px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{getGuidance(selected)}</pre>
-                  </PreviewBlock>
-                )}
-
-                {/* Red Flags */}
-                {(() => {
-                  const rfs = getRedFlags(selected);
-                  return rfs.length > 0 ? (
-                    <PreviewBlock icon="warning" label="Red flags" color="red">
-                      <ul className="space-y-1">
-                        {rfs.map((rf, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="material-symbols-outlined text-[12px] text-[var(--status-crit)] shrink-0 mt-0.5">warning</span>
-                            <span className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed">{rf}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </PreviewBlock>
-                  ) : null;
-                })()}
-
-                {/* Seguimento */}
-                {getFollowup(selected) && (
-                  <PreviewBlock icon="calendar_month" label="Seguimento" color="gray">
-                    <p className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed whitespace-pre-wrap">{getFollowup(selected)}</p>
-                  </PreviewBlock>
-                )}
-
-                {/* Fonte + governança compacta */}
-                <div className="rounded-lg border border-[var(--outline-variant)] p-3 bg-[var(--surface-lowest)]">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">
-                    {getSourceUrl(selected) ? (
-                      <a href={getSourceUrl(selected)!} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--status-info)]">
-                        Fonte ↗
-                      </a>
-                    ) : (
-                      "Fonte"
-                    )}
-                  </p>
-                  <p className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed mb-2">{getSourceLabel(selected)}</p>
-                  <div className="flex items-center gap-3 text-[10px] text-[var(--on-surface-muted)]">
-                    <span>v{getVersion(selected)}</span>
-                    {getLastRevised(selected) && <span>· {formatDate(getLastRevised(selected))}</span>}
-                    <span className="ml-auto">
-                      <StatusBadge status={getStatus(selected)} />
-                    </span>
-                  </div>
+                      <div className="flex items-center gap-2 text-[10px] text-[var(--on-surface-muted)]">
+                        <span>v{getVersion(selected)}</span>
+                        {getLastRevised(selected) && <span>· {formatDate(getLastRevised(selected))}</span>}
+                      </div>
+                    </div>
+                  </CollapsibleSection>
                 </div>
               </div>
             )}
