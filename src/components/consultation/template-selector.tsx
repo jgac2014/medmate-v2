@@ -122,6 +122,44 @@ function getLastRevised(t: ClinicalTemplate): string {
   return t.governance?.lastRevised ?? "";
 }
 
+function getTags(t: ClinicalTemplate): string[] {
+  return t.metadata?.tags ?? t.tags ?? [];
+}
+
+function getWhenToUse(t: ClinicalTemplate): string | undefined {
+  if (t.indications && t.indications.length > 0) {
+    return t.indications.join(" ");
+  }
+  return t.whenToUse;
+}
+
+function getMinimumData(t: ClinicalTemplate): string[] {
+  return t.dataRequirements?.useNow ?? t.minimumData ?? [];
+}
+
+function getRedFlags(t: ClinicalTemplate): string[] {
+  return t.clinical?.specialSituations ?? t.redFlags ?? [];
+}
+
+function getFollowup(t: ClinicalTemplate): string | undefined {
+  if (t.clinical?.followup && t.clinical.followup.length > 0) {
+    return t.clinical.followup.join(" ");
+  }
+  return t.followup;
+}
+
+function getSoapPreview(t: ClinicalTemplate): { subjective?: string; assessment?: string; plan?: string } | undefined {
+  if (t.clinical?.soap) {
+    const s = t.clinical.soap;
+    return {
+      subjective: s.subjectiveOutputBlocks?.join("\n"),
+      assessment: s.assessmentBlocks?.join("\n"),
+      plan: s.planBlocks?.join("\n"),
+    };
+  }
+  return t.soap;
+}
+
 function formatDate(iso: string): string {
   if (!iso) return "—";
   const [y, m, d] = iso.split("-");
@@ -228,7 +266,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
     let list = CLINICAL_TEMPLATES;
 
     if (selectedCategory !== "all") {
-      list = list.filter((t) => t.category === selectedCategory);
+      list = list.filter((t) => getCategory(t) === selectedCategory);
     }
 
     const recents = getRecents();
@@ -251,9 +289,9 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
       const q = search.trim().toLowerCase();
       list = list.filter(
         (t) =>
-          (t.name ?? "").toLowerCase().includes(q) ||
-          (t.description ?? "").toLowerCase().includes(q) ||
-          (t.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
+          getName(t).toLowerCase().includes(q) ||
+          getDescription(t).toLowerCase().includes(q) ||
+          getTags(t).some((tag) => tag.toLowerCase().includes(q))
       );
     }
 
@@ -421,7 +459,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                   <span className="ml-auto text-[10px] text-[var(--on-surface-muted)]">{CLINICAL_TEMPLATES.length}</span>
                 </button>
                 {(Object.entries(CATEGORY_LABELS) as [TemplateCategory, string][]).map(([cat, label]) => {
-                  const count = CLINICAL_TEMPLATES.filter((t) => t.category === cat).length;
+                  const count = CLINICAL_TEMPLATES.filter((t) => getCategory(t) === cat).length;
                   return (
                     <button
                       key={cat}
@@ -506,7 +544,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                     >
                       {/* Name + Status */}
                       <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <p className="text-[13px] font-semibold text-[var(--on-surface)] leading-snug">{t.name}</p>
+                        <p className="text-[13px] font-semibold text-[var(--on-surface)] leading-snug">{getName(t)}</p>
                         <StatusBadge status={status} />
                       </div>
                       {/* Description */}
@@ -514,7 +552,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                       {/* Tags */}
                       <div className="flex flex-wrap gap-1">
                         <CategoryPill category={getCategory(t)} />
-                        {t.tags?.slice(0, 3).map((tag) => <Tag key={tag}>{tag}</Tag>)}
+                        {getTags(t).slice(0, 3).map((tag) => <Tag key={tag}>{tag}</Tag>)}
                       </div>
                       {/* Meta row */}
                       <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[var(--outline-variant)]/50">
@@ -558,14 +596,14 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                   <p className="text-[11.5px] text-[var(--on-surface-muted)] leading-relaxed mb-2">{getDescription(selected)}</p>
                   <div className="flex flex-wrap gap-1">
                     <CategoryPill category={getCategory(selected)} />
-                    {selected.tags?.map((tag) => <Tag key={tag}>{tag}</Tag>)}
+                    {getTags(selected).map((tag) => <Tag key={tag}>{tag}</Tag>)}
                   </div>
                 </div>
 
                 {/* Quando usar — sempre visível, verde */}
-                {selected.whenToUse && (
+                {getWhenToUse(selected) && (
                   <PreviewBlock icon="play_circle" label="Quando usar" color="green">
-                    <p className="text-[11.5px] text-[var(--on-surface-variant)] leading-relaxed whitespace-pre-wrap">{selected.whenToUse}</p>
+                    <p className="text-[11.5px] text-[var(--on-surface-variant)] leading-relaxed whitespace-pre-wrap">{getWhenToUse(selected)}</p>
                   </PreviewBlock>
                 )}
 
@@ -595,42 +633,49 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                 )}
 
                 {/* Dados mínimos */}
-                {selected.minimumData && selected.minimumData.length > 0 && (
-                  <PreviewBlock icon="checklist" label="Dados mínimos" color="blue">
-                    <ul className="space-y-1">
-                      {selected.minimumData.map((d, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-info)] shrink-0 mt-1.5" />
-                          <span className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed">{d}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </PreviewBlock>
-                )}
+                {(() => {
+                  const md = getMinimumData(selected);
+                  return md.length > 0 ? (
+                    <PreviewBlock icon="checklist" label="Dados mínimos" color="blue">
+                      <ul className="space-y-1">
+                        {md.map((d, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-info)] shrink-0 mt-1.5" />
+                            <span className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed">{d}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </PreviewBlock>
+                  ) : null;
+                })()}
 
                 {/* SOAP — plano sempre visível, subjetivo colapsável */}
-                {selected.soap && (
-                  <PreviewBlock icon="medical_information" label="SOAP" color="blue">
-                    {selected.soap.subjective && (
-                      <div className="mb-2.5">
-                        <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Subjetivo (S) — perguntas guia</p>
-                        <pre className="text-[10.5px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{selected.soap.subjective}</pre>
-                      </div>
-                    )}
-                    {selected.soap.assessment && (
-                      <div className="mb-2.5">
-                        <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Avaliação (A)</p>
-                        <pre className="text-[10.5px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{selected.soap.assessment}</pre>
-                      </div>
-                    )}
-                    {selected.soap.plan && (
-                      <div>
-                        <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Plano (P) — conduta</p>
-                        <pre className="text-[10.5px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{selected.soap.plan}</pre>
-                      </div>
-                    )}
-                  </PreviewBlock>
-                )}
+                {(() => {
+                  const soap = getSoapPreview(selected);
+                  if (!soap) return null;
+                  return (
+                    <PreviewBlock icon="medical_information" label="SOAP" color="blue">
+                      {soap.subjective && (
+                        <div className="mb-2.5">
+                          <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Subjetivo (S) — perguntas guia</p>
+                          <pre className="text-[10.5px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{soap.subjective}</pre>
+                        </div>
+                      )}
+                      {soap.assessment && (
+                        <div className="mb-2.5">
+                          <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Avaliação (A)</p>
+                          <pre className="text-[10.5px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{soap.assessment}</pre>
+                        </div>
+                      )}
+                      {soap.plan && (
+                        <div>
+                          <p className="text-[9.5px] font-semibold uppercase tracking-widest text-[var(--on-surface-muted)] mb-1">Plano (P) — conduta</p>
+                          <pre className="text-[10.5px] text-[var(--on-surface-variant)] whitespace-pre-wrap leading-relaxed">{soap.plan}</pre>
+                        </div>
+                      )}
+                    </PreviewBlock>
+                  );
+                })()}
 
                 {/* Exames */}
                 {getExams(selected) && (
@@ -647,23 +692,26 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                 )}
 
                 {/* Red Flags */}
-                {selected.redFlags && selected.redFlags.length > 0 && (
-                  <PreviewBlock icon="warning" label="Red flags" color="red">
-                    <ul className="space-y-1">
-                      {selected.redFlags.map((rf, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="material-symbols-outlined text-[12px] text-[var(--status-crit)] shrink-0 mt-0.5">warning</span>
-                          <span className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed">{rf}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </PreviewBlock>
-                )}
+                {(() => {
+                  const rfs = getRedFlags(selected);
+                  return rfs.length > 0 ? (
+                    <PreviewBlock icon="warning" label="Red flags" color="red">
+                      <ul className="space-y-1">
+                        {rfs.map((rf, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="material-symbols-outlined text-[12px] text-[var(--status-crit)] shrink-0 mt-0.5">warning</span>
+                            <span className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed">{rf}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </PreviewBlock>
+                  ) : null;
+                })()}
 
                 {/* Seguimento */}
-                {selected.followup && (
+                {getFollowup(selected) && (
                   <PreviewBlock icon="calendar_month" label="Seguimento" color="gray">
-                    <p className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed whitespace-pre-wrap">{selected.followup}</p>
+                    <p className="text-[11px] text-[var(--on-surface-variant)] leading-relaxed whitespace-pre-wrap">{getFollowup(selected)}</p>
                   </PreviewBlock>
                 )}
 
