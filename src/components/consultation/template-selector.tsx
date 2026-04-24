@@ -158,11 +158,12 @@ function getFollowup(t: ClinicalTemplate): string | undefined {
   return t.followup;
 }
 
-function getSoapPreview(t: ClinicalTemplate): { subjective?: string; assessment?: string; plan?: string } | undefined {
+function getSoapPreview(t: ClinicalTemplate): { subjective?: string; objective?: string; assessment?: string; plan?: string } | undefined {
   if (t.clinical?.soap) {
     const s = t.clinical.soap;
     return {
       subjective: s.subjectiveOutputBlocks?.join("\n"),
+      objective: s.objectiveOutputBlocks?.join("\n"),
       assessment: s.assessmentBlocks?.join("\n"),
       plan: s.planBlocks?.join("\n"),
     };
@@ -176,17 +177,48 @@ function formatDate(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
-// Map legacy fill to new structure
+// Map v1.3.1 and legacy fill to normalized values
 function getProblems(t: ClinicalTemplate): string[] {
+  // v1.3.1: apply.problems is Array<{key, label}>
+  if (t.apply?.problems && t.apply.problems.length > 0) {
+    return t.apply.problems.map((p) => p.key);
+  }
+  // legacy: fill.problems is string[]
   return t.fill?.problems ?? [];
 }
-function getSoap(t: ClinicalTemplate) {
+function getSoap(t: ClinicalTemplate): Record<string, string | undefined> | undefined {
+  // v1.3.1: clinical.soap has named block arrays
+  if (t.clinical?.soap) {
+    const s = t.clinical.soap;
+    const result: Record<string, string | undefined> = {};
+    if (s.subjectiveOutputBlocks?.length) result.subjective = s.subjectiveOutputBlocks.join("\n");
+    if (s.objectiveOutputBlocks?.length) result.objective = s.objectiveOutputBlocks.join("\n");
+    if (s.assessmentBlocks?.length) result.assessment = s.assessmentBlocks.join("\n");
+    if (s.planBlocks?.length) result.plan = s.planBlocks.join("\n");
+    return Object.keys(result).length > 0 ? result : undefined;
+  }
+  // legacy
   return t.soap ?? t.fill?.soap;
 }
-function getExams(t: ClinicalTemplate) {
+function getExams(t: ClinicalTemplate): string | undefined {
+  // v1.3.1: clinical.exams is { panelBase, directed, monitoring }
+  if (t.clinical?.exams) {
+    const e = t.clinical.exams;
+    const parts: string[] = [];
+    if (e.panelBase?.length) parts.push(`Painel base:\n${e.panelBase.map((x) => `- ${x}`).join("\n")}`);
+    if (e.directed?.length) parts.push(`Dirigidos:\n${e.directed.map((x) => `- ${x}`).join("\n")}`);
+    if (e.monitoring?.length) parts.push(`Monitoramento:\n${e.monitoring.map((x) => `- ${x}`).join("\n")}`);
+    return parts.length > 0 ? parts.join("\n\n") : undefined;
+  }
+  // legacy
   return t.exams ?? t.fill?.requestedExams;
 }
-function getGuidance(t: ClinicalTemplate) {
+function getGuidance(t: ClinicalTemplate): string | undefined {
+  // v1.3.1: clinical.guidance is string[]
+  if (t.clinical?.guidance && t.clinical.guidance.length > 0) {
+    return t.clinical.guidance.join("\n");
+  }
+  // legacy
   return t.guidance ?? t.fill?.patientInstructions;
 }
 
@@ -395,7 +427,7 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
     }
 
     saveRecent(template.id);
-    showToast(`Template "${template.name}" aplicado`, "success");
+    showToast(`Template "${getName(template)}" aplicado`, "success");
     onClose();
   }
 
@@ -734,10 +766,11 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                     };
 
                     const sBullets = toBullets(soap.subjective, 3);
+                    const oBullets = toBullets(soap.objective, 3);
                     const aBullets = toBullets(soap.assessment, 3);
                     const pBullets = toBullets(soap.plan, 4);
 
-                    const hasAny = sBullets.length > 0 || aBullets.length > 0 || pBullets.length > 0;
+                    const hasAny = sBullets.length > 0 || oBullets.length > 0 || aBullets.length > 0 || pBullets.length > 0;
                     if (!hasAny) return null;
 
                     return (
@@ -754,6 +787,21 @@ export function TemplateSelector({ open, onClose }: TemplateSelectorProps) {
                               <p className="text-[9.5px] font-medium text-[var(--on-surface-muted)] mb-1.5">Subjetivo (S)</p>
                               <ul className="space-y-1">
                                 {sBullets.map((b, i) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="w-1 h-1 rounded-full bg-[var(--status-info)] shrink-0 mt-[6px]" />
+                                    <span className="text-[12px] text-[var(--on-surface-variant)] leading-[1.5]">{b}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* O */}
+                          {oBullets.length > 0 && (
+                            <div>
+                              <p className="text-[9.5px] font-medium text-[var(--on-surface-muted)] mb-1.5">Objetivo (O)</p>
+                              <ul className="space-y-1">
+                                {oBullets.map((b, i) => (
                                   <li key={i} className="flex items-start gap-2">
                                     <span className="w-1 h-1 rounded-full bg-[var(--status-info)] shrink-0 mt-[6px]" />
                                     <span className="text-[12px] text-[var(--on-surface-variant)] leading-[1.5]">{b}</span>
